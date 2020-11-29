@@ -1,15 +1,17 @@
 """Test Subaru sensors."""
 
-from homeassistant.components.subaru.const import VEHICLE_NAME
-from homeassistant.components.subaru.sensor import (
+from homeassistant.util import slugify
+from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
+from pytest_homeassistant_custom_component.async_mock import patch
+
+from custom_components.subaru.const import VEHICLE_NAME
+from custom_components.subaru.sensor import (
     API_GEN_2_SENSORS,
     EV_SENSORS,
     SAFETY_SENSORS,
     SENSOR_FIELD,
     SENSOR_NAME,
 )
-from homeassistant.util import slugify
-from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
 
 from .api_responses import (
     EXPECTED_STATE_EV_IMPERIAL,
@@ -18,16 +20,13 @@ from .api_responses import (
     VEHICLE_DATA,
     VEHICLE_STATUS_EV,
 )
-from .test_init import setup_subaru_integration
-
-from tests.async_mock import patch
+from .common import setup_subaru_integration
 
 
 async def test_sensors_ev_imperial(hass):
     """Test sensors supporting imperial units."""
-    with patch("homeassistant.components.subaru.config_flow.SubaruAPI.fetch"), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_data",
-        return_value=VEHICLE_STATUS_EV,
+    with patch("custom_components.subaru.SubaruAPI.fetch"), patch(
+        "custom_components.subaru.SubaruAPI.get_data", return_value=VEHICLE_STATUS_EV,
     ):
         await _setup_ev(hass, unit_system=IMPERIAL_SYSTEM)
 
@@ -47,9 +46,8 @@ async def test_sensors_ev_imperial(hass):
 
 async def test_sensors_ev_metric(hass):
     """Test sensors supporting metric units."""
-    with patch("homeassistant.components.subaru.config_flow.SubaruAPI.fetch"), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_data",
-        return_value=VEHICLE_STATUS_EV,
+    with patch("custom_components.subaru.SubaruAPI.fetch"), patch(
+        "custom_components.subaru.SubaruAPI.get_data", return_value=VEHICLE_STATUS_EV,
     ):
         await _setup_ev(hass)
 

@@ -1,8 +1,6 @@
 """Support for the Subaru sensors."""
 import logging
 
-import subarulink.const as sc
-
 from homeassistant.const import (
     LENGTH_KILOMETERS,
     LENGTH_MILES,
@@ -14,6 +12,7 @@ from homeassistant.const import (
     VOLUME_GALLONS,
     VOLUME_LITERS,
 )
+from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.util.distance import convert as dist_convert
 from homeassistant.util.unit_system import (
     IMPERIAL_SYSTEM,
@@ -22,6 +21,7 @@ from homeassistant.util.unit_system import (
     TEMPERATURE_UNITS,
 )
 from homeassistant.util.volume import convert as vol_convert
+import subarulink.const as sc
 
 from .const import (
     API_GEN_2,
@@ -168,6 +168,19 @@ class SubaruSensor(SubaruEntity):
         self.api_unit = api_unit
 
     @property
+    def icon(self):
+        """Return icon for sensor."""
+        if self.title == "EV Battery Level" and self.coordinator.data.get(self.vin):
+            charge_status = (
+                self.coordinator.data[self.vin]["status"].get(sc.EV_CHARGER_STATE_TYPE)
+                == "CHARGING"
+            )
+            return icon_for_battery_level(
+                battery_level=self.current_value, charging=charge_status
+            )
+        return super().icon
+
+    @property
     def state(self):
         """Return the state of the sensor."""
         self.current_value = self.get_current_value()
@@ -221,12 +234,13 @@ class SubaruSensor(SubaruEntity):
 
     def get_current_value(self):
         """Get raw value from the coordinator."""
-        value = self.coordinator.data[self.vin]["status"][self.data_field]
-        if value in sc.BAD_SENSOR_VALUES:
-            value = None
-        if isinstance(value, str):
-            if "." in value:
-                value = float(value)
-            else:
-                value = int(value)
-        return value
+        if self.coordinator.data.get(self.vin):
+            value = self.coordinator.data[self.vin]["status"].get(self.data_field)
+            if value in sc.BAD_SENSOR_VALUES:
+                value = None
+            if isinstance(value, str):
+                if "." in value:
+                    value = float(value)
+                else:
+                    value = int(value)
+            return value

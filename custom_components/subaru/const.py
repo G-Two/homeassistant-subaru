@@ -29,7 +29,20 @@ VEHICLE_LAST_UPDATE = "last_update"
 API_GEN_1 = "g1"
 API_GEN_2 = "g2"
 
+REMOTE_SERVICE_FETCH = "fetch"
+REMOTE_SERVICE_UPDATE = "update"
+REMOTE_SERVICE_LOCK = "lock"
+REMOTE_SERVICE_UNLOCK = "unlock"
+REMOTE_SERVICE_LIGHTS = "lights"
+REMOTE_SERVICE_HORN = "horn"
+REMOTE_SERVICE_REMOTE_START = "remote_start"
+REMOTE_SERVICE_REMOTE_STOP = "remote_stop"
+REMOTE_SERVICE_CHARGE_START = "charge_start"
+
 SUPPORTED_PLATFORMS = [
+    "binary_sensor",
+    "device_tracker",
+    "lock",
     "sensor",
 ]
 
@@ -40,7 +53,7 @@ ICONS = {
     "EV Time to Full Charge": "mdi:car-electric",
     "EV Range": "mdi:ev-station",
     "External Temp": "mdi:thermometer",
-    "Odometer": "mdi:counter",
+    "Odometer": "mdi:road-variant",
     "Range": "mdi:gas-station",
     "Tire Pressure FL": "mdi:gauge",
     "Tire Pressure FR": "mdi:gauge",

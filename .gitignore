@@ -1,0 +1,6 @@
+*.pyc
+.coverage
+.vscode/
+.mypy_cache/
+.pytest_cache/
+*.code_workspace

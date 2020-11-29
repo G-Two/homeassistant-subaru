@@ -1,0 +1,35 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Account already configured",
+            "cannot_connect": "Cannot connect"
+        },
+        "error": {
+            "cannot_connect": "Cannot connect",
+            "invalid_auth": "Invalid credentials",
+            "invalid_pin": "Login with username/password succeeded, but PIN invalid.",
+            "unknown": "Unknown error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "password": "Password",
+                    "pin": "PIN for Remote Services (Security+ Subcription Required)",
+                    "username": "Username"
+                },
+                "description": "Please enter your MySubaru credentials. NOTE: Initial setup may take up to 30 seconds.",
+                "title": "Subaru Starlink Configuration"
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "hard_poll_interval": "Seconds between vehicle polling",
+                    "scan_interval": "Seconds between API polling"
+                }
+            }
+        }
+    }
+}

@@ -5,17 +5,7 @@ Borrowed heavily from Tesla tests (thanks @alandtse)
 """
 from datetime import datetime
 
-from subarulink.exceptions import InvalidCredentials, InvalidPIN, SubaruException
-
 from homeassistant import config_entries, setup
-from homeassistant.components.subaru.const import (
-    CONF_HARD_POLL_INTERVAL,
-    DEFAULT_HARD_POLL_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    MIN_HARD_POLL_INTERVAL,
-    MIN_SCAN_INTERVAL,
-)
 from homeassistant.const import (
     CONF_DEVICE_ID,
     CONF_PASSWORD,
@@ -23,9 +13,18 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_USERNAME,
 )
+from pytest_homeassistant_custom_component.async_mock import patch
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from subarulink.exceptions import InvalidCredentials, InvalidPIN, SubaruException
 
-from tests.async_mock import patch
-from tests.common import MockConfigEntry
+from custom_components.subaru.const import (
+    CONF_HARD_POLL_INTERVAL,
+    DEFAULT_HARD_POLL_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MIN_HARD_POLL_INTERVAL,
+    MIN_SCAN_INTERVAL,
+)
 
 TEST_USERNAME = "test@fake.com"
 TEST_TITLE = TEST_USERNAME
@@ -43,11 +42,9 @@ async def test_form(hass):
     assert result["errors"] is None
 
     with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.connect",
-        return_value=True,
+        "custom_components.subaru.config_flow.SubaruAPI.connect", return_value=True,
     ) as mock_connect, patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.test_pin",
-        return_value=True,
+        "custom_components.subaru.config_flow.SubaruAPI.test_pin", return_value=True,
     ) as mock_test_pin:
         device_id = int(datetime.now().timestamp())
         result2 = await hass.config_entries.flow.async_configure(
@@ -81,11 +78,9 @@ async def test_pin_not_required(hass):
     assert result["errors"] is None
 
     with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.connect",
-        return_value=True,
+        "custom_components.subaru.config_flow.SubaruAPI.connect", return_value=True,
     ) as mock_connect, patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.test_pin",
-        return_value=False,
+        "custom_components.subaru.config_flow.SubaruAPI.test_pin", return_value=False,
     ) as mock_test_pin:
         device_id = int(datetime.now().timestamp())
         result2 = await hass.config_entries.flow.async_configure(
@@ -116,7 +111,7 @@ async def test_form_invalid_auth(hass):
     )
 
     with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.connect",
+        "custom_components.subaru.config_flow.SubaruAPI.connect",
         side_effect=InvalidCredentials("invalidAccount"),
     ):
         result2 = await hass.config_entries.flow.async_configure(
@@ -139,7 +134,7 @@ async def test_form_invalid_pin(hass):
     )
 
     with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.connect",
+        "custom_components.subaru.config_flow.SubaruAPI.connect",
         side_effect=InvalidPIN("invalidPin"),
     ):
         result2 = await hass.config_entries.flow.async_configure(
@@ -162,7 +157,7 @@ async def test_form_cannot_connect(hass):
     )
 
     with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.connect",
+        "custom_components.subaru.config_flow.SubaruAPI.connect",
         side_effect=SubaruException(None),
     ):
         result2 = await hass.config_entries.flow.async_configure(
@@ -188,8 +183,7 @@ async def test_form_repeat_identifier(hass):
     )
 
     with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.connect",
-        return_value=True,
+        "custom_components.subaru.config_flow.SubaruAPI.connect", return_value=True,
     ):
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -216,10 +210,7 @@ async def test_option_flow(hass):
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        user_input={
-            CONF_SCAN_INTERVAL: 350,
-            CONF_HARD_POLL_INTERVAL: 3600,
-        },
+        user_input={CONF_SCAN_INTERVAL: 350, CONF_HARD_POLL_INTERVAL: 3600},
     )
     assert result["type"] == "create_entry"
     assert result["data"] == {
@@ -264,10 +255,7 @@ async def test_option_flow_input_floor(hass):
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        user_input={
-            CONF_SCAN_INTERVAL: 1,
-            CONF_HARD_POLL_INTERVAL: 1,
-        },
+        user_input={CONF_SCAN_INTERVAL: 1, CONF_HARD_POLL_INTERVAL: 1},
     )
     assert result["type"] == "create_entry"
     assert result["data"] == {

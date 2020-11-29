@@ -1,31 +1,20 @@
-"""Test Subaru init process."""
-from datetime import datetime, timedelta
+"""Test Subaru component setup and updates."""
+from datetime import timedelta
 
-from subarulink import InvalidCredentials, SubaruException
+from homeassistant.const import CONF_SCAN_INTERVAL
+from homeassistant.setup import async_setup_component
+from pytest_homeassistant_custom_component.async_mock import patch
+from subarulink import SubaruException
 
-from homeassistant.components import subaru
-from homeassistant.components.subaru.const import (
+from custom_components import subaru
+from custom_components.subaru.const import (
     CONF_HARD_POLL_INTERVAL,
     DEFAULT_HARD_POLL_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     ENTRY_CONTROLLER,
     ENTRY_COORDINATOR,
-    VEHICLE_API_GEN,
-    VEHICLE_HAS_EV,
-    VEHICLE_HAS_REMOTE_SERVICE,
-    VEHICLE_HAS_REMOTE_START,
-    VEHICLE_HAS_SAFETY_SERVICE,
-    VEHICLE_NAME,
 )
-from homeassistant.const import (
-    CONF_DEVICE_ID,
-    CONF_PASSWORD,
-    CONF_PIN,
-    CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
-)
-from homeassistant.setup import async_setup_component
 
 from .api_responses import (
     TEST_VIN_1_G1,
@@ -33,11 +22,10 @@ from .api_responses import (
     TEST_VIN_3_G2,
     VEHICLE_DATA,
     VEHICLE_STATUS_EV,
+    VEHICLE_STATUS_EV_BAD_LOCATION,
     VEHICLE_STATUS_G2,
 )
-
-from tests.async_mock import patch
-from tests.common import MockConfigEntry
+from .common import setup_subaru_integration
 
 
 async def test_setup_with_no_config(hass):
@@ -59,7 +47,7 @@ async def test_setup_ev(hass):
 
 
 async def test_setup_g2(hass):
-    """Test setup with a G2 vehcile ."""
+    """Test setup with a G2 vehicle."""
     entry = await setup_subaru_integration(
         hass,
         vehicle_list=[TEST_VIN_3_G2],
@@ -103,13 +91,32 @@ async def test_update_failed(hass):
     coordinator = hass.data[DOMAIN][entry.entry_id][ENTRY_COORDINATOR]
 
     with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.fetch",
+        "custom_components.subaru.SubaruAPI.fetch",
         side_effect=SubaruException("403 Error"),
     ):
         await coordinator.async_refresh()
         await hass.async_block_till_done()
         odometer = hass.states.get("sensor.test_vehicle_2_odometer")
         assert odometer.state == "unavailable"
+
+
+async def test_update_bad_location(hass):
+    """Tests when coordinator update receives invalid location data."""
+    entry = await setup_subaru_integration(
+        hass,
+        vehicle_list=[TEST_VIN_2_EV],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
+        vehicle_status=VEHICLE_STATUS_EV,
+    )
+    coordinator = hass.data[DOMAIN][entry.entry_id][ENTRY_COORDINATOR]
+
+    with patch("custom_components.subaru.SubaruAPI.fetch",), patch(
+        "custom_components.subaru.SubaruAPI.get_data",
+        return_value=VEHICLE_STATUS_EV_BAD_LOCATION,
+    ), patch("custom_components.subaru.SubaruAPI.update") as mock_update:
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+        mock_update.assert_called_once()
 
 
 async def test_update_listener(hass):
@@ -153,77 +160,3 @@ async def test_unload_entry(hass):
     assert await subaru.async_unload_entry(hass, entry)
     assert DOMAIN in hass.data
     assert hass.data[DOMAIN] == {}
-
-
-TEST_CONFIG = {
-    CONF_USERNAME: "user",
-    CONF_PASSWORD: "password",
-    CONF_PIN: "1234",
-    CONF_DEVICE_ID: int(datetime.now().timestamp()),
-}
-
-TEST_OPTIONS = {
-    CONF_HARD_POLL_INTERVAL: DEFAULT_HARD_POLL_INTERVAL,
-    CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
-}
-
-
-async def setup_subaru_integration(
-    hass,
-    vehicle_list=None,
-    vehicle_data=None,
-    vehicle_status=None,
-    connect_success=True,
-):
-    """Create Subaru entry."""
-    assert await async_setup_component(hass, DOMAIN, {})
-
-    config_entry = MockConfigEntry(
-        domain=DOMAIN,
-        data=TEST_CONFIG,
-        options=TEST_OPTIONS,
-        entry_id=1,
-    )
-    config_entry.add_to_hass(hass)
-
-    with patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.connect",
-        return_value=connect_success,
-        side_effect=None
-        if connect_success
-        else InvalidCredentials("Invalid Credentials"),
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_vehicles",
-        return_value=vehicle_list,
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.vin_to_name",
-        return_value=vehicle_data[VEHICLE_NAME],
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_api_gen",
-        return_value=vehicle_data[VEHICLE_API_GEN],
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_ev_status",
-        return_value=vehicle_data[VEHICLE_HAS_EV],
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_res_status",
-        return_value=vehicle_data[VEHICLE_HAS_REMOTE_START],
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_remote_status",
-        return_value=vehicle_data[VEHICLE_HAS_REMOTE_SERVICE],
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_safety_status",
-        return_value=vehicle_data[VEHICLE_HAS_SAFETY_SERVICE],
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.get_data",
-        return_value=vehicle_status,
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.update",
-    ), patch(
-        "homeassistant.components.subaru.config_flow.SubaruAPI.fetch",
-    ):
-        success = await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    if success:
-        return config_entry
-    return None
