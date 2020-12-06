@@ -22,7 +22,7 @@ This integration also provides services to perform the following tasks:
 The entities and services made available to your Home Assistant instance will be based upon your vehicle's capability and your subscription status. 
 
 ## Installation
-Clone or download this repository, and copy the `custom_components\subaru` directory into the `config\custom_components` directory of your Home Assistant instance. Restart Home Assistant.
+Clone or download this repository, and copy the `custom_components/subaru` directory into the `config/custom_components` directory of your Home Assistant instance. Restart Home Assistant.
 
 ## Configuration
 
@@ -49,3 +49,67 @@ The options are:
 
 - **Seconds between API polling *[Default: 300, Minimum: 60]*:** Controls how frequently Home Assistant will poll the MySubaru API for vehicle data they have cached on their servers. This does not invoke a remote service request to your vehicle, and the data may be stale. Your vehicle will still send new information during certain state changes, such as being turned off or having a charging cable plugged in.  Excessive API calls will not yield fresh data.
 - **Seconds between vehicle polling *[Default: 7200, Minimum: 300]*:** Controls how frequently Home Assistant will invoke a remote service request to poll your vehicle to request an information update. This involves "waking" your vehicle and powering on electronics momentarily. Performing this action too frequently may drain your battery. 
+
+## Services
+### `subaru.lock`
+Lock all doors of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.unlock`
+Unlock all doors of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.lights`
+Flash the lights of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.horn`
+Sound the horn and flash the lights of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.remote_start`
+Start the engine and climate control of the vehicle.  Uses the climate control settings saved. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.remote_stop`
+Stop the engine and climate control of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.charge_start`
+Starts EV charging. This cannot be stopped remotely. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.update`
+Sends request to vehicle to update data. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.fetch`
+Refreshes data (does not request update from vehicle). The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
