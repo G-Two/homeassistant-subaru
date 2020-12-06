@@ -25,7 +25,7 @@ from .api_responses import (
     VEHICLE_STATUS_EV_BAD_LOCATION,
     VEHICLE_STATUS_G2,
 )
-from .common import setup_subaru_integration
+from .common import ev_entry, setup_subaru_integration
 
 
 async def test_setup_with_no_config(hass):
@@ -80,15 +80,9 @@ async def test_unsuccessful_connect(hass):
     assert hass.data[DOMAIN] == {}
 
 
-async def test_update_failed(hass):
+async def test_update_failed(hass, ev_entry):
     """Tests when coordinator update fails."""
-    entry = await setup_subaru_integration(
-        hass,
-        vehicle_list=[TEST_VIN_2_EV],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
-        vehicle_status=VEHICLE_STATUS_EV,
-    )
-    coordinator = hass.data[DOMAIN][entry.entry_id][ENTRY_COORDINATOR]
+    coordinator = hass.data[DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
 
     with patch(
         "custom_components.subaru.SubaruAPI.fetch",
@@ -100,15 +94,9 @@ async def test_update_failed(hass):
         assert odometer.state == "unavailable"
 
 
-async def test_update_bad_location(hass):
+async def test_update_bad_location(hass, ev_entry):
     """Tests when coordinator update receives invalid location data."""
-    entry = await setup_subaru_integration(
-        hass,
-        vehicle_list=[TEST_VIN_2_EV],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
-        vehicle_status=VEHICLE_STATUS_EV,
-    )
-    coordinator = hass.data[DOMAIN][entry.entry_id][ENTRY_COORDINATOR]
+    coordinator = hass.data[DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
 
     with patch("custom_components.subaru.SubaruAPI.fetch",), patch(
         "custom_components.subaru.SubaruAPI.get_data",
@@ -119,22 +107,14 @@ async def test_update_bad_location(hass):
         mock_update.assert_called_once()
 
 
-async def test_update_listener(hass):
+async def test_update_listener(hass, ev_entry):
     """Test config options update listener."""
-    entry = await setup_subaru_integration(
-        hass,
-        vehicle_list=[TEST_VIN_2_EV],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
-        vehicle_status=VEHICLE_STATUS_EV,
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
-    coordinator = hass.data[DOMAIN][entry.entry_id][ENTRY_COORDINATOR]
-    controller = hass.data[DOMAIN][entry.entry_id][ENTRY_CONTROLLER]
+    coordinator = hass.data[DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    controller = hass.data[DOMAIN][ev_entry.entry_id][ENTRY_CONTROLLER]
     assert coordinator.update_interval == timedelta(seconds=DEFAULT_SCAN_INTERVAL)
     assert controller.get_update_interval() == DEFAULT_HARD_POLL_INTERVAL
 
-    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_init(ev_entry.entry_id)
     new_scan_interval = 240
     new_hard_poll_interval = 720
     await hass.config_entries.options.async_configure(
@@ -150,13 +130,8 @@ async def test_update_listener(hass):
     assert controller.get_update_interval() == new_hard_poll_interval
 
 
-async def test_unload_entry(hass):
+async def test_unload_entry(hass, ev_entry):
     """Test that entry is unloaded."""
-    entry = await setup_subaru_integration(
-        hass, vehicle_list=[TEST_VIN_2_EV], vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV]
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
-    assert await subaru.async_unload_entry(hass, entry)
+    assert await subaru.async_unload_entry(hass, ev_entry)
     assert DOMAIN in hass.data
     assert hass.data[DOMAIN] == {}

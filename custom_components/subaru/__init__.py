@@ -16,7 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from subarulink import Controller as SubaruAPI, InvalidPIN, SubaruException
+from subarulink import Controller as SubaruAPI, SubaruException
 from subarulink.const import LOCATION_VALID, VEHICLE_STATUS
 import voluptuous as vol
 
@@ -146,6 +146,7 @@ async def async_setup_entry(hass, entry):
         """Execute remote services."""
         vin = call.data[VEHICLE_VIN].upper()
         success = False
+        err_msg = ""
         if vin not in vehicle_info.keys():
             hass.components.persistent_notification.create(
                 f"ERROR - Invalid VIN: {vin}", "Subaru"
@@ -169,11 +170,8 @@ async def async_setup_entry(hass, entry):
                     )
                 else:
                     success = await getattr(controller, call.service)(vin)
-            except InvalidPIN:
-                hass.components.persistent_notification.dismiss(DOMAIN)
-                hass.components.persistent_notification.create(
-                    "ERROR - Invalid PIN", "Subaru"
-                )
+            except SubaruException as err:
+                err_msg = err.message
 
             if success and call.service in SERVICES_THAT_NEED_FETCH:
                 await coordinator.async_refresh()
@@ -185,7 +183,7 @@ async def async_setup_entry(hass, entry):
                 )
             else:
                 hass.components.persistent_notification.create(
-                    f"ERROR - Command failed: {call.service}:{vin}", "Subaru"
+                    f"ERROR: {call.service}:{vin}:{err_msg}", "Subaru"
                 )
 
     for service in remote_services:

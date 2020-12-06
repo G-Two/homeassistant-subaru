@@ -9,6 +9,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.setup import async_setup_component
+import pytest
 from pytest_homeassistant_custom_component.async_mock import patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from subarulink import InvalidCredentials
@@ -25,6 +26,8 @@ from custom_components.subaru.const import (
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_NAME,
 )
+
+from tests.api_responses import TEST_VIN_2_EV, VEHICLE_DATA, VEHICLE_STATUS_EV
 
 TEST_CONFIG = {
     CONF_USERNAME: "user",
@@ -88,8 +91,21 @@ async def setup_subaru_integration(
         "custom_components.subaru.SubaruAPI.fetch",
     ):
         success = await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
+        await hass.async_block_till_done()
 
     if success:
         return config_entry
     return None
+
+
+@pytest.fixture
+async def ev_entry(hass):
+    """Create a Subaru entity representing an EV vehicle with full STARLINK subscription."""
+    entry = await setup_subaru_integration(
+        hass,
+        vehicle_list=[TEST_VIN_2_EV],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
+        vehicle_status=VEHICLE_STATUS_EV,
+    )
+    assert hass.data[DOMAIN][entry.entry_id]
+    return entry
