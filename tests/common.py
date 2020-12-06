@@ -100,7 +100,7 @@ async def setup_subaru_integration(
 
 @pytest.fixture
 async def ev_entry(hass):
-    """Create a Subaru entity representing an EV vehicle with full STARLINK subscription."""
+    """Create a Subaru entry representing an EV vehicle with full STARLINK subscription."""
     entry = await setup_subaru_integration(
         hass,
         vehicle_list=[TEST_VIN_2_EV],

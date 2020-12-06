@@ -269,7 +269,7 @@ async def subaru_update(vehicle_info, controller):
         data[vin] = await controller.get_data(vin)
 
         # If vehicle pushed bad location then force new update
-        if not data[vin][VEHICLE_STATUS][LOCATION_VALID]:
+        if not data[vin][VEHICLE_STATUS][LOCATION_VALID] and vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
             await refresh_subaru_data(vehicle, controller, override_interval=True)
             await controller.fetch(vin, force=True)
             data[vin] = await controller.get_data(vin)
