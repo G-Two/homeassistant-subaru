@@ -1,6 +1,4 @@
 """Support for the Subaru sensors."""
-import logging
-
 from homeassistant.const import (
     LENGTH_KILOMETERS,
     LENGTH_MILES,
@@ -79,7 +77,7 @@ API_GEN_2_SENSORS = [
         SENSOR_FIELD: sc.BATTERY_VOLTAGE,
         SENSOR_UNITS: VOLT,
     },
-       {
+    {
         SENSOR_NAME: "Tire Pressure FL",
         SENSOR_FIELD: sc.TIRE_PRESSURE_FL,
         SENSOR_UNITS: PRESSURE_HPA,
