@@ -17,7 +17,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from subarulink import Controller as SubaruAPI, SubaruException
-from subarulink.const import LOCATION_VALID, VEHICLE_STATUS
+from subarulink.const import FEATURE_G2_TELEMATICS, LOCATION_VALID, VEHICLE_STATUS
 import voluptuous as vol
 
 from .const import (
@@ -268,8 +268,8 @@ async def subaru_update(vehicle_info, controller):
         # Update our local data that will go to entity states
         data[vin] = await controller.get_data(vin)
 
-        # If vehicle pushed bad location then force new update
-        if not data[vin][VEHICLE_STATUS][LOCATION_VALID] and vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
+        # If vehicle pushed bad location then force new update (ignore G1 which is always wrong?)
+        if not data[vin][VEHICLE_STATUS][LOCATION_VALID] and vehicle_info[vin][VEHICLE_API_GEN] == FEATURE_G2_TELEMATICS and vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
             await refresh_subaru_data(vehicle, controller, override_interval=True)
             await controller.fetch(vin, force=True)
             data[vin] = await controller.get_data(vin)
