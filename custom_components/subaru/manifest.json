@@ -3,6 +3,6 @@
   "name": "Subaru",
   "config_flow": true,
   "documentation": "https://github.com/G-Two/homeassistant-subaru",
-  "requirements": ["subarulink==0.3.10rc1"],
+  "requirements": ["subarulink==0.3.10rc2"],
   "codeowners": ["@G-Two"]
 }

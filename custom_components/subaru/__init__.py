@@ -33,7 +33,9 @@ from .const import (
     REMOTE_SERVICE_CHARGE_START,
     REMOTE_SERVICE_FETCH,
     REMOTE_SERVICE_HORN,
+    REMOTE_SERVICE_HORN_STOP,
     REMOTE_SERVICE_LIGHTS,
+    REMOTE_SERVICE_LIGHTS_STOP,
     REMOTE_SERVICE_LOCK,
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
@@ -98,7 +100,9 @@ async def async_setup_entry(hass, entry):
             remote_services.append(REMOTE_SERVICE_FETCH)
         if vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
             remote_services.append(REMOTE_SERVICE_HORN)
+            remote_services.append(REMOTE_SERVICE_HORN_STOP)
             remote_services.append(REMOTE_SERVICE_LIGHTS)
+            remote_services.append(REMOTE_SERVICE_LIGHTS_STOP)
             remote_services.append(REMOTE_SERVICE_LOCK)
             remote_services.append(REMOTE_SERVICE_UNLOCK)
             remote_services.append(REMOTE_SERVICE_UPDATE)
@@ -152,6 +156,7 @@ async def async_setup_entry(hass, entry):
                 f"ERROR - Invalid VIN: {vin}", "Subaru"
             )
         else:
+            name = vehicle_info[vin][VEHICLE_NAME]
             if call.service == REMOTE_SERVICE_FETCH:
                 await coordinator.async_refresh()
                 return
@@ -159,7 +164,7 @@ async def async_setup_entry(hass, entry):
             try:
                 _LOGGER.debug("calling %s", call.service)
                 hass.components.persistent_notification.create(
-                    f"Calling Subaru Service: {call.service}:{vin}\nThis may take 10-15 seconds.",
+                    f"Calling {call.service} for {name}\nThis may take 10-15 seconds.",
                     "Subaru",
                     DOMAIN,
                 )
@@ -179,11 +184,11 @@ async def async_setup_entry(hass, entry):
             hass.components.persistent_notification.dismiss(DOMAIN)
             if success:
                 hass.components.persistent_notification.create(
-                    f"Command completed: {call.service}:{vin}", "Subaru"
+                    f"Command {call.service} successfully completed for {name}", "Subaru"
                 )
             else:
                 hass.components.persistent_notification.create(
-                    f"ERROR: {call.service}:{vin}:{err_msg}", "Subaru"
+                    f"Error while calling {call.service} for {name} - {err_msg}", "Subaru"
                 )
 
     for service in remote_services:

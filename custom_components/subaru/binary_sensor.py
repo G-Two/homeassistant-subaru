@@ -4,6 +4,7 @@ from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_DOOR,
     DEVICE_CLASS_PLUG,
     DEVICE_CLASS_POWER,
+    DEVICE_CLASS_WINDOW,
     BinarySensorEntity,
 )
 import subarulink.const as sc
@@ -15,6 +16,7 @@ from .const import (
     ENTRY_VEHICLES,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
+    VEHICLE_VIN,
 )
 from .entity import SubaruEntity
 
@@ -26,7 +28,9 @@ SENSOR_ON_VALUE = "on_value"
 BINARY_SENSOR_ICONS = {DEVICE_CLASS_POWER: {True: "mdi:engine", False: "mdi:engine-off"},
                        DEVICE_CLASS_BATTERY_CHARGING: {True: "mdi:car-electric", False: "mdi:car"},
                        DEVICE_CLASS_DOOR: {True: "mdi:door-open", False: "mdi:door-closed"},
-                       DEVICE_CLASS_PLUG: {True: "mdi:power-plug", False: "mid:power-plug-off"}}
+                       DEVICE_CLASS_PLUG: {True: "mdi:power-plug", False: "mid:power-plug-off"},
+                       DEVICE_CLASS_WINDOW: {True: "mdi:window-open", False: "mdi:window-closed"}}
+
 
 # Binary Sensor data available to "Subaru Safety Plus" subscribers with Gen2 vehicles
 API_GEN_2_SENSORS = [
@@ -72,6 +76,30 @@ API_GEN_2_SENSORS = [
         SENSOR_CLASS: DEVICE_CLASS_DOOR,
         SENSOR_ON_VALUE: sc.DOOR_OPEN,
     },
+    {
+        SENSOR_NAME: "Front Left Window",
+        SENSOR_FIELD: sc.WINDOW_FRONT_LEFT_STATUS,
+        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
+    },
+    {
+        SENSOR_NAME: "Front Right Window",
+        SENSOR_FIELD: sc.WINDOW_FRONT_RIGHT_STATUS,
+        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
+    },
+    {
+        SENSOR_NAME: "Rear Left Window",
+        SENSOR_FIELD: sc.WINDOW_REAR_LEFT_STATUS,
+        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
+    },
+    {
+        SENSOR_NAME: "Rear Right Window",
+        SENSOR_FIELD: sc.WINDOW_REAR_RIGHT_STATUS,
+        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
+    },
 ]
 
 # Binary Sensor data available to "Subaru Safety Plus" subscribers with PHEV vehicles
@@ -111,16 +139,17 @@ def _create_sensor_entities(entities, vehicle_info, coordinator, hass):
         sensors_to_add.extend(EV_SENSORS)
 
     for subaru_sensor in sensors_to_add:
-        entities.append(
-            SubaruBinarySensor(
-                vehicle_info,
-                coordinator,
-                subaru_sensor[SENSOR_NAME],
-                subaru_sensor[SENSOR_FIELD],
-                subaru_sensor[SENSOR_CLASS],
-                subaru_sensor[SENSOR_ON_VALUE],
+        if coordinator.data[vehicle_info[VEHICLE_VIN]]["status"].get(subaru_sensor[SENSOR_FIELD]) not in sc.BAD_BINARY_SENSOR_VALUES:
+            entities.append(
+                SubaruBinarySensor(
+                    vehicle_info,
+                    coordinator,
+                    subaru_sensor[SENSOR_NAME],
+                    subaru_sensor[SENSOR_FIELD],
+                    subaru_sensor[SENSOR_CLASS],
+                    subaru_sensor[SENSOR_ON_VALUE],
+                )
             )
-        )
 
 
 class SubaruBinarySensor(SubaruEntity, BinarySensorEntity):
