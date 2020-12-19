@@ -1,0 +1,7 @@
+{
+    "name": "Subaru STARLINK",
+    "content_in_root": false,
+    "render_readme": true,
+    "homeassistant": "0.118.0",
+    "iot_class": "Cloud Polling" 
+}
