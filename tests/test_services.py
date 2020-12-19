@@ -10,17 +10,12 @@ from custom_components.subaru.const import (
     VEHICLE_VIN,
 )
 
-from .api_responses import TEST_VIN_2_EV, TEST_VIN_3_G2, VEHICLE_DATA
-from .common import setup_subaru_integration
+from .api_responses import TEST_VIN_2_EV, TEST_VIN_3_G2, VEHICLE_STATUS_EV
+from .common import ev_entry
 
 
-async def test_remote_service_horn(hass):
+async def test_remote_service_horn(hass, ev_entry):
     """Test remote service horn."""
-    entry = await setup_subaru_integration(
-        hass, vehicle_list=[TEST_VIN_2_EV], vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV]
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
     with patch("custom_components.subaru.SubaruAPI.horn") as mock_horn:
         await hass.services.async_call(
             DOMAIN, REMOTE_SERVICE_HORN, {VEHICLE_VIN: TEST_VIN_2_EV}, blocking=True,
@@ -29,14 +24,11 @@ async def test_remote_service_horn(hass):
         mock_horn.assert_called_once()
 
 
-async def test_remote_service_fetch(hass):
+async def test_remote_service_fetch(hass, ev_entry):
     """Test remote service fetch."""
-    entry = await setup_subaru_integration(
-        hass, vehicle_list=[TEST_VIN_2_EV], vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV]
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
-    with patch("custom_components.subaru.SubaruAPI.fetch") as mock_fetch:
+    with patch(
+        "custom_components.subaru.SubaruAPI.get_data", return_value=VEHICLE_STATUS_EV
+    ), patch("custom_components.subaru.SubaruAPI.fetch") as mock_fetch:
         await hass.services.async_call(
             DOMAIN, REMOTE_SERVICE_FETCH, {VEHICLE_VIN: TEST_VIN_2_EV}, blocking=True,
         )
@@ -44,14 +36,13 @@ async def test_remote_service_fetch(hass):
         mock_fetch.assert_called_once()
 
 
-async def test_remote_service_update(hass):
+async def test_remote_service_update(hass, ev_entry):
     """Test remote service update."""
-    entry = await setup_subaru_integration(
-        hass, vehicle_list=[TEST_VIN_2_EV], vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV]
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
-    with patch("custom_components.subaru.SubaruAPI.update") as mock_update:
+    with patch("custom_components.subaru.SubaruAPI.fetch"), patch(
+        "custom_components.subaru.SubaruAPI.get_data", return_value=VEHICLE_STATUS_EV
+    ), patch(
+        "custom_components.subaru.SubaruAPI.update", return_value=True
+    ) as mock_update:
         await hass.services.async_call(
             DOMAIN, REMOTE_SERVICE_UPDATE, {VEHICLE_VIN: TEST_VIN_2_EV}, blocking=True,
         )
@@ -59,13 +50,8 @@ async def test_remote_service_update(hass):
         mock_update.assert_called_once()
 
 
-async def test_remote_service_invalid_vin(hass):
+async def test_remote_service_invalid_vin(hass, ev_entry):
     """Test remote service request with invalid VIN."""
-    entry = await setup_subaru_integration(
-        hass, vehicle_list=[TEST_VIN_2_EV], vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV]
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
     with patch("custom_components.subaru.SubaruAPI.horn") as mock_horn:
         await hass.services.async_call(
             DOMAIN, REMOTE_SERVICE_HORN, {VEHICLE_VIN: TEST_VIN_3_G2}, blocking=True,
@@ -74,13 +60,8 @@ async def test_remote_service_invalid_vin(hass):
         mock_horn.assert_not_called()
 
 
-async def test_remote_service_invalid_pin(hass):
+async def test_remote_service_invalid_pin(hass, ev_entry):
     """Test remote service request with invalid PIN."""
-    entry = await setup_subaru_integration(
-        hass, vehicle_list=[TEST_VIN_2_EV], vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV]
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
     with patch(
         "custom_components.subaru.SubaruAPI.horn",
         side_effect=InvalidPIN("invalid PIN"),
@@ -92,13 +73,8 @@ async def test_remote_service_invalid_pin(hass):
         mock_horn.assert_called_once()
 
 
-async def test_remote_service_fails(hass):
+async def test_remote_service_fails(hass, ev_entry):
     """Test remote service request that initiates but fails."""
-    entry = await setup_subaru_integration(
-        hass, vehicle_list=[TEST_VIN_2_EV], vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV]
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
-
     with patch(
         "custom_components.subaru.SubaruAPI.horn", return_value=False
     ) as mock_horn:

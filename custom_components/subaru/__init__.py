@@ -16,8 +16,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from subarulink import Controller as SubaruAPI, InvalidPIN, SubaruException
-from subarulink.const import LOCATION_VALID, VEHICLE_STATUS
+from subarulink import Controller as SubaruAPI, SubaruException
+from subarulink.const import FEATURE_G2_TELEMATICS, LOCATION_VALID, VEHICLE_STATUS
 import voluptuous as vol
 
 from .const import (
@@ -33,7 +33,9 @@ from .const import (
     REMOTE_SERVICE_CHARGE_START,
     REMOTE_SERVICE_FETCH,
     REMOTE_SERVICE_HORN,
+    REMOTE_SERVICE_HORN_STOP,
     REMOTE_SERVICE_LIGHTS,
+    REMOTE_SERVICE_LIGHTS_STOP,
     REMOTE_SERVICE_LOCK,
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
@@ -98,7 +100,9 @@ async def async_setup_entry(hass, entry):
             remote_services.append(REMOTE_SERVICE_FETCH)
         if vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
             remote_services.append(REMOTE_SERVICE_HORN)
+            remote_services.append(REMOTE_SERVICE_HORN_STOP)
             remote_services.append(REMOTE_SERVICE_LIGHTS)
+            remote_services.append(REMOTE_SERVICE_LIGHTS_STOP)
             remote_services.append(REMOTE_SERVICE_LOCK)
             remote_services.append(REMOTE_SERVICE_UNLOCK)
             remote_services.append(REMOTE_SERVICE_UPDATE)
@@ -146,11 +150,13 @@ async def async_setup_entry(hass, entry):
         """Execute remote services."""
         vin = call.data[VEHICLE_VIN].upper()
         success = False
+        err_msg = ""
         if vin not in vehicle_info.keys():
             hass.components.persistent_notification.create(
                 f"ERROR - Invalid VIN: {vin}", "Subaru"
             )
         else:
+            name = vehicle_info[vin][VEHICLE_NAME]
             if call.service == REMOTE_SERVICE_FETCH:
                 await coordinator.async_refresh()
                 return
@@ -158,7 +164,7 @@ async def async_setup_entry(hass, entry):
             try:
                 _LOGGER.debug("calling %s", call.service)
                 hass.components.persistent_notification.create(
-                    f"Calling Subaru Service: {call.service}:{vin}\nThis may take 10-15 seconds.",
+                    f"Calling {call.service} for {name}\nThis may take 10-15 seconds.",
                     "Subaru",
                     DOMAIN,
                 )
@@ -169,11 +175,8 @@ async def async_setup_entry(hass, entry):
                     )
                 else:
                     success = await getattr(controller, call.service)(vin)
-            except InvalidPIN:
-                hass.components.persistent_notification.dismiss(DOMAIN)
-                hass.components.persistent_notification.create(
-                    "ERROR - Invalid PIN", "Subaru"
-                )
+            except SubaruException as err:
+                err_msg = err.message
 
             if success and call.service in SERVICES_THAT_NEED_FETCH:
                 await coordinator.async_refresh()
@@ -181,11 +184,11 @@ async def async_setup_entry(hass, entry):
             hass.components.persistent_notification.dismiss(DOMAIN)
             if success:
                 hass.components.persistent_notification.create(
-                    f"Command completed: {call.service}:{vin}", "Subaru"
+                    f"Command {call.service} successfully completed for {name}", "Subaru"
                 )
             else:
                 hass.components.persistent_notification.create(
-                    f"ERROR - Command failed: {call.service}:{vin}", "Subaru"
+                    f"Error while calling {call.service} for {name} - {err_msg}", "Subaru"
                 )
 
     for service in remote_services:
@@ -270,8 +273,8 @@ async def subaru_update(vehicle_info, controller):
         # Update our local data that will go to entity states
         data[vin] = await controller.get_data(vin)
 
-        # If vehicle pushed bad location then force new update
-        if not data[vin][VEHICLE_STATUS][LOCATION_VALID]:
+        # If vehicle pushed bad location then force new update (ignore G1 which is always wrong?)
+        if not data[vin][VEHICLE_STATUS][LOCATION_VALID] and vehicle_info[vin][VEHICLE_API_GEN] == FEATURE_G2_TELEMATICS and vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
             await refresh_subaru_data(vehicle, controller, override_interval=True)
             await controller.fetch(vin, force=True)
             data[vin] = await controller.get_data(vin)

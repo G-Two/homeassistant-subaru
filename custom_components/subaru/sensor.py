@@ -1,6 +1,4 @@
 """Support for the Subaru sensors."""
-import logging
-
 from homeassistant.const import (
     LENGTH_KILOMETERS,
     LENGTH_MILES,
@@ -34,7 +32,6 @@ from .const import (
 )
 from .entity import SubaruEntity
 
-_LOGGER = logging.getLogger(__name__)
 L_PER_GAL = vol_convert(1, VOLUME_GALLONS, VOLUME_LITERS)
 KM_PER_MI = dist_convert(1, LENGTH_MILES, LENGTH_KILOMETERS)
 
@@ -47,8 +44,19 @@ SENSOR_NAME = "name"
 SENSOR_FIELD = "field"
 SENSOR_UNITS = "units"
 
-# Sensor data available to "Subaru Safety Plus" subscribers with Gen1 or Gen2 vehicles
+# Sensor data available to "Subaru Safety Plus" subscribers with Gen1/Gen2 vehicles
 SAFETY_SENSORS = [
+    {
+        # Note: For Gen1, this value is only updated every 500 miles.
+        # There is no known manual update method.
+        SENSOR_NAME: "Odometer",
+        SENSOR_FIELD: sc.ODOMETER,
+        SENSOR_UNITS: LENGTH_KILOMETERS,
+    },
+]
+
+# Sensor data available to "Subaru Safety Plus" subscribers with Gen2 vehicles
+API_GEN_2_SENSORS = [
     {
         SENSOR_NAME: "Avg Fuel Consumption",
         SENSOR_FIELD: sc.AVG_FUEL_CONSUMPTION,
@@ -60,9 +68,14 @@ SAFETY_SENSORS = [
         SENSOR_UNITS: LENGTH_KILOMETERS,
     },
     {
-        SENSOR_NAME: "Odometer",
-        SENSOR_FIELD: sc.ODOMETER,
-        SENSOR_UNITS: LENGTH_KILOMETERS,
+        SENSOR_NAME: "External Temp",
+        SENSOR_FIELD: sc.EXTERNAL_TEMP,
+        SENSOR_UNITS: TEMP_CELSIUS,
+    },
+    {
+        SENSOR_NAME: "12V Battery Voltage",
+        SENSOR_FIELD: sc.BATTERY_VOLTAGE,
+        SENSOR_UNITS: VOLT,
     },
     {
         SENSOR_NAME: "Tire Pressure FL",
@@ -83,20 +96,6 @@ SAFETY_SENSORS = [
         SENSOR_NAME: "Tire Pressure RR",
         SENSOR_FIELD: sc.TIRE_PRESSURE_RR,
         SENSOR_UNITS: PRESSURE_HPA,
-    },
-]
-
-# Sensor data available to "Subaru Safety Plus" subscribers with Gen2 vehicles
-API_GEN_2_SENSORS = [
-    {
-        SENSOR_NAME: "External Temp",
-        SENSOR_FIELD: sc.EXTERNAL_TEMP,
-        SENSOR_UNITS: TEMP_CELSIUS,
-    },
-    {
-        SENSOR_NAME: "12V Battery Voltage",
-        SENSOR_FIELD: sc.BATTERY_VOLTAGE,
-        SENSOR_UNITS: VOLT,
     },
 ]
 

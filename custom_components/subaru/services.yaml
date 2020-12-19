@@ -29,9 +29,29 @@ lights:
         The vehicle identification number (VIN) of the vehicle, 17 characters
       example: JF2ABCDE6L0000001
 
+lights_stop:
+  description: >
+    Stop flashing the lights of the vehicle. The vehicle is identified via the vin
+    (see below).
+  fields:
+    vin:
+      description: >
+        The vehicle identification number (VIN) of the vehicle, 17 characters
+      example: JF2ABCDE6L0000001
+
 horn:
   description: >
     Sound the horn of the vehicle. The vehicle is identified via the vin
+    (see below).
+  fields:
+    vin:
+      description: >
+        The vehicle identification number (VIN) of the vehicle, 17 characters
+      example: JF2ABCDE6L0000001
+
+horn_stop:
+  description: >
+    Stop sounding the horn of the vehicle. The vehicle is identified via the vin
     (see below).
   fields:
     vin:
