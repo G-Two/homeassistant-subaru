@@ -4,6 +4,6 @@
   "config_flow": true,
   "documentation": "https://github.com/G-Two/homeassistant-subaru",
   "issue_tracker": "https://github.com/G-Two/homeassistant-subaru/issues",
-  "requirements": ["subarulink==0.3.10"],
+  "requirements": ["subarulink==0.3.11.dev2"],
   "codeowners": ["@G-Two"]
 }

@@ -13,7 +13,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from subarulink import Controller as SubaruAPI, SubaruException
@@ -120,7 +120,7 @@ async def async_setup_entry(hass, entry):
         try:
             return await subaru_update(vehicle_info, controller)
         except SubaruException as err:
-            raise UpdateFailed(err) from err
+            raise UpdateFailed(err.message) from err
 
     coordinator = DataUpdateCoordinator(
         hass,
@@ -153,8 +153,9 @@ async def async_setup_entry(hass, entry):
         err_msg = ""
         if vin not in vehicle_info.keys():
             hass.components.persistent_notification.create(
-                f"ERROR - Invalid VIN: {vin}", "Subaru"
+                f"ERROR - Invalid VIN provided while calling {call.service}", "Subaru"
             )
+            raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
         else:
             name = vehicle_info[vin][VEHICLE_NAME]
             if call.service == REMOTE_SERVICE_FETCH:
@@ -164,7 +165,7 @@ async def async_setup_entry(hass, entry):
             try:
                 _LOGGER.debug("calling %s", call.service)
                 hass.components.persistent_notification.create(
-                    f"Calling {call.service} for {name}\nThis may take 10-15 seconds.",
+                    f"Calling {call.service} for {name}\nThis may take 10-15 seconds",
                     "Subaru",
                     DOMAIN,
                 )
@@ -184,12 +185,14 @@ async def async_setup_entry(hass, entry):
             hass.components.persistent_notification.dismiss(DOMAIN)
             if success:
                 hass.components.persistent_notification.create(
-                    f"Command {call.service} successfully completed for {name}", "Subaru"
+                    f"Service {call.service} successfully completed for {name}", "Subaru"
                 )
+                _LOGGER.debug("Service %s successfully completed for %s", call.service, name)
             else:
                 hass.components.persistent_notification.create(
-                    f"Error while calling {call.service} for {name} - {err_msg}", "Subaru"
+                    f"Service {call.service} failed for {name}: {err_msg}", "Subaru"
                 )
+                raise HomeAssistantError(f"Service {call.service} failed for {name}: {err_msg}")
 
     for service in remote_services:
         hass.services.async_register(

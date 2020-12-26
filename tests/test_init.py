@@ -35,15 +35,9 @@ async def test_setup_with_no_config(hass):
     assert hass.data[DOMAIN] == {}
 
 
-async def test_setup_ev(hass):
+async def test_setup_ev(hass, ev_entry):
     """Test setup with an EV vehicle."""
-    entry = await setup_subaru_integration(
-        hass,
-        vehicle_list=[TEST_VIN_2_EV],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
-        vehicle_status=VEHICLE_STATUS_EV,
-    )
-    assert hass.data[DOMAIN][entry.entry_id]
+    assert hass.data[DOMAIN][ev_entry.entry_id]
 
 
 async def test_setup_g2(hass):
