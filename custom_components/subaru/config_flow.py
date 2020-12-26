@@ -18,9 +18,11 @@ from subarulink import (
     InvalidPIN,
     SubaruException,
 )
+from subarulink.const import COUNTRY_CAN, COUNTRY_USA
 import voluptuous as vol
 
 from .const import (
+    CONF_COUNTRY,
     CONF_HARD_POLL_INTERVAL,
     DEFAULT_HARD_POLL_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -81,6 +83,10 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_PIN, default=user_input.get(CONF_PIN) if user_input else ""
                     ): str,
+                    vol.Required(
+                        CONF_COUNTRY, 
+                        default=user_input.get(CONF_COUNTRY) if user_input else ""
+                    ): vol.In([COUNTRY_CAN, COUNTRY_USA])
                 }
             ),
             errors=error,
@@ -143,8 +149,12 @@ async def validate_input(hass: core.HomeAssistant, data):
         device_id=data[CONF_DEVICE_ID],
         pin=data[CONF_PIN],
         device_name=device_name,
+        country=data[CONF_COUNTRY]
     )
-    _LOGGER.info(
+    _LOGGER.debug(
+        f"Using subarulink {controller.version}"
+    )
+    _LOGGER.debug(
         "Setting up first time connection to Subuaru API.  This may take up to 20 seconds."
     )
     if await controller.connect():
@@ -154,7 +164,7 @@ async def validate_input(hass: core.HomeAssistant, data):
     if await controller.test_pin():
         _LOGGER.debug("User provided PIN is valid for Subaru remote service requests")
     else:
-        _LOGGER.info(
+        _LOGGER.debug(
             "No active remote service subscription, PIN number will not be used"
         )
 

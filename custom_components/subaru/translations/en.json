@@ -14,8 +14,9 @@
             "user": {
                 "data": {
                     "password": "Password",
-                    "pin": "PIN for Remote Services (Security+ Subcription Required)",
-                    "username": "Username"
+                    "pin": "PIN for remote services (Security+ subcription required)",
+                    "username": "Username",
+                    "country": "Select country"
                 },
                 "description": "Please enter your MySubaru credentials. NOTE: Initial setup may take up to 30 seconds.",
                 "title": "Subaru Starlink Configuration"
