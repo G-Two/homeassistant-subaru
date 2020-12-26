@@ -2,7 +2,7 @@
 
 **NOTE:** An [initial PR](https://github.com/home-assistant/core/pull/35760/) to add this component to Home Assistant Core is currently in progress.  This repo was created to continue development while the PR is in progress. After the initial PR is complete, additional PRs will follow based upon this repo.
 
-The Subaru custom component connects to the [MySubaru](https://www.mysubuaru.com) service to provide vehicle sensor information as well as the capability to actuate remote features. This integration requires an active subscription to Subaru of America's [STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service, which is currently only available in the United States and Canada. 
+The Subaru custom component connects to the [MySubaru](https://www.mysubuaru.com) service to provide vehicle sensor information as well as the capability to actuate remote features. This integration requires an active subscription to Subaru's [STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service, which is currently only available in the United States and Canada. 
 
 This integration provides the following platforms:
 

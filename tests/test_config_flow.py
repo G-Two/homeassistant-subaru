@@ -15,9 +15,11 @@ from homeassistant.const import (
 )
 from pytest_homeassistant_custom_component.async_mock import patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from subarulink.const import COUNTRY_USA
 from subarulink.exceptions import InvalidCredentials, InvalidPIN, SubaruException
 
 from custom_components.subaru.const import (
+    CONF_COUNTRY,
     CONF_HARD_POLL_INTERVAL,
     DEFAULT_HARD_POLL_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -30,6 +32,7 @@ TEST_USERNAME = "test@fake.com"
 TEST_TITLE = TEST_USERNAME
 TEST_PASSWORD = "test-password"
 TEST_PIN = "1234"
+TEST_COUNTRY = COUNTRY_USA
 
 
 async def test_form(hass):
@@ -53,6 +56,7 @@ async def test_form(hass):
                 CONF_USERNAME: TEST_USERNAME,
                 CONF_PASSWORD: TEST_PASSWORD,
                 CONF_PIN: TEST_PIN,
+                CONF_COUNTRY: TEST_COUNTRY,
             },
         )
 
@@ -62,6 +66,7 @@ async def test_form(hass):
     assert result2["data"][CONF_PASSWORD] == TEST_PASSWORD
     assert result2["data"][CONF_PIN] == TEST_PIN
     assert result2["data"][CONF_DEVICE_ID] >= device_id
+    assert result2["data"][CONF_COUNTRY] == TEST_COUNTRY
 
     await hass.async_block_till_done()
     assert len(mock_connect.mock_calls) == 2
@@ -89,6 +94,7 @@ async def test_pin_not_required(hass):
                 CONF_USERNAME: TEST_USERNAME,
                 CONF_PASSWORD: TEST_PASSWORD,
                 CONF_PIN: TEST_PIN,
+                CONF_COUNTRY: TEST_COUNTRY,
             },
         )
 
@@ -98,6 +104,7 @@ async def test_pin_not_required(hass):
     assert result2["data"][CONF_PASSWORD] == TEST_PASSWORD
     assert result2["data"][CONF_PIN] == TEST_PIN
     assert result2["data"][CONF_DEVICE_ID] >= device_id
+    assert result2["data"][CONF_COUNTRY] == TEST_COUNTRY
 
     await hass.async_block_till_done()
     assert len(mock_connect.mock_calls) == 2
@@ -120,6 +127,7 @@ async def test_form_invalid_auth(hass):
                 CONF_USERNAME: TEST_USERNAME,
                 CONF_PASSWORD: TEST_PASSWORD,
                 CONF_PIN: TEST_PIN,
+                CONF_COUNTRY: TEST_COUNTRY,
             },
         )
 
@@ -143,6 +151,7 @@ async def test_form_invalid_pin(hass):
                 CONF_USERNAME: TEST_USERNAME,
                 CONF_PASSWORD: TEST_PASSWORD,
                 CONF_PIN: TEST_PIN,
+                CONF_COUNTRY: TEST_COUNTRY,
             },
         )
 
@@ -166,6 +175,7 @@ async def test_form_cannot_connect(hass):
                 CONF_USERNAME: TEST_USERNAME,
                 CONF_PASSWORD: TEST_PASSWORD,
                 CONF_PIN: TEST_PIN,
+                CONF_COUNTRY: TEST_COUNTRY,
             },
         )
 
@@ -191,6 +201,7 @@ async def test_form_repeat_identifier(hass):
                 CONF_USERNAME: TEST_USERNAME,
                 CONF_PASSWORD: TEST_PASSWORD,
                 CONF_PIN: TEST_PIN,
+                CONF_COUNTRY: TEST_COUNTRY,
             },
         )
 
