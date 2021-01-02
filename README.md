@@ -48,11 +48,13 @@ When prompted, enter the following configuration parameters:
 - **Email Address:** The email address associated with your MySubaru account
 - **Password:** The password associated with your MySubaru account
 - **Country:** The country your Subaru is associated with
+
 The initial device registration process may take up to 20 seconds.
 
 After successful authentication, if a supported remote services vehicle with active subscription is found in your account, an additional prompt will appear:
 - **PIN:** The PIN associated with your MySubaru account
-The PIN validation, if successful, will be followed by a vehicle update, which may up to 20 seconds.
+
+The PIN validation, if successful, will be followed by a vehicle update, which may take up to 20 seconds.
 
 If the PIN prompt does not appear, no supported remote services vehicles were found in your account. Limited vehicle data may still appear as sensors.
 
