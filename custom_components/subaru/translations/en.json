@@ -2,22 +2,31 @@
     "config": {
         "abort": {
             "already_configured": "Account already configured",
-            "cannot_connect": "Cannot connect"
+            "cannot_connect": "Cannot connect",
+            "pin_lockout": "Maximum PIN attempts reached"
         },
         "error": {
             "cannot_connect": "Cannot connect",
             "invalid_auth": "Invalid credentials",
-            "invalid_pin": "Login with username/password succeeded, but PIN invalid.",
+            "incorrect_pin": "Incorrect PIN",
             "unknown": "Unknown error"
         },
         "step": {
             "user": {
                 "data": {
                     "password": "Password",
-                    "pin": "PIN for Remote Services (Security+ Subcription Required)",
-                    "username": "Username"
+                    "pin": "PIN for remote services",
+                    "username": "Username",
+                    "country": "Select country"
                 },
-                "description": "Please enter your MySubaru credentials. NOTE: Initial setup may take up to 30 seconds.",
+                "description": "Please enter your MySubaru credentials\nNOTE: Initial setup may take up to 20 seconds",
+                "title": "Subaru Starlink Configuration"
+            },
+            "pin": {
+                "data": {
+                    "pin": "PIN"
+                },
+                "description": "Please enter your MySubaru PIN",
                 "title": "Subaru Starlink Configuration"
             }
         }
