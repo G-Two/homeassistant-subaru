@@ -33,6 +33,7 @@ Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tabl
 | External temperature     |         | &check; |
 | Odometer                 | &check;*| &check; |
 | Tire pressures           |         | &check; |
+
 \* Gen 1 odometer only updates every 500 miles <br>
 
 
@@ -42,6 +43,7 @@ Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tabl
 | Window Status            |         | &check;*|
 | Ignition Status          |         | &check; |
 | EV Plug/Charging Status  |         | &check;*|
+
 \* Not supported by all vehicles <br>
 
 
@@ -67,6 +69,7 @@ This integration also provides services to perform the following tasks:
 | Start/Stop Horn/Lights   | &check; | &check; |
 | Start/Stop Engine        |         | &check;*|
 | Start EV charging        |         | &check;*|
+
 \* Not supported by all vehicles <br>
 
 
