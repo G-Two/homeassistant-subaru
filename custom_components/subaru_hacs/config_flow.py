@@ -2,16 +2,6 @@
 from datetime import datetime
 import logging
 
-from homeassistant import config_entries
-from homeassistant.const import (
-    CONF_DEVICE_ID,
-    CONF_PASSWORD,
-    CONF_PIN,
-    CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
-)
-from homeassistant.core import callback
-from homeassistant.helpers import aiohttp_client, config_validation as cv
 from subarulink import (
     Controller as SubaruAPI,
     InvalidCredentials,
@@ -21,25 +11,16 @@ from subarulink import (
 from subarulink.const import COUNTRY_CAN, COUNTRY_USA
 import voluptuous as vol
 
-from .const import (
-    CONF_COUNTRY,
-    CONF_HARD_POLL_INTERVAL,
-    DEFAULT_HARD_POLL_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    MIN_HARD_POLL_INTERVAL,
-    MIN_SCAN_INTERVAL,
-)
+from homeassistant import config_entries
+from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
+from homeassistant.core import callback
+from homeassistant.helpers import aiohttp_client, config_validation as cv
+
+from .const import CONF_COUNTRY, CONF_UPDATE_ENABLED, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 PIN_SCHEMA = vol.Schema({vol.Required(CONF_PIN): str})
-
-
-@callback
-def configured_instances(hass):
-    """Return a set of configured Subaru instances."""
-    return {entry.title for entry in hass.config_entries.async_entries(DOMAIN)}
 
 
 class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -47,7 +28,7 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
-    config_data = {}
+    config_data = {CONF_PIN: None}
     controller = None
 
     async def async_step_user(self, user_input=None):
@@ -55,7 +36,9 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         error = None
 
         if user_input:
-            if user_input[CONF_USERNAME] in configured_instances(self.hass):
+            if user_input[CONF_USERNAME] in [
+                entry.data[CONF_USERNAME] for entry in self._async_current_entries()
+            ]:
                 return self.async_abort(reason="already_configured")
 
             try:
@@ -69,7 +52,7 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if self.controller.is_pin_required():
                     return await self.async_step_pin()
                 return self.async_create_entry(
-                    title=self.config_data[CONF_USERNAME], data=self.config_data
+                    title=user_input[CONF_USERNAME], data=self.config_data
                 )
 
         return self.async_show_form(
@@ -149,7 +132,7 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle a option flow for Subaru."""
+    """Handle an option flow for Subaru."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
@@ -163,17 +146,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         data_schema = vol.Schema(
             {
                 vol.Required(
-                    CONF_SCAN_INTERVAL,
-                    default=self.config_entry.options.get(
-                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                    ),
-                ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
-                vol.Required(
-                    CONF_HARD_POLL_INTERVAL,
-                    default=self.config_entry.options.get(
-                        CONF_HARD_POLL_INTERVAL, DEFAULT_HARD_POLL_INTERVAL
-                    ),
-                ): vol.All(cv.positive_int, vol.Clamp(min=MIN_HARD_POLL_INTERVAL)),
+                    CONF_UPDATE_ENABLED,
+                    default=self.config_entry.options.get(CONF_UPDATE_ENABLED, False),
+                ): cv.boolean,
             }
         )
         return self.async_show_form(step_id="init", data_schema=data_schema)

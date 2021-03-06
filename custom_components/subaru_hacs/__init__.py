@@ -1,41 +1,28 @@
 """The Subaru integration."""
 import asyncio
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logging
 import time
 
+from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruException
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_DEVICE_ID,
-    CONF_PASSWORD,
-    CONF_PIN,
-    CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
-)
+from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from subarulink import Controller as SubaruAPI, SubaruException
-from subarulink.const import (
-    COUNTRY_USA,
-    FEATURE_G2_TELEMATICS,
-    LOCATION_VALID,
-    VEHICLE_STATUS,
-)
-import voluptuous as vol
 
 from .const import (
     CONF_COUNTRY,
-    CONF_HARD_POLL_INTERVAL,
+    CONF_UPDATE_ENABLED,
     COORDINATOR_NAME,
-    DEFAULT_HARD_POLL_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     ENTRY_CONTROLLER,
     ENTRY_COORDINATOR,
-    ENTRY_LISTENER,
     ENTRY_VEHICLES,
+    FETCH_INTERVAL,
     REMOTE_SERVICE_CHARGE_START,
     REMOTE_SERVICE_FETCH,
     REMOTE_SERVICE_HORN,
@@ -48,6 +35,7 @@ from .const import (
     REMOTE_SERVICE_UNLOCK,
     REMOTE_SERVICE_UPDATE,
     SUPPORTED_PLATFORMS,
+    UPDATE_INTERVAL,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
@@ -80,14 +68,6 @@ async def async_setup_entry(hass, entry):
     """Set up Subaru from a config entry."""
     config = entry.data
     websession = aiohttp_client.async_get_clientsession(hass)
-    date = datetime.now().strftime("%Y-%m-%d")
-    device_name = "Home Assistant: Added " + date
-
-    # Backwards compatibility for configs made before v0.3.0
-    country = config.get(CONF_COUNTRY)
-    if not country:
-        country = COUNTRY_USA
-
     try:
         controller = SubaruAPI(
             websession,
@@ -95,14 +75,16 @@ async def async_setup_entry(hass, entry):
             config[CONF_PASSWORD],
             config[CONF_DEVICE_ID],
             config[CONF_PIN],
-            device_name,
-            country=country,
-            update_interval=entry.options.get(
-                CONF_HARD_POLL_INTERVAL, DEFAULT_HARD_POLL_INTERVAL
-            ),
+            None,
+            country=config[CONF_COUNTRY],
+            update_interval=UPDATE_INTERVAL,
+            fetch_interval=FETCH_INTERVAL,
         )
         _LOGGER.debug(f"Using subarulink {controller.version}")
         await controller.connect()
+    except InvalidCredentials:
+        _LOGGER.error("Invalid account")
+        return False
     except SubaruException as err:
         raise ConfigEntryNotReady(err) from err
 
@@ -132,7 +114,7 @@ async def async_setup_entry(hass, entry):
     async def async_update_data():
         """Fetch data from API endpoint."""
         try:
-            return await subaru_update(vehicle_info, controller)
+            return await refresh_subaru_data(entry, vehicle_info, controller)
         except SubaruException as err:
             raise UpdateFailed(err.message) from err
 
@@ -141,9 +123,7 @@ async def async_setup_entry(hass, entry):
         _LOGGER,
         name=COORDINATOR_NAME,
         update_method=async_update_data,
-        update_interval=timedelta(
-            seconds=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-        ),
+        update_interval=timedelta(seconds=FETCH_INTERVAL),
     )
 
     await coordinator.async_refresh()
@@ -152,7 +132,6 @@ async def async_setup_entry(hass, entry):
         ENTRY_CONTROLLER: controller,
         ENTRY_COORDINATOR: coordinator,
         ENTRY_VEHICLES: vehicle_info,
-        ENTRY_LISTENER: entry.add_update_listener(update_listener),
     }
 
     for component in SUPPORTED_PLATFORMS:
@@ -187,7 +166,7 @@ async def async_setup_entry(hass, entry):
                 )
                 if call.service == REMOTE_SERVICE_UPDATE:
                     vehicle = vehicle_info[vin]
-                    success = await refresh_subaru_data(
+                    success = await update_subaru(
                         vehicle, controller, override_interval=True
                     )
                 else:
@@ -234,47 +213,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         )
     )
     if unload_ok:
-        hass.data[DOMAIN][entry.entry_id][ENTRY_LISTENER]()
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
 
 
-async def update_listener(hass, config_entry):
-    """Update when config_entry options update."""
-    controller = hass.data[DOMAIN][config_entry.entry_id][ENTRY_CONTROLLER]
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][ENTRY_COORDINATOR]
-
-    old_update_interval = controller.get_update_interval()
-    old_fetch_interval = coordinator.update_interval
-
-    new_update_interval = config_entry.options.get(
-        CONF_HARD_POLL_INTERVAL, DEFAULT_HARD_POLL_INTERVAL
-    )
-    new_fetch_interval = config_entry.options.get(
-        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-    )
-
-    if old_update_interval != new_update_interval:
-        _LOGGER.debug(
-            "Changing update_interval from %s to %s",
-            old_update_interval,
-            new_update_interval,
-        )
-        controller.set_update_interval(new_update_interval)
-
-    if old_fetch_interval != new_fetch_interval:
-        _LOGGER.debug(
-            "Changing fetch_interval from %s to %s",
-            old_fetch_interval,
-            new_fetch_interval,
-        )
-        coordinator.update_interval = timedelta(seconds=new_fetch_interval)
-
-
-async def subaru_update(vehicle_info, controller):
+async def refresh_subaru_data(config_entry, vehicle_info, controller):
     """
-    Update local data from Subaru API.
+    Refresh local data with data fetched via Subaru API.
 
     Subaru API calls assume a server side vehicle context
     Data fetch/update must be done for each vehicle
@@ -288,39 +234,31 @@ async def subaru_update(vehicle_info, controller):
         if not vehicle[VEHICLE_HAS_SAFETY_SERVICE]:
             continue
 
-        # Poll vehicle (throttled with update_interval)
-        await refresh_subaru_data(vehicle, controller)
+        # Optionally send an "update" remote command to vehicle (throttled with update_interval)
+        if config_entry.options.get(CONF_UPDATE_ENABLED, False):
+            await update_subaru(vehicle, controller)
 
         # Fetch data from Subaru servers
         await controller.fetch(vin, force=True)
 
         # Update our local data that will go to entity states
-        data[vin] = await controller.get_data(vin)
-
-        # If vehicle pushed bad location then force new update (ignore G1 which is always wrong?)
-        if (
-            not data[vin][VEHICLE_STATUS][LOCATION_VALID]
-            and vehicle_info[vin][VEHICLE_API_GEN] == FEATURE_G2_TELEMATICS
-            and vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]
-        ):
-            await refresh_subaru_data(vehicle, controller, override_interval=True)
-            await controller.fetch(vin, force=True)
-            data[vin] = await controller.get_data(vin)
+        received_data = await controller.get_data(vin)
+        if received_data:
+            data[vin] = received_data
 
     return data
 
 
-async def refresh_subaru_data(vehicle, controller, override_interval=False):
+async def update_subaru(vehicle, controller, override_interval=False):
     """Commands remote vehicle update (polls the vehicle to update subaru API cache)."""
     cur_time = time.time()
     last_update = vehicle[VEHICLE_LAST_UPDATE]
-    update_result = None
 
-    if cur_time - last_update > controller.get_update_interval() or override_interval:
-        update_result = await controller.update(vehicle[VEHICLE_VIN], force=True)
+    if (cur_time - last_update) > UPDATE_INTERVAL or override_interval:
+        await controller.update(vehicle[VEHICLE_VIN], force=True)
         vehicle[VEHICLE_LAST_UPDATE] = cur_time
 
-    return update_result
+    return True
 
 
 def get_vehicle_info(controller, vin):

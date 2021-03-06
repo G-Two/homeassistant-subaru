@@ -1,7 +1,8 @@
 """Support for Subaru device tracker."""
+import subarulink.const as sc
+
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
-import subarulink.const as sc
 
 from .const import DOMAIN, ENTRY_COORDINATOR, ENTRY_VEHICLES, VEHICLE_HAS_REMOTE_SERVICE
 from .entity import SubaruEntity
@@ -25,7 +26,7 @@ class SubaruDeviceTracker(SubaruEntity, TrackerEntity):
         """Initialize the device tracker."""
         super().__init__(vehicle_info, coordinator)
         self.hass_type = "device_tracker"
-        self.title = "Location"
+        self.entity_type = "Location"
 
     @property
     def source_type(self):

@@ -1,4 +1,6 @@
 """Support for Subaru binary sensors."""
+import subarulink.const as sc
+
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_BATTERY_CHARGING,
     DEVICE_CLASS_DOOR,
@@ -7,7 +9,6 @@ from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_WINDOW,
     BinarySensorEntity,
 )
-import subarulink.const as sc
 
 from .const import (
     API_GEN_2,
@@ -25,11 +26,13 @@ SENSOR_FIELD = "field"
 SENSOR_CLASS = "class"
 SENSOR_ON_VALUE = "on_value"
 
-BINARY_SENSOR_ICONS = {DEVICE_CLASS_POWER: {True: "mdi:engine", False: "mdi:engine-off"},
-                       DEVICE_CLASS_BATTERY_CHARGING: {True: "mdi:car-electric", False: "mdi:car"},
-                       DEVICE_CLASS_DOOR: {True: "mdi:door-open", False: "mdi:door-closed"},
-                       DEVICE_CLASS_PLUG: {True: "mdi:power-plug", False: "mid:power-plug-off"},
-                       DEVICE_CLASS_WINDOW: {True: "mdi:window-open", False: "mdi:window-closed"}}
+BINARY_SENSOR_ICONS = {
+    DEVICE_CLASS_POWER: {True: "mdi:engine", False: "mdi:engine-off"},
+    DEVICE_CLASS_BATTERY_CHARGING: {True: "mdi:car-electric", False: "mdi:car"},
+    DEVICE_CLASS_DOOR: {True: "mdi:door-open", False: "mdi:door-closed"},
+    DEVICE_CLASS_PLUG: {True: "mdi:power-plug", False: "mid:power-plug-off"},
+    DEVICE_CLASS_WINDOW: {True: "mdi:window-open", False: "mdi:window-closed"},
+}
 
 
 # Binary Sensor data available to "Subaru Safety Plus" subscribers with Gen2 vehicles
@@ -139,7 +142,12 @@ def _create_sensor_entities(entities, vehicle_info, coordinator, hass):
         sensors_to_add.extend(EV_SENSORS)
 
     for subaru_sensor in sensors_to_add:
-        if coordinator.data[vehicle_info[VEHICLE_VIN]]["status"].get(subaru_sensor[SENSOR_FIELD]) not in sc.BAD_BINARY_SENSOR_VALUES:
+        if (
+            coordinator.data[vehicle_info[VEHICLE_VIN]]["status"].get(
+                subaru_sensor[SENSOR_FIELD]
+            )
+            not in sc.BAD_BINARY_SENSOR_VALUES
+        ):
             entities.append(
                 SubaruBinarySensor(
                     vehicle_info,
@@ -161,7 +169,7 @@ class SubaruBinarySensor(SubaruEntity, BinarySensorEntity):
         """Initialize the binary sensor."""
         super().__init__(vehicle_info, coordinator)
         self.hass_type = "binary_sensor"
-        self.title = title
+        self.entity_type = title
         self.data_field = data_field
         self.sensor_class = sensor_class
         self.on_value = on_value
