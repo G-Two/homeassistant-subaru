@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 from subarulink.const import COUNTRY_USA
 
-from custom_components.subaru_hacs.const import (
+from custom_components.subaru.const import (
     CONF_COUNTRY,
     CONF_UPDATE_ENABLED,
     DOMAIN,
@@ -30,7 +30,7 @@ import homeassistant.util.dt as dt_util
 
 from tests.api_responses import TEST_VIN_2_EV, VEHICLE_DATA, VEHICLE_STATUS_EV
 
-MOCK_API = "custom_components.subaru_hacs.SubaruAPI."
+MOCK_API = "custom_components.subaru.SubaruAPI."
 MOCK_API_CONNECT = f"{MOCK_API}connect"
 MOCK_API_IS_PIN_REQUIRED = f"{MOCK_API}is_pin_required"
 MOCK_API_TEST_PIN = f"{MOCK_API}test_pin"

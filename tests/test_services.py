@@ -4,7 +4,7 @@ from unittest.mock import patch
 from pytest import raises
 from subarulink import InvalidPIN
 
-from custom_components.subaru_hacs.const import (
+from custom_components.subaru.const import (
     DOMAIN,
     REMOTE_SERVICE_FETCH,
     REMOTE_SERVICE_HORN,

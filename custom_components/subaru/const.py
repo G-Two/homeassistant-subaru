@@ -1,6 +1,6 @@
 """Constants for the Subaru integration."""
 
-DOMAIN = "subaru_hacs"
+DOMAIN = "subaru"
 FETCH_INTERVAL = 300
 UPDATE_INTERVAL = 7200
 CONF_UPDATE_ENABLED = "update_enabled"

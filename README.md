@@ -1,7 +1,5 @@
 # Subaru STARLINK integration for Home Assistant
 
-**BREAKING CHANGE:** As of v0.4.0, the domain for this custom component has been changed to `subaru_hacs` to deconflict with Home Assistant >= 2021.3 (which uses `subaru`). Users that have upgraded to HA >= 2021.3 and want to use this custom component should delete the built-in HA Subaru entry from their configuration. After the upgrade to v0.4.0, users of previous versions will need to add the `Subaru (HACS)` integration to retain the full feature set. Services will need to be updated from `subaru.<service>` to `subaru_hacs.<service`.
-
 **NOTE:** The [Subaru integration](https://www.home-assistant.io/integrations/subaru/) is now part of the Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Users that desire full functionality should continue to use this custom component until all functionality is merged into the official integration. 
 
 The Subaru integration retrieves information provided by Subaru connected vehicle services.  Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
@@ -78,7 +76,7 @@ Device tracker, lock, and services all require a STARLINK Security Plus subscrip
 ### HACS
 Add `https://github.com/G-Two/homeassistant-subaru` as a custom integration repository and install the Subaru STARLINK integration.
 ### Manual
-Clone or download this repository, and copy the `custom_components/subaru_hacs` directory into the `config/custom_components` directory of your Home Assistant instance. Restart Home Assistant.
+Clone or download this repository, and copy the `custom_components/subaru` directory into the `config/custom_components` directory of your Home Assistant instance. Restart Home Assistant.
 
 ## Configuration
 
@@ -115,21 +113,21 @@ The options are:
 
 ## Services
 
-### `subaru_hacs.lock`
+### `subaru.lock`
 Lock all doors of the vehicle. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.unlock`
+### `subaru.unlock`
 Unlock all doors of the vehicle. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.lights`
+### `subaru.lights`
 Flash the lights of the vehicle. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
@@ -143,49 +141,49 @@ Stop flashing the lights of the vehicle. The vehicle is identified by the `vin`.
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.horn`
+### `subaru.horn`
 Sound the horn and flash the lights of the vehicle. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.horn_cancel`
+### `subaru.horn_cancel`
 Stop sounding the horn and flash the lights of the vehicle. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.update`
+### `subaru.update`
 Sends request to vehicle to update data. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.fetch`
+### `subaru.fetch`
 Refreshes data (does not request update from vehicle). The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.remote_start`
+### `subaru.remote_start`
 Start the engine and climate control of the vehicle.  Uses the climate control settings saved. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.remote_stop`
+### `subaru.remote_stop`
 Stop the engine and climate control of the vehicle. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |
 | ---------------------- | -------- | -------------------------------------------------- |
 | `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-### `subaru_hacs.charge_start`
+### `subaru.charge_start`
 Starts EV charging. This cannot be stopped remotely. The vehicle is identified by the `vin`.
 
 | Service Data Attribute | Required | Description                                        |

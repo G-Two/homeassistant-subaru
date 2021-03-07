@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from subarulink import InvalidCredentials, SubaruException
 
-from custom_components.subaru_hacs.const import DOMAIN
+from custom_components.subaru.const import DOMAIN
 from homeassistant.components.homeassistant import (
     DOMAIN as HA_DOMAIN,
     SERVICE_UPDATE_ENTITY,

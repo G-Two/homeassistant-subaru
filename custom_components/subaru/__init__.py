@@ -5,6 +5,7 @@ import logging
 import time
 
 from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruException
+from subarulink.const import COUNTRY_USA
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -68,6 +69,12 @@ async def async_setup_entry(hass, entry):
     """Set up Subaru from a config entry."""
     config = entry.data
     websession = aiohttp_client.async_get_clientsession(hass)
+
+    # Backwards compatibility for configs made before v0.3.0
+    country = config.get(CONF_COUNTRY)
+    if not country:
+        country = COUNTRY_USA
+
     try:
         controller = SubaruAPI(
             websession,
@@ -76,7 +83,7 @@ async def async_setup_entry(hass, entry):
             config[CONF_DEVICE_ID],
             config[CONF_PIN],
             None,
-            country=config[CONF_COUNTRY],
+            country=country,
             update_interval=UPDATE_INTERVAL,
             fetch_interval=FETCH_INTERVAL,
         )

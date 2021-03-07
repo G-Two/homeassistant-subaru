@@ -1,8 +1,8 @@
 """Test Subaru sensors."""
 from unittest.mock import patch
 
-from custom_components.subaru_hacs.const import VEHICLE_NAME
-from custom_components.subaru_hacs.sensor import (
+from custom_components.subaru.const import VEHICLE_NAME
+from custom_components.subaru.sensor import (
     API_GEN_2_SENSORS,
     EV_SENSORS,
     SAFETY_SENSORS,

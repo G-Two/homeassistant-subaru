@@ -1,6 +1,6 @@
 """Sample API response data for tests."""
 
-from custom_components.subaru_hacs.const import (
+from custom_components.subaru.const import (
     API_GEN_1,
     API_GEN_2,
     VEHICLE_API_GEN,

@@ -7,8 +7,8 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from subarulink.exceptions import InvalidCredentials, InvalidPIN, SubaruException
 
-from custom_components.subaru_hacs import config_flow
-from custom_components.subaru_hacs.const import CONF_UPDATE_ENABLED, DOMAIN
+from custom_components.subaru import config_flow
+from custom_components.subaru.const import CONF_UPDATE_ENABLED, DOMAIN
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE_ID, CONF_PIN
 

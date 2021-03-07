@@ -4,3 +4,5 @@
 .mypy_cache/
 .pytest_cache/
 *.code_workspace
+Pipfile
+Pipfile.lock
