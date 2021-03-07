@@ -1,6 +1,8 @@
 # Subaru STARLINK integration for Home Assistant
 
-**NOTE:** The [Subaru integration](https://www.home-assistant.io/integrations/subaru/) is now part of the Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Users that desire full functionality should continue to use this custom component until all platforms are merged into the official integration. As of v0.4.0, the domain for this custom component has been changed to `subaru_hacs` to deconflict with the Home Assistant Core (which uses `subaru`).
+**BREAKING CHANGE:** As of v0.4.0, the domain for this custom component has been changed to `subaru_hacs` to deconflict with Home Assistant >= 2021.3 (which uses `subaru`). Users that have upgraded to HA >= 2021.3 and want to use this custom component should delete the built-in HA Subaru entry from their configuration. After the upgrade to v0.4.0, users of previous versions will need to add the `Subaru HACS` integration to retain the full feature set.
+
+**NOTE:** The [Subaru integration](https://www.home-assistant.io/integrations/subaru/) is now part of the Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Users that desire full functionality should continue to use this custom component until all functionality is merged into the official integration. 
 
 The Subaru integration retrieves information provided by Subaru connected vehicle services.  Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
 
