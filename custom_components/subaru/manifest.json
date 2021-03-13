@@ -1,9 +1,10 @@
 {
   "domain": "subaru",
-  "name": "Subaru STARLINK",
+  "name": "Subaru (HACS)",
   "config_flow": true,
   "documentation": "https://github.com/G-Two/homeassistant-subaru",
   "issue_tracker": "https://github.com/G-Two/homeassistant-subaru/issues",
-  "requirements": ["subarulink==0.3.11"],
-  "codeowners": ["@G-Two"]
+  "requirements": ["subarulink==0.3.12"],
+  "codeowners": ["@G-Two"],
+  "version": "0.4.0"
 }

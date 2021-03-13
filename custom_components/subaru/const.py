@@ -1,11 +1,9 @@
 """Constants for the Subaru integration."""
 
 DOMAIN = "subaru"
-DEFAULT_SCAN_INTERVAL = 300
-MIN_SCAN_INTERVAL = 60
-DEFAULT_HARD_POLL_INTERVAL = 7200
-MIN_HARD_POLL_INTERVAL = 300
-CONF_HARD_POLL_INTERVAL = "hard_poll_interval"
+FETCH_INTERVAL = 300
+UPDATE_INTERVAL = 7200
+CONF_UPDATE_ENABLED = "update_enabled"
 CONF_COUNTRY = "country"
 
 # entry fields
@@ -26,9 +24,11 @@ VEHICLE_HAS_REMOTE_START = "has_res"
 VEHICLE_HAS_REMOTE_SERVICE = "has_remote"
 VEHICLE_HAS_SAFETY_SERVICE = "has_safety"
 VEHICLE_LAST_UPDATE = "last_update"
+VEHICLE_STATUS = "status"
 
 API_GEN_1 = "g1"
 API_GEN_2 = "g2"
+MANUFACTURER = "Subaru Corp."
 
 REMOTE_SERVICE_FETCH = "fetch"
 REMOTE_SERVICE_UPDATE = "update"

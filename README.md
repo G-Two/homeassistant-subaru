@@ -1,35 +1,80 @@
-# Subaru STARLINK for Home Assistant
+# Subaru STARLINK integration for Home Assistant
 
-**NOTE:** An [initial PR](https://github.com/home-assistant/core/pull/35760/) to add this component to Home Assistant Core is currently in progress.  This repo was created to continue development while the PR is in progress. After the initial PR is complete, additional PRs will follow based upon this repo.
+**NOTE:** The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core.
 
-The Subaru custom component connects to the [MySubaru](https://www.mysubuaru.com) service to provide vehicle sensor information as well as the capability to actuate remote features. This integration requires an active subscription to Subaru's [STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service, which is currently only available in the United States and Canada. 
+Users that desire full functionality should continue to use this custom component until all functionality is merged into the official integration. This custom component will override the HA Core built-in integration.
 
-This integration provides the following platforms:
+***
 
-- Binary Sensors - Door, trunk, hood, window, ignition, and EV status
-- Device Tracker - GPS location reported by the vehicle
-- Lock - Remotely lock or unlock doors (unfortunately no state information is reported by the Subaru API)
-- Sensors - Outside temperature, average fuel consumption, tire pressure, odometer, estimated range, and EV information (battery level, range, charging rate)
+The Subaru integration retrieves information provided by Subaru connected vehicle services.  Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
 
-This integration also provides services to perform the following tasks:
-- Lock and unlock doors
-- Sound horn and/or flash lights
-- Start and stop engine
-- Start EV charging
-- Poll vehicle for new data
-- Refresh data
+This integration requires an active vehicle subscription to the [Subaru STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service (available in USA and Canada).
 
 ![hass_screenshot](https://user-images.githubusercontent.com/7310260/102023873-50fd5f80-3d5c-11eb-93ca-4b2bb6f27e92.png)
 
-The entities and services made available to Home Assistant will be based upon the vehicle's model year and subscription status. 
 
-| Model Year   | Safety Plus | Security Plus |
-|--------------|-------------|---------------|
-| 2016-2018    |  No Support | Device Tracker <br> Lock<br> Sensors* <br> Services 
-| 2019+        |  Sensors**  | Binary Sensors <br> Device Tracker <br> Lock<br> Sensors <br>  Services |
+Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tables below to determine which capabilities are available for your vehicle.
 
-\* Odometer sensor only (updates every 500 miles) <br>
-\*\* Update interval unknown
+| Model     | Gen 1     | Gen 2 |
+|-----------|-----------|-------|
+| Ascent    |           | 2019+ |
+| Crosstrek | 2016-2018 | 2019+ |
+| Forester  | 2016-2018 | 2019+ |
+| Impreza   | 2016-2018 | 2019+ |
+| Legacy    | 2016-2019 | 2020+ |
+| Outback   | 2016-2019 | 2020+ |
+| WRX       | 2017+     |       |
+
+
+| Sensor                   | Gen 1   | Gen 2   |
+|--------------------------|---------|---------|
+| 12V battery voltage      |         | &check; |
+| Average fuel consumption |         | &check; |
+| Distance to empty        |         | &check; |
+| EV battery level         |         | &check; |
+| EV range                 |         | &check; |
+| EV time to full charge   |         | &check; |
+| External temperature     |         | &check; |
+| Odometer                 | &check;*| &check; |
+| Tire pressures           |         | &check; |
+
+\* Gen 1 odometer only updates every 500 miles <br>
+
+
+| Binary Sensor            | Gen 1   | Gen 2   |
+|--------------------------|---------|---------|
+| Door/Trunk/Hood Status   |         | &check; |
+| Window Status            |         | &check;*|
+| Ignition Status          |         | &check; |
+| EV Plug/Charging Status  |         | &check;*|
+
+\* Not supported by all vehicles <br>
+
+
+Device tracker, lock, and services all require a STARLINK Security Plus subscription:
+| Device Tracker           | Gen 1   | Gen 2   |
+|--------------------------|---------|---------|
+| Vehicle Location         | &check; | &check; |
+
+
+| Lock                     | Gen 1   | Gen 2   |
+|--------------------------|---------|---------|
+| Remote lock/unlock       | &check; | &check; |
+
+
+| Services                 | Gen 1   | Gen 2   |
+|--------------------------|---------|---------|
+| Lock/Unlock              | &check; | &check; |
+| Start/Stop Horn/Lights   | &check; | &check; |
+| Poll vehicle             | &check; | &check; |
+| Refresh data             | &check; | &check; |
+| Start/Stop Horn/Lights   | &check; | &check; |
+| Start/Stop Engine        |         | &check;*|
+| Start EV charging        |         | &check;*|
+
+\* Not supported by all vehicles <br>
+
+
 
 ## Installation
 ### HACS
@@ -40,21 +85,23 @@ Clone or download this repository, and copy the `custom_components/subaru` direc
 ## Configuration
 
 Once installed, the Subaru integration is configured via the Home Assistant UI:
-    
-**Configuration** -> **Integrations** -> **Add** -> **Subaru**
+
+**Configuration** -> **Integrations** -> **Add** -> **Subaru (HACS)**
+
+**NOTE:** After installation and HA restart, you may need to clear your browser cache for the new integration to appear.
 
 When prompted, enter the following configuration parameters:
 
 - **Email Address:** The email address associated with your MySubaru account
 - **Password:** The password associated with your MySubaru account
-- **Country:** The country your Subaru is associated with
+- **Country:** The country your MySubaru account is associated with
 
 The initial device registration process may take up to 20 seconds.
 
 After successful authentication, if a supported remote services vehicle with active subscription is found in your account, an additional prompt will appear:
 - **PIN:** The PIN associated with your MySubaru account
 
-The PIN validation, if successful, will be followed by a vehicle update, which may take up to 20 seconds.
+    **NOTE:** If your account includes multiple vehicles, the same PIN will be used for all vehicles. Ensure that you have configured all vehicles in your account to have the same PIN.
 
 If the PIN prompt does not appear, no supported remote services vehicles were found in your account. Limited vehicle data may still appear as sensors.
 
@@ -62,11 +109,91 @@ If the PIN prompt does not appear, no supported remote services vehicles were fo
 
 Subaru integration options are set via:
 
-**Configuration** -> **Integrations** -> **Subaru** -> **Options**.
+**Configuration** -> **Integrations** -> **Subaru (HACS)** -> **Options**.
 
 The options are:
 
-- **Seconds between API polling *[Default: 300, Minimum: 60]*:** Controls how frequently Home Assistant will poll the MySubaru API for vehicle data they have cached on their servers. This does not invoke a remote service request to your vehicle, and the data may be stale. Your vehicle will still send new information during certain state changes, such as being turned off or having a charging cable plugged in.  Excessive API calls will not yield fresh data.
-- **Seconds between vehicle polling *[Default: 7200, Minimum: 300]*:** Controls how frequently Home Assistant will invoke a remote service request to poll your vehicle to request an information update. This involves "waking" your vehicle and powering on electronics momentarily. Performing this action too frequently may drain your battery. 
+- **Enable vehicle polling *[Default: off]*:**  When enabled, vehicle polling will send a remote command to your vehicle every 2 hours to obtain new sensor data. This involves “waking” your vehicle and requesting that it send new data to Subaru servers. Without vehicle polling, new sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). This option only applies to vehicles with Security Plus subscriptions.
 
-## [Services](services.md)
+    **WARNING:** Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start.
+
+## Services
+
+### `subaru.lock`
+Lock all doors of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.unlock`
+Unlock all doors of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.lights`
+Flash the lights of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.lights_cancel`
+Stop flashing the lights of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.horn`
+Sound the horn and flash the lights of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.horn_cancel`
+Stop sounding the horn and flash the lights of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.update`
+Sends request to vehicle to update data. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.fetch`
+Refreshes data (does not request update from vehicle). The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.remote_start`
+Start the engine and climate control of the vehicle.  Uses the climate control settings saved. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.remote_stop`
+Stop the engine and climate control of the vehicle. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+### `subaru.charge_start`
+Starts EV charging. This cannot be stopped remotely. The vehicle is identified by the `vin`.
+
+| Service Data Attribute | Required | Description                                        |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+

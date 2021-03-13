@@ -37,7 +37,7 @@ class SubaruLock(SubaruEntity, LockEntity):
     def __init__(self, vehicle_info, coordinator, controller):
         """Initialize the locks for the vehicle."""
         super().__init__(vehicle_info, coordinator)
-        self.title = "Door Lock"
+        self.entity_type = "Door Lock"
         self.hass_type = LOCK_DOMAIN
         self.controller = controller
 
