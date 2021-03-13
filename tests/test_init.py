@@ -28,12 +28,13 @@ from .api_responses import (
 from .conftest import (
     MOCK_API_FETCH,
     MOCK_API_UPDATE,
+    TEST_CONFIG_LEGACY,
     TEST_ENTITY_ID,
     setup_subaru_integration,
 )
 
 
-async def test_setup_with_no_config(hass):
+async def test_setup_with_no_config(hass, enable_custom_integrations):
     """Test DOMAIN is empty if there is no config."""
     assert await async_setup_component(hass, DOMAIN, {})
     await hass.async_block_till_done()
@@ -47,7 +48,7 @@ async def test_setup_ev(hass, ev_entry):
     assert check_entry.state == ENTRY_STATE_LOADED
 
 
-async def test_setup_g2(hass):
+async def test_setup_g2(hass, enable_custom_integrations):
     """Test setup with a G2 vehicle ."""
     entry = await setup_subaru_integration(
         hass,
@@ -60,7 +61,7 @@ async def test_setup_g2(hass):
     assert check_entry.state == ENTRY_STATE_LOADED
 
 
-async def test_setup_g1(hass):
+async def test_setup_g1(hass, enable_custom_integrations):
     """Test setup with a G1 vehicle."""
     entry = await setup_subaru_integration(
         hass, vehicle_list=[TEST_VIN_1_G1], vehicle_data=VEHICLE_DATA[TEST_VIN_1_G1]
@@ -70,7 +71,7 @@ async def test_setup_g1(hass):
     assert check_entry.state == ENTRY_STATE_LOADED
 
 
-async def test_unsuccessful_connect(hass):
+async def test_unsuccessful_connect(hass, enable_custom_integrations):
     """Test unsuccessful connect due to connectivity."""
     entry = await setup_subaru_integration(
         hass,
@@ -84,7 +85,21 @@ async def test_unsuccessful_connect(hass):
     assert check_entry.state == ENTRY_STATE_SETUP_RETRY
 
 
-async def test_invalid_credentials(hass):
+async def test_setup_legacy_config(hass, enable_custom_integrations):
+    """Test setup with a legacy config (<=v0.2.0)."""
+    entry = await setup_subaru_integration(
+        hass,
+        vehicle_list=[TEST_VIN_3_G2],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_3_G2],
+        vehicle_status=VEHICLE_STATUS_G2,
+        config=TEST_CONFIG_LEGACY,
+    )
+    check_entry = hass.config_entries.async_get_entry(entry.entry_id)
+    assert check_entry
+    assert check_entry.state == ENTRY_STATE_LOADED
+
+
+async def test_invalid_credentials(hass, enable_custom_integrations):
     """Test invalid credentials."""
     entry = await setup_subaru_integration(
         hass,
@@ -98,7 +113,7 @@ async def test_invalid_credentials(hass):
     assert check_entry.state == ENTRY_STATE_SETUP_ERROR
 
 
-async def test_update_skip_unsubscribed(hass):
+async def test_update_skip_unsubscribed(hass, enable_custom_integrations):
     """Test update function skips vehicles without subscription."""
     await setup_subaru_integration(
         hass, vehicle_list=[TEST_VIN_1_G1], vehicle_data=VEHICLE_DATA[TEST_VIN_1_G1]
@@ -130,7 +145,7 @@ async def test_update_disabled(hass, ev_entry):
         mock_update.assert_not_called()
 
 
-async def test_fetch_failed(hass):
+async def test_fetch_failed(hass, enable_custom_integrations):
     """Tests when fetch fails."""
     await setup_subaru_integration(
         hass,

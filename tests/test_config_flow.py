@@ -174,7 +174,7 @@ async def test_option_flow(hass, options_form):
 
 
 @pytest.fixture
-async def user_form(hass):
+async def user_form(hass, enable_custom_integrations):
     """Return initial form for Subaru config flow."""
     return await hass.config_entries.flow.async_init(
         config_flow.DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -193,7 +193,7 @@ async def pin_form(hass, user_form):
 
 
 @pytest.fixture
-async def options_form(hass):
+async def options_form(hass, enable_custom_integrations):
     """Return options form for Subaru config flow."""
     entry = MockConfigEntry(domain=DOMAIN, data={}, options=None)
     entry.add_to_hass(hass)
