@@ -2,7 +2,7 @@
 
 **NOTE:** The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core.
 
-Users that desire full functionality should continue to use this custom component until all functionality is merged into the official integration. This HACS integration, if installed, will override the HA Core built-in integration.
+Users that desire full functionality should continue to use this custom component until all functionality is merged into the official integration. This custom component will override the HA Core built-in integration.
 
 ***
 
