@@ -85,8 +85,10 @@ Clone or download this repository, and copy the `custom_components/subaru` direc
 ## Configuration
 
 Once installed, the Subaru integration is configured via the Home Assistant UI:
-    
+
 **Configuration** -> **Integrations** -> **Add** -> **Subaru (HACS)**
+
+**NOTE:** After installation and HA restart, you may need to clear your browser cache for the new integration to appear.
 
 When prompted, enter the following configuration parameters:
 
