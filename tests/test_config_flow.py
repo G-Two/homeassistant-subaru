@@ -11,6 +11,7 @@ from custom_components.subaru import config_flow
 from custom_components.subaru.const import CONF_UPDATE_ENABLED, DOMAIN
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE_ID, CONF_PIN
+from homeassistant.setup import async_setup_component
 
 from tests.conftest import (
     MOCK_API_CONNECT,
@@ -197,4 +198,5 @@ async def options_form(hass, enable_custom_integrations):
     """Return options form for Subaru config flow."""
     entry = MockConfigEntry(domain=DOMAIN, data={}, options=None)
     entry.add_to_hass(hass)
+    await async_setup_component(hass, DOMAIN, {})
     return await hass.config_entries.options.async_init(entry.entry_id)
