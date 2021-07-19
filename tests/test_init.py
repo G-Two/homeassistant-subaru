@@ -8,12 +8,7 @@ from homeassistant.components.homeassistant import (
     DOMAIN as HA_DOMAIN,
     SERVICE_UPDATE_ENTITY,
 )
-from homeassistant.config_entries import (
-    ENTRY_STATE_LOADED,
-    ENTRY_STATE_NOT_LOADED,
-    ENTRY_STATE_SETUP_ERROR,
-    ENTRY_STATE_SETUP_RETRY,
-)
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.setup import async_setup_component
 
@@ -45,7 +40,7 @@ async def test_setup_ev(hass, ev_entry):
     """Test setup with an EV vehicle."""
     check_entry = hass.config_entries.async_get_entry(ev_entry.entry_id)
     assert check_entry
-    assert check_entry.state == ENTRY_STATE_LOADED
+    assert check_entry.state is ConfigEntryState.LOADED
 
 
 async def test_setup_g2(hass, enable_custom_integrations):
@@ -58,7 +53,7 @@ async def test_setup_g2(hass, enable_custom_integrations):
     )
     check_entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert check_entry
-    assert check_entry.state == ENTRY_STATE_LOADED
+    assert check_entry.state is ConfigEntryState.LOADED
 
 
 async def test_setup_g1(hass, enable_custom_integrations):
@@ -68,7 +63,7 @@ async def test_setup_g1(hass, enable_custom_integrations):
     )
     check_entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert check_entry
-    assert check_entry.state == ENTRY_STATE_LOADED
+    assert check_entry.state is ConfigEntryState.LOADED
 
 
 async def test_unsuccessful_connect(hass, enable_custom_integrations):
@@ -82,7 +77,7 @@ async def test_unsuccessful_connect(hass, enable_custom_integrations):
     )
     check_entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert check_entry
-    assert check_entry.state == ENTRY_STATE_SETUP_RETRY
+    assert check_entry.state is ConfigEntryState.SETUP_RETRY
 
 
 async def test_setup_legacy_config(hass, enable_custom_integrations):
@@ -96,7 +91,7 @@ async def test_setup_legacy_config(hass, enable_custom_integrations):
     )
     check_entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert check_entry
-    assert check_entry.state == ENTRY_STATE_LOADED
+    assert check_entry.state is ConfigEntryState.LOADED
 
 
 async def test_invalid_credentials(hass, enable_custom_integrations):
@@ -110,7 +105,7 @@ async def test_invalid_credentials(hass, enable_custom_integrations):
     )
     check_entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert check_entry
-    assert check_entry.state == ENTRY_STATE_SETUP_ERROR
+    assert check_entry.state is ConfigEntryState.SETUP_ERROR
 
 
 async def test_update_skip_unsubscribed(hass, enable_custom_integrations):
@@ -161,7 +156,7 @@ async def test_fetch_failed(hass, enable_custom_integrations):
 
 async def test_unload_entry(hass, ev_entry):
     """Test that entry is unloaded."""
-    assert ev_entry.state == ENTRY_STATE_LOADED
+    assert ev_entry.state is ConfigEntryState.LOADED
     assert await hass.config_entries.async_unload(ev_entry.entry_id)
     await hass.async_block_till_done()
-    assert ev_entry.state == ENTRY_STATE_NOT_LOADED
+    assert ev_entry.state is ConfigEntryState.NOT_LOADED

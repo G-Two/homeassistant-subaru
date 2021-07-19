@@ -23,7 +23,7 @@ from custom_components.subaru.const import (
     VEHICLE_NAME,
 )
 from homeassistant.components.homeassistant import DOMAIN as HA_DOMAIN
-from homeassistant.config_entries import ENTRY_STATE_LOADED
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
@@ -153,5 +153,5 @@ async def ev_entry(hass, enable_custom_integrations):
     assert DOMAIN in hass.config_entries.async_domains()
     assert len(hass.config_entries.async_entries(DOMAIN)) == 1
     assert hass.config_entries.async_get_entry(entry.entry_id)
-    assert entry.state == ENTRY_STATE_LOADED
+    assert entry.state is ConfigEntryState.LOADED
     return entry
