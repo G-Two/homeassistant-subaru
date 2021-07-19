@@ -127,7 +127,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     coordinator = hass.data[DOMAIN][config_entry.entry_id][ENTRY_COORDINATOR]
     vehicle_info = hass.data[DOMAIN][config_entry.entry_id][ENTRY_VEHICLES]
     entities = []
-    for vin in vehicle_info.keys():
+    for vin in vehicle_info:
         _create_sensor_entities(entities, vehicle_info[vin], coordinator, hass)
     async_add_entities(entities, True)
 
