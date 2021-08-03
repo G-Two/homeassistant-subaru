@@ -30,7 +30,7 @@ BINARY_SENSOR_ICONS = {
     DEVICE_CLASS_POWER: {True: "mdi:engine", False: "mdi:engine-off"},
     DEVICE_CLASS_BATTERY_CHARGING: {True: "mdi:car-electric", False: "mdi:car"},
     DEVICE_CLASS_DOOR: {True: "mdi:door-open", False: "mdi:door-closed"},
-    DEVICE_CLASS_PLUG: {True: "mdi:power-plug", False: "mid:power-plug-off"},
+    DEVICE_CLASS_PLUG: {True: "mdi:power-plug", False: "mdi:power-plug-off"},
     DEVICE_CLASS_WINDOW: {True: "mdi:window-open", False: "mdi:window-closed"},
 }
 
