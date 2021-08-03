@@ -23,7 +23,7 @@ from custom_components.subaru.const import (
     VEHICLE_NAME,
 )
 from homeassistant.components.homeassistant import DOMAIN as HA_DOMAIN
-from homeassistant.config_entries import ENTRY_STATE_LOADED
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
@@ -66,13 +66,6 @@ TEST_CONFIG = {
     CONF_DEVICE_ID: TEST_DEVICE_ID,
 }
 
-TEST_CONFIG_LEGACY = {
-    CONF_USERNAME: TEST_USERNAME,
-    CONF_PASSWORD: TEST_PASSWORD,
-    CONF_PIN: TEST_PIN,
-    CONF_DEVICE_ID: TEST_DEVICE_ID,
-}
-
 TEST_OPTIONS = {
     CONF_UPDATE_ENABLED: True,
 }
@@ -99,14 +92,13 @@ async def setup_subaru_integration(
     vehicle_status=None,
     connect_effect=None,
     fetch_effect=None,
-    config=TEST_CONFIG,
 ):
     """Create Subaru entry."""
     assert await async_setup_component(hass, HA_DOMAIN, {})
     assert await async_setup_component(hass, DOMAIN, {})
 
     config_entry = MockConfigEntry(
-        domain=DOMAIN, data=config, options=TEST_OPTIONS, entry_id=1,
+        domain=DOMAIN, data=TEST_CONFIG, options=TEST_OPTIONS, entry_id=1,
     )
     config_entry.add_to_hass(hass)
 
@@ -153,5 +145,5 @@ async def ev_entry(hass, enable_custom_integrations):
     assert DOMAIN in hass.config_entries.async_domains()
     assert len(hass.config_entries.async_entries(DOMAIN)) == 1
     assert hass.config_entries.async_get_entry(entry.entry_id)
-    assert entry.state == ENTRY_STATE_LOADED
+    assert entry.state is ConfigEntryState.LOADED
     return entry

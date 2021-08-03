@@ -24,17 +24,6 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
-    REMOTE_SERVICE_CHARGE_START,
-    REMOTE_SERVICE_FETCH,
-    REMOTE_SERVICE_HORN,
-    REMOTE_SERVICE_HORN_STOP,
-    REMOTE_SERVICE_LIGHTS,
-    REMOTE_SERVICE_LIGHTS_STOP,
-    REMOTE_SERVICE_LOCK,
-    REMOTE_SERVICE_REMOTE_START,
-    REMOTE_SERVICE_REMOTE_STOP,
-    REMOTE_SERVICE_UNLOCK,
-    REMOTE_SERVICE_UPDATE,
     SUPPORTED_PLATFORMS,
     UPDATE_INTERVAL,
     VEHICLE_API_GEN,
@@ -46,17 +35,11 @@ from .const import (
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
+from .remote_service import async_call_remote_service, get_supported_services
 
 _LOGGER = logging.getLogger(__name__)
 
 REMOTE_SERVICE_SCHEMA = vol.Schema({vol.Required(VEHICLE_VIN): cv.string})
-SERVICES_THAT_NEED_FETCH = [
-    REMOTE_SERVICE_FETCH,
-    REMOTE_SERVICE_REMOTE_START,
-    REMOTE_SERVICE_REMOTE_STOP,
-    REMOTE_SERVICE_UPDATE,
-    REMOTE_SERVICE_CHARGE_START,
-]
 
 
 async def async_setup(hass, base_config):
@@ -96,27 +79,8 @@ async def async_setup_entry(hass, entry):
         raise ConfigEntryNotReady(err) from err
 
     vehicle_info = {}
-    remote_services = []
     for vin in controller.get_vehicles():
         vehicle_info[vin] = get_vehicle_info(controller, vin)
-        if vehicle_info[vin][VEHICLE_HAS_SAFETY_SERVICE]:
-            remote_services.append(REMOTE_SERVICE_FETCH)
-        if vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
-            remote_services.append(REMOTE_SERVICE_HORN)
-            remote_services.append(REMOTE_SERVICE_HORN_STOP)
-            remote_services.append(REMOTE_SERVICE_LIGHTS)
-            remote_services.append(REMOTE_SERVICE_LIGHTS_STOP)
-            remote_services.append(REMOTE_SERVICE_LOCK)
-            remote_services.append(REMOTE_SERVICE_UNLOCK)
-            remote_services.append(REMOTE_SERVICE_UPDATE)
-        if (
-            vehicle_info[vin][VEHICLE_HAS_REMOTE_START]
-            or vehicle_info[vin][VEHICLE_HAS_EV]
-        ):
-            remote_services.append(REMOTE_SERVICE_REMOTE_START)
-            remote_services.append(REMOTE_SERVICE_REMOTE_STOP)
-        if vehicle_info[vin][VEHICLE_HAS_EV]:
-            remote_services.append(REMOTE_SERVICE_CHARGE_START)
 
     async def async_update_data():
         """Fetch data from API endpoint."""
@@ -149,9 +113,8 @@ async def async_setup_entry(hass, entry):
     async def async_remote_service(call):
         """Execute remote services."""
         vin = call.data[VEHICLE_VIN].upper()
-        success = False
-        err_msg = ""
-        if vin not in vehicle_info.keys():
+
+        if vin not in vehicle_info:
             hass.components.persistent_notification.create(
                 f"ERROR - Invalid VIN provided while calling {call.service}", "Subaru"
             )
@@ -160,46 +123,9 @@ async def async_setup_entry(hass, entry):
             )
         else:
             name = vehicle_info[vin][VEHICLE_NAME]
-            if call.service == REMOTE_SERVICE_FETCH:
-                await coordinator.async_refresh()
-                return
+            await async_call_remote_service(hass, controller, call.service, vin, name)
 
-            try:
-                _LOGGER.debug("calling %s", call.service)
-                hass.components.persistent_notification.create(
-                    f"Calling {call.service} for {name}\nThis may take 10-15 seconds",
-                    "Subaru",
-                    DOMAIN,
-                )
-                if call.service == REMOTE_SERVICE_UPDATE:
-                    vehicle = vehicle_info[vin]
-                    success = await update_subaru(
-                        vehicle, controller, override_interval=True
-                    )
-                else:
-                    success = await getattr(controller, call.service)(vin)
-            except SubaruException as err:
-                err_msg = err.message
-
-            if success and call.service in SERVICES_THAT_NEED_FETCH:
-                await coordinator.async_refresh()
-
-            hass.components.persistent_notification.dismiss(DOMAIN)
-            if success:
-                hass.components.persistent_notification.create(
-                    f"Service {call.service} successfully completed for {name}",
-                    "Subaru",
-                )
-                _LOGGER.debug(
-                    "Service %s successfully completed for %s", call.service, name
-                )
-            else:
-                hass.components.persistent_notification.create(
-                    f"Service {call.service} failed for {name}: {err_msg}", "Subaru"
-                )
-                raise HomeAssistantError(
-                    f"Service {call.service} failed for {name}: {err_msg}"
-                )
+    remote_services = get_supported_services(vehicle_info)
 
     for service in remote_services:
         hass.services.async_register(
