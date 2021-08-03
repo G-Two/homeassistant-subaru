@@ -23,7 +23,6 @@ from .api_responses import (
 from .conftest import (
     MOCK_API_FETCH,
     MOCK_API_UPDATE,
-    TEST_CONFIG_LEGACY,
     TEST_ENTITY_ID,
     setup_subaru_integration,
 )
@@ -78,20 +77,6 @@ async def test_unsuccessful_connect(hass, enable_custom_integrations):
     check_entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert check_entry
     assert check_entry.state is ConfigEntryState.SETUP_RETRY
-
-
-async def test_setup_legacy_config(hass, enable_custom_integrations):
-    """Test setup with a legacy config (<=v0.2.0)."""
-    entry = await setup_subaru_integration(
-        hass,
-        vehicle_list=[TEST_VIN_3_G2],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_3_G2],
-        vehicle_status=VEHICLE_STATUS_G2,
-        config=TEST_CONFIG_LEGACY,
-    )
-    check_entry = hass.config_entries.async_get_entry(entry.entry_id)
-    assert check_entry
-    assert check_entry.state is ConfigEntryState.LOADED
 
 
 async def test_invalid_credentials(hass, enable_custom_integrations):

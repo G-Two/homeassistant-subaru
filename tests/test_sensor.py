@@ -20,7 +20,8 @@ from .api_responses import (
     VEHICLE_DATA,
     VEHICLE_STATUS_EV,
 )
-from .conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time_to_next_fetch
+
+from tests.conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time_to_next_fetch
 
 VEHICLE_NAME = VEHICLE_DATA[TEST_VIN_2_EV][VEHICLE_NAME]
 

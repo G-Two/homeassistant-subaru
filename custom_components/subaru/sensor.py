@@ -8,13 +8,12 @@ from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_TIMESTAMP,
     DEVICE_CLASS_VOLTAGE,
+    ELECTRIC_POTENTIAL_VOLT,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
     PERCENTAGE,
     PRESSURE_HPA,
     TEMP_CELSIUS,
-    TIME_MINUTES,
-    VOLT,
     VOLUME_GALLONS,
     VOLUME_LITERS,
 )
@@ -89,7 +88,7 @@ API_GEN_2_SENSORS = [
         SENSOR_TYPE: "12V Battery Voltage",
         SENSOR_CLASS: DEVICE_CLASS_VOLTAGE,
         SENSOR_FIELD: sc.BATTERY_VOLTAGE,
-        SENSOR_UNITS: VOLT,
+        SENSOR_UNITS: ELECTRIC_POTENTIAL_VOLT,
     },
     {
         SENSOR_TYPE: "Tire Pressure FL",
@@ -134,8 +133,8 @@ EV_SENSORS = [
     {
         SENSOR_TYPE: "EV Time to Full Charge",
         SENSOR_CLASS: DEVICE_CLASS_TIMESTAMP,
-        SENSOR_FIELD: sc.EV_TIME_TO_FULLY_CHARGED,
-        SENSOR_UNITS: TIME_MINUTES,
+        SENSOR_FIELD: sc.EV_TIME_TO_FULLY_CHARGED_UTC,
+        SENSOR_UNITS: None,
     },
 ]
 
@@ -222,16 +221,19 @@ class SubaruSensor(SubaruEntity):
                 self.hass.config.units.length(self.current_value, self.api_unit), 1
             )
 
-        if self.api_unit in PRESSURE_UNITS:
-            if self.hass.config.units == IMPERIAL_SYSTEM:
-                return round(
-                    self.hass.config.units.pressure(self.current_value, self.api_unit),
-                    1,
-                )
+        if (
+            self.api_unit in PRESSURE_UNITS
+            and self.hass.config.units == IMPERIAL_SYSTEM
+        ):
+            return round(
+                self.hass.config.units.pressure(self.current_value, self.api_unit), 1,
+            )
 
-        if self.api_unit in FUEL_CONSUMPTION_UNITS:
-            if self.hass.config.units == IMPERIAL_SYSTEM:
-                return round((100.0 * L_PER_GAL) / (KM_PER_MI * self.current_value), 1)
+        if (
+            self.api_unit in FUEL_CONSUMPTION_UNITS
+            and self.hass.config.units == IMPERIAL_SYSTEM
+        ):
+            return round((100.0 * L_PER_GAL) / (KM_PER_MI * self.current_value), 1)
 
         return self.current_value
 
@@ -262,16 +264,22 @@ class SubaruSensor(SubaruEntity):
         last_update_success = super().available
         if last_update_success and self.vin not in self.coordinator.data:
             return False
+        if self.state is None:
+            return False
         return last_update_success
 
     def get_current_value(self):
         """Get raw value from the coordinator."""
-        value = self.coordinator.data[self.vin][VEHICLE_STATUS].get(self.data_field)
-        if value in sc.BAD_SENSOR_VALUES:
-            value = None
-        if isinstance(value, str):
-            if "." in value:
-                value = float(value)
-            else:
-                value = int(value)
-        return value
+        if isinstance(self.coordinator.data, dict):
+            value = self.coordinator.data.get(self.vin)[VEHICLE_STATUS].get(
+                self.data_field
+            )
+            if value in sc.BAD_SENSOR_VALUES:
+                value = None
+            if isinstance(value, str):
+                if "." in value:
+                    value = float(value)
+                elif value.isdigit():
+                    value = int(value)
+            return value
+        return None

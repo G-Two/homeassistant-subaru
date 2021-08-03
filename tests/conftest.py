@@ -66,13 +66,6 @@ TEST_CONFIG = {
     CONF_DEVICE_ID: TEST_DEVICE_ID,
 }
 
-TEST_CONFIG_LEGACY = {
-    CONF_USERNAME: TEST_USERNAME,
-    CONF_PASSWORD: TEST_PASSWORD,
-    CONF_PIN: TEST_PIN,
-    CONF_DEVICE_ID: TEST_DEVICE_ID,
-}
-
 TEST_OPTIONS = {
     CONF_UPDATE_ENABLED: True,
 }
@@ -99,14 +92,13 @@ async def setup_subaru_integration(
     vehicle_status=None,
     connect_effect=None,
     fetch_effect=None,
-    config=TEST_CONFIG,
 ):
     """Create Subaru entry."""
     assert await async_setup_component(hass, HA_DOMAIN, {})
     assert await async_setup_component(hass, DOMAIN, {})
 
     config_entry = MockConfigEntry(
-        domain=DOMAIN, data=config, options=TEST_OPTIONS, entry_id=1,
+        domain=DOMAIN, data=TEST_CONFIG, options=TEST_OPTIONS, entry_id=1,
     )
     config_entry.add_to_hass(hass)
 
