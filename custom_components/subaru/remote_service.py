@@ -1,5 +1,6 @@
-"""Base class for all Subaru Entities."""
+"""Remote vehicle services for Subaru integration."""
 import logging
+import time
 
 from subarulink.exceptions import SubaruException
 
@@ -16,10 +17,14 @@ from .const import (
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
     REMOTE_SERVICE_UPDATE,
+    UPDATE_INTERVAL,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
+    VEHICLE_LAST_UPDATE,
+    VEHICLE_NAME,
+    VEHICLE_VIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,8 +38,10 @@ SERVICES_THAT_NEED_FETCH = [
 ]
 
 
-async def async_call_remote_service(hass, controller, cmd, vin, car_name):
+async def async_call_remote_service(hass, controller, cmd, vehicle_info):
     """Execute subarulink remote command with start/end notification."""
+    car_name = vehicle_info[VEHICLE_NAME]
+    vin = vehicle_info[VEHICLE_VIN]
     hass.components.persistent_notification.create(
         f"Sending {cmd} command to {car_name}\nThis may take 10-15 seconds",
         "Subaru",
@@ -44,7 +51,12 @@ async def async_call_remote_service(hass, controller, cmd, vin, car_name):
     success = False
     err_msg = ""
     try:
-        success = await getattr(controller, cmd)(vin)
+        if cmd == REMOTE_SERVICE_UPDATE:
+            success = await update_subaru(
+                vehicle_info, controller, override_interval=True
+            )
+        else:
+            success = await getattr(controller, cmd)(vin)
     except SubaruException as err:
         err_msg = err.message
 
@@ -83,3 +95,16 @@ def get_supported_services(vehicle_info):
         if vehicle_info[vin][VEHICLE_HAS_EV]:
             remote_services.add(REMOTE_SERVICE_CHARGE_START)
     return remote_services
+
+
+async def update_subaru(vehicle, controller, override_interval=False):
+    """Commands remote vehicle update (polls the vehicle to update subaru API cache)."""
+    cur_time = time.time()
+    last_update = vehicle[VEHICLE_LAST_UPDATE]
+    success = None
+
+    if (cur_time - last_update) > UPDATE_INTERVAL or override_interval:
+        success = await controller.update(vehicle[VEHICLE_VIN], force=True)
+        vehicle[VEHICLE_LAST_UPDATE] = cur_time
+
+    return success

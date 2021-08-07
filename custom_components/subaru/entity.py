@@ -12,6 +12,7 @@ class SubaruEntity(CoordinatorEntity):
         super().__init__(coordinator)
         self.car_name = vehicle_info[VEHICLE_NAME]
         self.vin = vehicle_info[VEHICLE_VIN]
+        self.vehicle_info = vehicle_info
         self.entity_type = "entity"
 
     @property

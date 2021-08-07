@@ -47,12 +47,12 @@ class SubaruLock(SubaruEntity, LockEntity):
         """Send the lock command."""
         _LOGGER.debug("Locking doors for: %s", self.vin)
         await async_call_remote_service(
-            self.hass, self.controller, SERVICE_LOCK, self.vin, self.car_name
+            self.hass, self.controller, SERVICE_LOCK, self.vehicle_info
         )
 
     async def async_unlock(self, **kwargs):
         """Send the unlock command."""
         _LOGGER.debug("Unlocking doors for: %s", self.vin)
         await async_call_remote_service(
-            self.hass, self.controller, SERVICE_UNLOCK, self.vin, self.car_name
+            self.hass, self.controller, SERVICE_UNLOCK, self.vehicle_info
         )
