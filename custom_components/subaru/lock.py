@@ -33,7 +33,8 @@ class SubaruLock(SubaruEntity, LockEntity):
     """
     Representation of a Subaru door lock.
 
-    Note that the Subaru API currently does not support returning the status of the locks. Lock status is always unknown.
+    Note that the Subaru API currently does not support returning the status of the locks.
+    Lock status is always unknown.
     """
 
     def __init__(self, vehicle_info, coordinator, controller):

@@ -75,7 +75,7 @@ async def async_setup_entry(hass, entry):
             update_interval=UPDATE_INTERVAL,
             fetch_interval=FETCH_INTERVAL,
         )
-        _LOGGER.debug(f"Using subarulink {controller.version}")
+        _LOGGER.debug("Using subarulink %s", controller.version)
         await controller.connect()
     except InvalidCredentials:
         _LOGGER.error("Invalid account")
