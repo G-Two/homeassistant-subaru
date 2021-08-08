@@ -50,16 +50,8 @@ SUPPORTED_PLATFORMS = [
 ]
 
 ICONS = {
-    "12V Battery Voltage": "mdi:car-battery",
     "Avg Fuel Consumption": "mdi:leaf",
-    "EV Battery Level": "mdi:battery-high",
-    "EV Time to Full Charge": "mdi:car-electric",
     "EV Range": "mdi:ev-station",
-    "External Temp": "mdi:thermometer",
     "Odometer": "mdi:road-variant",
     "Range": "mdi:gas-station",
-    "Tire Pressure FL": "mdi:gauge",
-    "Tire Pressure FR": "mdi:gauge",
-    "Tire Pressure RL": "mdi:gauge",
-    "Tire Pressure RR": "mdi:gauge",
 }

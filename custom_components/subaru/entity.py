@@ -1,7 +1,7 @@
 """Base class for all Subaru Entities."""
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, ICONS, MANUFACTURER, VEHICLE_NAME, VEHICLE_VIN
+from .const import DOMAIN, MANUFACTURER, VEHICLE_NAME, VEHICLE_VIN
 
 
 class SubaruEntity(CoordinatorEntity):
@@ -12,6 +12,7 @@ class SubaruEntity(CoordinatorEntity):
         super().__init__(coordinator)
         self.car_name = vehicle_info[VEHICLE_NAME]
         self.vin = vehicle_info[VEHICLE_VIN]
+        self.vehicle_info = vehicle_info
         self.entity_type = "entity"
 
     @property
@@ -23,11 +24,6 @@ class SubaruEntity(CoordinatorEntity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return f"{self.vin}_{self.entity_type}"
-
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        return ICONS.get(self.entity_type)
 
     @property
     def device_info(self):

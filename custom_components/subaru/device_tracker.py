@@ -36,11 +36,15 @@ class SubaruDeviceTracker(SubaruEntity, TrackerEntity):
     @property
     def latitude(self):
         """Return latitude value of the device."""
+        value = None
         if self.coordinator.data.get(self.vin):
-            return self.coordinator.data[self.vin]["status"].get(sc.LATITUDE)
+            value = self.coordinator.data[self.vin]["status"].get(sc.LATITUDE)
+        return value
 
     @property
     def longitude(self):
         """Return longitude value of the device."""
+        value = None
         if self.coordinator.data.get(self.vin):
-            return self.coordinator.data[self.vin]["status"].get(sc.LONGITUDE)
+            value = self.coordinator.data[self.vin]["status"].get(sc.LONGITUDE)
+        return value

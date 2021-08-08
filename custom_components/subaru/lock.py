@@ -2,6 +2,7 @@
 import logging
 
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN, LockEntity
+from homeassistant.const import SERVICE_LOCK, SERVICE_UNLOCK
 
 from . import DOMAIN as SUBARU_DOMAIN
 from .const import (
@@ -11,6 +12,7 @@ from .const import (
     VEHICLE_HAS_REMOTE_SERVICE,
 )
 from .entity import SubaruEntity
+from .remote_service import async_call_remote_service
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,9 +23,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     coordinator = hass.data[SUBARU_DOMAIN][config_entry.entry_id][ENTRY_COORDINATOR]
     vehicle_info = hass.data[SUBARU_DOMAIN][config_entry.entry_id][ENTRY_VEHICLES]
     entities = []
-    for vin in vehicle_info.keys():
-        if vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
-            entities.append(SubaruLock(vehicle_info[vin], coordinator, controller))
+    for vehicle in vehicle_info.values():
+        if vehicle[VEHICLE_HAS_REMOTE_SERVICE]:
+            entities.append(SubaruLock(vehicle, coordinator, controller))
     async_add_entities(entities, True)
 
 
@@ -31,7 +33,8 @@ class SubaruLock(SubaruEntity, LockEntity):
     """
     Representation of a Subaru door lock.
 
-    Note that the Subaru API currently does not support returning the status of the locks. Therefore lock status is always unknown.
+    Note that the Subaru API currently does not support returning the status of the locks.
+    Lock status is always unknown.
     """
 
     def __init__(self, vehicle_info, coordinator, controller):
@@ -44,9 +47,13 @@ class SubaruLock(SubaruEntity, LockEntity):
     async def async_lock(self, **kwargs):
         """Send the lock command."""
         _LOGGER.debug("Locking doors for: %s", self.vin)
-        await self.controller.lock(self.vin)
+        await async_call_remote_service(
+            self.hass, self.controller, SERVICE_LOCK, self.vehicle_info
+        )
 
     async def async_unlock(self, **kwargs):
         """Send the unlock command."""
         _LOGGER.debug("Unlocking doors for: %s", self.vin)
-        await self.controller.unlock(self.vin)
+        await async_call_remote_service(
+            self.hass, self.controller, SERVICE_UNLOCK, self.vehicle_info
+        )

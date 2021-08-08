@@ -2,7 +2,6 @@
 import asyncio
 from datetime import timedelta
 import logging
-import time
 
 from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruException
 from subarulink.const import COUNTRY_USA
@@ -24,17 +23,7 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
-    REMOTE_SERVICE_CHARGE_START,
     REMOTE_SERVICE_FETCH,
-    REMOTE_SERVICE_HORN,
-    REMOTE_SERVICE_HORN_STOP,
-    REMOTE_SERVICE_LIGHTS,
-    REMOTE_SERVICE_LIGHTS_STOP,
-    REMOTE_SERVICE_LOCK,
-    REMOTE_SERVICE_REMOTE_START,
-    REMOTE_SERVICE_REMOTE_STOP,
-    REMOTE_SERVICE_UNLOCK,
-    REMOTE_SERVICE_UPDATE,
     SUPPORTED_PLATFORMS,
     UPDATE_INTERVAL,
     VEHICLE_API_GEN,
@@ -46,17 +35,16 @@ from .const import (
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
+from .remote_service import (
+    SERVICES_THAT_NEED_FETCH,
+    async_call_remote_service,
+    get_supported_services,
+    update_subaru,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 REMOTE_SERVICE_SCHEMA = vol.Schema({vol.Required(VEHICLE_VIN): cv.string})
-SERVICES_THAT_NEED_FETCH = [
-    REMOTE_SERVICE_FETCH,
-    REMOTE_SERVICE_REMOTE_START,
-    REMOTE_SERVICE_REMOTE_STOP,
-    REMOTE_SERVICE_UPDATE,
-    REMOTE_SERVICE_CHARGE_START,
-]
 
 
 async def async_setup(hass, base_config):
@@ -87,7 +75,7 @@ async def async_setup_entry(hass, entry):
             update_interval=UPDATE_INTERVAL,
             fetch_interval=FETCH_INTERVAL,
         )
-        _LOGGER.debug(f"Using subarulink {controller.version}")
+        _LOGGER.debug("Using subarulink %s", controller.version)
         await controller.connect()
     except InvalidCredentials:
         _LOGGER.error("Invalid account")
@@ -95,33 +83,14 @@ async def async_setup_entry(hass, entry):
     except SubaruException as err:
         raise ConfigEntryNotReady(err) from err
 
-    vehicle_info = {}
-    remote_services = []
+    vehicles = {}
     for vin in controller.get_vehicles():
-        vehicle_info[vin] = get_vehicle_info(controller, vin)
-        if vehicle_info[vin][VEHICLE_HAS_SAFETY_SERVICE]:
-            remote_services.append(REMOTE_SERVICE_FETCH)
-        if vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
-            remote_services.append(REMOTE_SERVICE_HORN)
-            remote_services.append(REMOTE_SERVICE_HORN_STOP)
-            remote_services.append(REMOTE_SERVICE_LIGHTS)
-            remote_services.append(REMOTE_SERVICE_LIGHTS_STOP)
-            remote_services.append(REMOTE_SERVICE_LOCK)
-            remote_services.append(REMOTE_SERVICE_UNLOCK)
-            remote_services.append(REMOTE_SERVICE_UPDATE)
-        if (
-            vehicle_info[vin][VEHICLE_HAS_REMOTE_START]
-            or vehicle_info[vin][VEHICLE_HAS_EV]
-        ):
-            remote_services.append(REMOTE_SERVICE_REMOTE_START)
-            remote_services.append(REMOTE_SERVICE_REMOTE_STOP)
-        if vehicle_info[vin][VEHICLE_HAS_EV]:
-            remote_services.append(REMOTE_SERVICE_CHARGE_START)
+        vehicles[vin] = get_vehicle_info(controller, vin)
 
     async def async_update_data():
         """Fetch data from API endpoint."""
         try:
-            return await refresh_subaru_data(entry, vehicle_info, controller)
+            return await refresh_subaru_data(entry, vehicles, controller)
         except SubaruException as err:
             raise UpdateFailed(err.message) from err
 
@@ -138,7 +107,7 @@ async def async_setup_entry(hass, entry):
     hass.data.get(DOMAIN)[entry.entry_id] = {
         ENTRY_CONTROLLER: controller,
         ENTRY_COORDINATOR: coordinator,
-        ENTRY_VEHICLES: vehicle_info,
+        ENTRY_VEHICLES: vehicles,
     }
 
     for component in SUPPORTED_PLATFORMS:
@@ -146,64 +115,29 @@ async def async_setup_entry(hass, entry):
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
 
-    async def async_remote_service(call):
-        """Execute remote services."""
+    async def async_call_service(call):
+        """Execute subaru service."""
         vin = call.data[VEHICLE_VIN].upper()
-        success = False
-        err_msg = ""
-        if vin not in vehicle_info.keys():
-            hass.components.persistent_notification.create(
-                f"ERROR - Invalid VIN provided while calling {call.service}", "Subaru"
-            )
-            raise HomeAssistantError(
-                f"Invalid VIN provided while calling {call.service}"
-            )
-        else:
-            name = vehicle_info[vin][VEHICLE_NAME]
-            if call.service == REMOTE_SERVICE_FETCH:
+
+        if vin in vehicles:
+            if call.service != REMOTE_SERVICE_FETCH:
+                await async_call_remote_service(
+                    hass, controller, call.service, vehicles[vin]
+                )
+            if call.service in SERVICES_THAT_NEED_FETCH:
                 await coordinator.async_refresh()
-                return
+            return
 
-            try:
-                _LOGGER.debug("calling %s", call.service)
-                hass.components.persistent_notification.create(
-                    f"Calling {call.service} for {name}\nThis may take 10-15 seconds",
-                    "Subaru",
-                    DOMAIN,
-                )
-                if call.service == REMOTE_SERVICE_UPDATE:
-                    vehicle = vehicle_info[vin]
-                    success = await update_subaru(
-                        vehicle, controller, override_interval=True
-                    )
-                else:
-                    success = await getattr(controller, call.service)(vin)
-            except SubaruException as err:
-                err_msg = err.message
+        hass.components.persistent_notification.create(
+            f"ERROR - Invalid VIN provided while calling {call.service}", "Subaru"
+        )
+        raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
 
-            if success and call.service in SERVICES_THAT_NEED_FETCH:
-                await coordinator.async_refresh()
+    supported_services = get_supported_services(vehicles)
 
-            hass.components.persistent_notification.dismiss(DOMAIN)
-            if success:
-                hass.components.persistent_notification.create(
-                    f"Service {call.service} successfully completed for {name}",
-                    "Subaru",
-                )
-                _LOGGER.debug(
-                    "Service %s successfully completed for %s", call.service, name
-                )
-            else:
-                hass.components.persistent_notification.create(
-                    f"Service {call.service} failed for {name}: {err_msg}", "Subaru"
-                )
-                raise HomeAssistantError(
-                    f"Service {call.service} failed for {name}: {err_msg}"
-                )
-
-    for service in remote_services:
+    for service in supported_services:
         hass.services.async_register(
-            DOMAIN, service, async_remote_service, schema=REMOTE_SERVICE_SCHEMA
+            DOMAIN, service, async_call_service, schema=REMOTE_SERVICE_SCHEMA
         )
 
     return True
@@ -241,7 +175,7 @@ async def refresh_subaru_data(config_entry, vehicle_info, controller):
         if not vehicle[VEHICLE_HAS_SAFETY_SERVICE]:
             continue
 
-        # Optionally send an "update" remote command to vehicle (throttled with update_interval)
+        # Send an "update" remote command to vehicle, if supported (throttled with update_interval)
         if config_entry.options.get(CONF_UPDATE_ENABLED, False):
             await update_subaru(vehicle, controller)
 
@@ -254,18 +188,6 @@ async def refresh_subaru_data(config_entry, vehicle_info, controller):
             data[vin] = received_data
 
     return data
-
-
-async def update_subaru(vehicle, controller, override_interval=False):
-    """Commands remote vehicle update (polls the vehicle to update subaru API cache)."""
-    cur_time = time.time()
-    last_update = vehicle[VEHICLE_LAST_UPDATE]
-
-    if (cur_time - last_update) > UPDATE_INTERVAL or override_interval:
-        await controller.update(vehicle[VEHICLE_VIN], force=True)
-        vehicle[VEHICLE_LAST_UPDATE] = cur_time
-
-    return True
 
 
 def get_vehicle_info(controller, vin):

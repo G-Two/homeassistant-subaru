@@ -119,19 +119,7 @@ The options are:
 
 ## Services
 
-### `subaru.lock`
-Lock all doors of the vehicle. The vehicle is identified by the `vin`.
-
-| Service Data Attribute | Required | Description                                        |
-| ---------------------- | -------- | -------------------------------------------------- |
-| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
-
-### `subaru.unlock`
-Unlock all doors of the vehicle. The vehicle is identified by the `vin`.
-
-| Service Data Attribute | Required | Description                                        |
-| ---------------------- | -------- | -------------------------------------------------- |
-| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+**NOTE:** Subaru lock uses the services provided by the Home Assistant [Lock](https://www.home-assistant.io/integrations/lock/) integration
 
 ### `subaru.lights`
 Flash the lights of the vehicle. The vehicle is identified by the `vin`.
