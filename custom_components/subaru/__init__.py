@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_COUNTRY,
+    CONF_PERSISTENT_NOTIFICATIONS,
     CONF_UPDATE_ENABLED,
     COORDINATOR_NAME,
     DOMAIN,
@@ -122,7 +123,11 @@ async def async_setup_entry(hass, entry):
         if vin in vehicles:
             if call.service != REMOTE_SERVICE_FETCH:
                 await async_call_remote_service(
-                    hass, controller, call.service, vehicles[vin]
+                    hass,
+                    controller,
+                    call.service,
+                    vehicles[vin],
+                    entry.options.get(CONF_PERSISTENT_NOTIFICATIONS),
                 )
             if call.service in SERVICES_THAT_NEED_FETCH:
                 await coordinator.async_refresh()

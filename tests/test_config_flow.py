@@ -8,7 +8,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from subarulink.exceptions import InvalidCredentials, InvalidPIN, SubaruException
 
 from custom_components.subaru import config_flow
-from custom_components.subaru.const import CONF_UPDATE_ENABLED, DOMAIN
+from custom_components.subaru.const import (
+    CONF_PERSISTENT_NOTIFICATIONS,
+    CONF_UPDATE_ENABLED,
+    DOMAIN,
+)
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE_ID, CONF_PIN
 from homeassistant.setup import async_setup_component
@@ -29,7 +33,6 @@ ASYNC_SETUP_ENTRY = "custom_components.subaru.async_setup_entry"
 
 
 async def test_user_init_form(user_form):
-    """Test the initial user form for first step of the config flow."""
     """Test the initial user form for first step of the config flow."""
     assert user_form["description_placeholders"] is None
     assert user_form["errors"] is None
@@ -173,10 +176,12 @@ async def test_pin_form_incorrect_pin(hass, pin_form):
 async def test_option_flow(hass, options_form):
     """Test config flow options."""
     result = await hass.config_entries.options.async_configure(
-        options_form["flow_id"], user_input={CONF_UPDATE_ENABLED: False},
+        options_form["flow_id"],
+        user_input={CONF_PERSISTENT_NOTIFICATIONS: False, CONF_UPDATE_ENABLED: False},
     )
     assert result["type"] == "create_entry"
     assert result["data"] == {
+        CONF_PERSISTENT_NOTIFICATIONS: False,
         CONF_UPDATE_ENABLED: False,
     }
 

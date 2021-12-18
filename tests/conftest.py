@@ -11,6 +11,7 @@ from subarulink.const import COUNTRY_USA
 
 from custom_components.subaru.const import (
     CONF_COUNTRY,
+    CONF_PERSISTENT_NOTIFICATIONS,
     CONF_UPDATE_ENABLED,
     DOMAIN,
     FETCH_INTERVAL,
@@ -68,6 +69,7 @@ TEST_CONFIG = {
 
 TEST_OPTIONS = {
     CONF_UPDATE_ENABLED: True,
+    CONF_PERSISTENT_NOTIFICATIONS: True,
 }
 
 TEST_ENTITY_ID = "sensor.test_vehicle_2_odometer"

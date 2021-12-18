@@ -1,9 +1,11 @@
 """Constants for the Subaru integration."""
+from homeassistant.const import Platform
 
 DOMAIN = "subaru"
 FETCH_INTERVAL = 300
 UPDATE_INTERVAL = 7200
 CONF_UPDATE_ENABLED = "update_enabled"
+CONF_PERSISTENT_NOTIFICATIONS = "persistent_notifications"
 CONF_COUNTRY = "country"
 
 # entry fields
@@ -43,10 +45,10 @@ REMOTE_SERVICE_REMOTE_STOP = "remote_stop"
 REMOTE_SERVICE_CHARGE_START = "charge_start"
 
 SUPPORTED_PLATFORMS = [
-    "binary_sensor",
-    "device_tracker",
-    "lock",
-    "sensor",
+    Platform.BINARY_SENSOR,
+    Platform.DEVICE_TRACKER,
+    Platform.LOCK,
+    Platform.SENSOR,
 ]
 
 ICONS = {

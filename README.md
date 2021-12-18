@@ -115,7 +115,9 @@ The options are:
 
 - **Enable vehicle polling *[Default: off]*:**  When enabled, vehicle polling will send a remote command to your vehicle every 2 hours to obtain new sensor data. This involves “waking” your vehicle and requesting that it send new data to Subaru servers. Without vehicle polling, new sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). This option only applies to vehicles with Security Plus subscriptions.
 
-    **WARNING:** Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start.
+    **WARNING:** Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
+
+- **Enable persistent notifications for remote commands *[Default: off]*:**  It takes 10-15 seconds for remote commands to be processed and transmitted over the cellular network to your vehicle. This integration will produce a notification in Lovelace while the remote command is pending completion to inform the user that the command is "working" and will disappear upon success. When this option is enabled, the integration will persist a success notification in Lovelace until it is manually dismissed. Any failures will always result in a persistent notification, regardless of this option.
 
 ## Services
 

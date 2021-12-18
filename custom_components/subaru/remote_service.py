@@ -38,7 +38,9 @@ SERVICES_THAT_NEED_FETCH = [
 ]
 
 
-async def async_call_remote_service(hass, controller, cmd, vehicle_info):
+async def async_call_remote_service(
+    hass, controller, cmd, vehicle_info, persist_notification
+):
     """Execute subarulink remote command with start/end notification."""
     car_name = vehicle_info[VEHICLE_NAME]
     vin = vehicle_info[VEHICLE_VIN]
@@ -62,9 +64,10 @@ async def async_call_remote_service(hass, controller, cmd, vehicle_info):
 
     hass.components.persistent_notification.dismiss(DOMAIN)
     if success:
-        hass.components.persistent_notification.create(
-            f"{cmd} command successfully completed for {car_name}", "Subaru",
-        )
+        if persist_notification:
+            hass.components.persistent_notification.create(
+                f"{cmd} command successfully completed for {car_name}", "Subaru",
+            )
         _LOGGER.debug("%s command successfully completed for %s", cmd, car_name)
         return True
 
