@@ -6,6 +6,7 @@ from homeassistant.const import SERVICE_LOCK, SERVICE_UNLOCK
 
 from . import DOMAIN as SUBARU_DOMAIN
 from .const import (
+    CONF_NOTIFICATION_OPTION,
     ENTRY_CONTROLLER,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -25,7 +26,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
     for vehicle in vehicle_info.values():
         if vehicle[VEHICLE_HAS_REMOTE_SERVICE]:
-            entities.append(SubaruLock(vehicle, coordinator, controller))
+            entities.append(SubaruLock(vehicle, coordinator, controller, config_entry))
     async_add_entities(entities, True)
 
 
@@ -37,23 +38,32 @@ class SubaruLock(SubaruEntity, LockEntity):
     Lock status is always unknown.
     """
 
-    def __init__(self, vehicle_info, coordinator, controller):
+    def __init__(self, vehicle_info, coordinator, controller, config_entry):
         """Initialize the locks for the vehicle."""
         super().__init__(vehicle_info, coordinator)
         self.entity_type = "Door Lock"
         self.hass_type = LOCK_DOMAIN
         self.controller = controller
+        self.config_entry = config_entry
 
     async def async_lock(self, **kwargs):
         """Send the lock command."""
         _LOGGER.debug("Locking doors for: %s", self.vin)
         await async_call_remote_service(
-            self.hass, self.controller, SERVICE_LOCK, self.vehicle_info
+            self.hass,
+            self.controller,
+            SERVICE_LOCK,
+            self.vehicle_info,
+            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )
 
     async def async_unlock(self, **kwargs):
         """Send the unlock command."""
         _LOGGER.debug("Unlocking doors for: %s", self.vin)
         await async_call_remote_service(
-            self.hass, self.controller, SERVICE_UNLOCK, self.vehicle_info
+            self.hass,
+            self.controller,
+            SERVICE_UNLOCK,
+            self.vehicle_info,
+            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )

@@ -1,10 +1,35 @@
 """Constants for the Subaru integration."""
+from enum import Enum
+
+from homeassistant.const import Platform
 
 DOMAIN = "subaru"
 FETCH_INTERVAL = 300
 UPDATE_INTERVAL = 7200
 CONF_UPDATE_ENABLED = "update_enabled"
+CONF_NOTIFICATION_OPTION = "notification_option"
 CONF_COUNTRY = "country"
+
+
+class NotificationOptions(Enum):
+    """Lovelace levels of notification."""
+
+    FAILURE = "Failure — Only notify on failure"
+    PENDING = "Pending — Temporary notification of remote command in progress"
+    SUCCESS = "Success — Persistent notification of completed remote command"
+
+    @classmethod
+    def list(cls):
+        """List values of NotificationOptions."""
+        return [item.value for item in NotificationOptions]
+
+    @classmethod
+    def get_by_value(cls, value):
+        """Get enum instance by value."""
+        for item in cls:
+            if item.value == value:
+                return item
+
 
 # entry fields
 ENTRY_CONTROLLER = "controller"
@@ -43,10 +68,10 @@ REMOTE_SERVICE_REMOTE_STOP = "remote_stop"
 REMOTE_SERVICE_CHARGE_START = "charge_start"
 
 SUPPORTED_PLATFORMS = [
-    "binary_sensor",
-    "device_tracker",
-    "lock",
-    "sensor",
+    Platform.BINARY_SENSOR,
+    Platform.DEVICE_TRACKER,
+    Platform.LOCK,
+    Platform.SENSOR,
 ]
 
 ICONS = {

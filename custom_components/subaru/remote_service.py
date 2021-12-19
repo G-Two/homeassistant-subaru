@@ -25,6 +25,7 @@ from .const import (
     VEHICLE_LAST_UPDATE,
     VEHICLE_NAME,
     VEHICLE_VIN,
+    NotificationOptions,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,15 +39,17 @@ SERVICES_THAT_NEED_FETCH = [
 ]
 
 
-async def async_call_remote_service(hass, controller, cmd, vehicle_info):
+async def async_call_remote_service(hass, controller, cmd, vehicle_info, notify_option):
     """Execute subarulink remote command with start/end notification."""
     car_name = vehicle_info[VEHICLE_NAME]
     vin = vehicle_info[VEHICLE_VIN]
-    hass.components.persistent_notification.create(
-        f"Sending {cmd} command to {car_name}\nThis may take 10-15 seconds",
-        "Subaru",
-        DOMAIN,
-    )
+    notify = NotificationOptions.get_by_value(notify_option)
+    if notify in [NotificationOptions.PENDING, NotificationOptions.SUCCESS]:
+        hass.components.persistent_notification.create(
+            f"Sending {cmd} command to {car_name}\nThis may take 10-15 seconds",
+            "Subaru",
+            DOMAIN,
+        )
     _LOGGER.debug("Sending %s command command to %s", cmd, car_name)
     success = False
     err_msg = ""
@@ -60,11 +63,14 @@ async def async_call_remote_service(hass, controller, cmd, vehicle_info):
     except SubaruException as err:
         err_msg = err.message
 
-    hass.components.persistent_notification.dismiss(DOMAIN)
+    if notify in [NotificationOptions.PENDING, NotificationOptions.SUCCESS]:
+        hass.components.persistent_notification.dismiss(DOMAIN)
+
     if success:
-        hass.components.persistent_notification.create(
-            f"{cmd} command successfully completed for {car_name}", "Subaru",
-        )
+        if notify == NotificationOptions.SUCCESS:
+            hass.components.persistent_notification.create(
+                f"{cmd} command successfully completed for {car_name}", "Subaru",
+            )
         _LOGGER.debug("%s command successfully completed for %s", cmd, car_name)
         return True
 

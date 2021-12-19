@@ -35,11 +35,12 @@
         "step": {
           "init": {
             "title": "Subaru Starlink Options",
-            "description": "When enabled, vehicle polling will send a remote command to your vehicle every 2 hours to obtain new sensor data. Without vehicle polling, new sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown).",
+            "description": "See documentation at: https://github.com/G-Two/homeassistant-subaru#options",
             "data": {
-              "update_enabled": "Enable vehicle polling"
-                }
+              "update_enabled": "Enable vehicle polling (CAUTION: May drain battery after weeks of non-driving)",
+              "notification_option": "Lovelace UI notifications for remote commands"
             }
+          }
         }
     }
 }

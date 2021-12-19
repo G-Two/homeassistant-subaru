@@ -16,7 +16,13 @@ from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_US
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 
-from .const import CONF_COUNTRY, CONF_UPDATE_ENABLED, DOMAIN
+from .const import (
+    CONF_COUNTRY,
+    CONF_NOTIFICATION_OPTION,
+    CONF_UPDATE_ENABLED,
+    DOMAIN,
+    NotificationOptions,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -151,6 +157,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_UPDATE_ENABLED,
                     default=self.config_entry.options.get(CONF_UPDATE_ENABLED, False),
                 ): cv.boolean,
+                vol.Required(
+                    CONF_NOTIFICATION_OPTION,
+                    default=self.config_entry.options.get(
+                        CONF_NOTIFICATION_OPTION, NotificationOptions.FAILURE.value
+                    ),
+                ): vol.In(sorted(NotificationOptions.list())),
             }
         )
         return self.async_show_form(step_id="init", data_schema=data_schema)
