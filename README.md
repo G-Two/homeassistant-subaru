@@ -85,7 +85,7 @@ Device tracker, lock, and services all require a STARLINK Security Plus subscrip
 
 ## Installation
 ### HACS
-Add `https://github.com/G-Two/homeassistant-subaru` as a custom integration repository and install the Subaru STARLINK integration.
+Add `https://github.com/G-Two/homeassistant-subaru` as a custom integration repository and install the **Subaru (HACS)** integration.
 ### Manual
 Clone or download this repository, and copy the `custom_components/subaru` directory into the `config/custom_components` directory of your Home Assistant instance. Restart Home Assistant.
 
@@ -127,11 +127,12 @@ All options involve remote commands, thus only apply to vehicles with Security P
 - **Lovelace UI notifications for remote commands:**  It takes 10-15 seconds for remote commands to be processed by the Subaru API and transmitted over the cellular network to your vehicle. Some users may desire UI feedback that the integration is working. This option provides three levels of increasing verbosity:
   - **Failure *[Default]*:** Only notify when the remote command has failed.
   - **Pending:** Failure + temporary notification that the command is "working" that will automatically disappear when the Subaru API confirms success (10 to 15 seconds).
-  - **Success:** Pending + persistent notification in Lovelace. This is the same behavior as v0.5.1 and earlier releases.
+  - **Success:** Pending + persistent notification of success in Lovelace. This is the same behavior as v0.5.1 and earlier releases.
 
 ## Services
 
 Services provided by this integration are shown below:
+
 **NOTE:** Subaru lock uses the services provided by the built-in Home Assistant [Lock](https://www.home-assistant.io/integrations/lock/) platform
 
 | Service                | Description |
