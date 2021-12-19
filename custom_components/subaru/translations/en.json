@@ -37,8 +37,8 @@
             "title": "Subaru Starlink Options",
             "description": "See documentation at: https://github.com/G-Two/homeassistant-subaru#options",
             "data": {
-              "update_enabled": "Enable vehicle polling",
-              "persistent_notifications": "Enable persistent notifications for remote commands"
+              "update_enabled": "Enable vehicle polling (CAUTION: May drain battery after weeks of non-driving)",
+              "notification_option": "Lovelace UI notifications for remote commands"
             }
           }
         }

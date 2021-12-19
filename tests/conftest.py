@@ -11,7 +11,7 @@ from subarulink.const import COUNTRY_USA
 
 from custom_components.subaru.const import (
     CONF_COUNTRY,
-    CONF_PERSISTENT_NOTIFICATIONS,
+    CONF_NOTIFICATION_OPTION,
     CONF_UPDATE_ENABLED,
     DOMAIN,
     FETCH_INTERVAL,
@@ -22,6 +22,7 @@ from custom_components.subaru.const import (
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_NAME,
+    NotificationOptions,
 )
 from homeassistant.components.homeassistant import DOMAIN as HA_DOMAIN
 from homeassistant.config_entries import ConfigEntryState
@@ -69,7 +70,7 @@ TEST_CONFIG = {
 
 TEST_OPTIONS = {
     CONF_UPDATE_ENABLED: True,
-    CONF_PERSISTENT_NOTIFICATIONS: True,
+    CONF_NOTIFICATION_OPTION: NotificationOptions.SUCCESS.value,
 }
 
 TEST_ENTITY_ID = "sensor.test_vehicle_2_odometer"

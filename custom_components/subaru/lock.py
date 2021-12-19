@@ -6,7 +6,7 @@ from homeassistant.const import SERVICE_LOCK, SERVICE_UNLOCK
 
 from . import DOMAIN as SUBARU_DOMAIN
 from .const import (
-    CONF_PERSISTENT_NOTIFICATIONS,
+    CONF_NOTIFICATION_OPTION,
     ENTRY_CONTROLLER,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -54,7 +54,7 @@ class SubaruLock(SubaruEntity, LockEntity):
             self.controller,
             SERVICE_LOCK,
             self.vehicle_info,
-            self.config_entry.options.get(CONF_PERSISTENT_NOTIFICATIONS),
+            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )
 
     async def async_unlock(self, **kwargs):
@@ -65,5 +65,5 @@ class SubaruLock(SubaruEntity, LockEntity):
             self.controller,
             SERVICE_UNLOCK,
             self.vehicle_info,
-            self.config_entry.options.get(CONF_PERSISTENT_NOTIFICATIONS),
+            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )

@@ -9,9 +9,10 @@ from subarulink.exceptions import InvalidCredentials, InvalidPIN, SubaruExceptio
 
 from custom_components.subaru import config_flow
 from custom_components.subaru.const import (
-    CONF_PERSISTENT_NOTIFICATIONS,
+    CONF_NOTIFICATION_OPTION,
     CONF_UPDATE_ENABLED,
     DOMAIN,
+    NotificationOptions,
 )
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE_ID, CONF_PIN
@@ -177,11 +178,14 @@ async def test_option_flow(hass, options_form):
     """Test config flow options."""
     result = await hass.config_entries.options.async_configure(
         options_form["flow_id"],
-        user_input={CONF_PERSISTENT_NOTIFICATIONS: False, CONF_UPDATE_ENABLED: False},
+        user_input={
+            CONF_NOTIFICATION_OPTION: NotificationOptions.PENDING.value,
+            CONF_UPDATE_ENABLED: False,
+        },
     )
     assert result["type"] == "create_entry"
     assert result["data"] == {
-        CONF_PERSISTENT_NOTIFICATIONS: False,
+        CONF_NOTIFICATION_OPTION: NotificationOptions.PENDING.value,
         CONF_UPDATE_ENABLED: False,
     }
 
