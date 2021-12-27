@@ -48,6 +48,10 @@ remote_start:
       description: >
         The vehicle identification number (VIN) of the vehicle, 17 characters
       example: JF2ABCDE6L0000001
+    preset_name:
+      description: >
+        The name of the climate control preset desired
+      example: Full Heat
 
 remote_stop:
   description: >

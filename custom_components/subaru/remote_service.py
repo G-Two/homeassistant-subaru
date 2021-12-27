@@ -16,6 +16,7 @@ from .const import (
     REMOTE_SERVICE_LIGHTS_STOP,
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
+    REMOTE_SERVICE_UNLOCK,
     REMOTE_SERVICE_UPDATE,
     UPDATE_INTERVAL,
     VEHICLE_HAS_EV,
@@ -39,7 +40,9 @@ SERVICES_THAT_NEED_FETCH = [
 ]
 
 
-async def async_call_remote_service(hass, controller, cmd, vehicle_info, notify_option):
+async def async_call_remote_service(
+    hass, controller, cmd, vehicle_info, arg, notify_option
+):
     """Execute subarulink remote command with start/end notification."""
     car_name = vehicle_info[VEHICLE_NAME]
     vin = vehicle_info[VEHICLE_VIN]
@@ -58,6 +61,8 @@ async def async_call_remote_service(hass, controller, cmd, vehicle_info, notify_
             success = await update_subaru(
                 vehicle_info, controller, override_interval=True
             )
+        elif cmd in [REMOTE_SERVICE_REMOTE_START, REMOTE_SERVICE_UNLOCK]:
+            success = await getattr(controller, cmd)(vin, arg)
         else:
             success = await getattr(controller, cmd)(vin)
     except SubaruException as err:

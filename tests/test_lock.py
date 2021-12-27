@@ -9,7 +9,7 @@ from .conftest import MOCK_API
 
 MOCK_API_LOCK = f"{MOCK_API}lock"
 MOCK_API_UNLOCK = f"{MOCK_API}unlock"
-DEVICE_ID = "lock.test_vehicle_2_door_lock"
+DEVICE_ID = "lock.test_vehicle_2_all_doors"
 
 
 async def test_device_exists(hass, ev_entry):

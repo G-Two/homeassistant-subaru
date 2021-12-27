@@ -21,63 +21,64 @@ The Subaru integration retrieves information provided by Subaru connected vehicl
 This integration requires an active vehicle subscription to the [Subaru STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service (available in USA and Canada).
 
 Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tables below to determine which capabilities are available for your vehicle.
+NOTE: There appears to now be a Gen 3, although it is unclear which model years have this capability. From analysis of the official Android mobile app, Gen 3 uses the same API endpoints as Gen 2, but may offer additional capability (tailgate unlock and hints of remote window open/close?).
 
-| Model     | Gen 1     | Gen 2 |
-|-----------|-----------|-------|
-| Ascent    |           | 2019+ |
-| Crosstrek | 2016-2018 | 2019+ |
-| Forester  | 2016-2018 | 2019+ |
-| Impreza   | 2016-2018 | 2019+ |
-| Legacy    | 2016-2019 | 2020+ |
-| Outback   | 2016-2019 | 2020+ |
-| WRX       | 2017+     |       |
+| Model     | Gen 1     | Gen 2 | Gen 3 |
+|-----------|-----------|-------|-------|
+| Ascent    |           | 2019+ |   ?   |    
+| Crosstrek | 2016-2018 | 2019+ |   ?   | 
+| Forester  | 2016-2018 | 2019+ |   ?   | 
+| Impreza   | 2016-2018 | 2019+ |   ?   | 
+| Legacy    | 2016-2019 | 2020+ |   ?   | 
+| Outback   | 2016-2019 | 2020+ |   ?   | 
+| WRX       | 2017+     |       |   ?   | 
 
 
-| Sensor                   | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| 12V battery voltage      |         | &check; |
-| Average fuel consumption |         | &check; |
-| Distance to empty        |         | &check; |
-| EV battery level         |         | &check; |
-| EV range                 |         | &check; |
-| EV time to full charge   |         | &check; |
-| External temperature     |         | &check; |
-| Odometer                 | &check;*| &check; |
-| Tire pressures           |         | &check; |
+| Sensor                   | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| 12V battery voltage      |         | &check; | &check; |
+| Average fuel consumption |         | &check; | &check; |
+| Distance to empty        |         | &check; | &check; |
+| EV battery level         |         | &check; | &check; |
+| EV range                 |         | &check; | &check; |
+| EV time to full charge   |         | &check; | &check; |
+| External temperature     |         | &check; | &check; |
+| Odometer                 | &check;*| &check; | &check; |
+| Tire pressures           |         | &check; | &check; |
 
 \* Gen 1 odometer only updates every 500 miles <br>
 
 
-| Binary Sensor            | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Door/Trunk/Hood Status   |         | &check; |
-| Window Status            |         | &check;*|
-| Ignition Status          |         | &check; |
-| EV Plug/Charging Status  |         | &check;*|
+| Binary Sensor            | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Door/Trunk/Hood Status   |         | &check; | &check; |
+| Window Status            |         | &check;*| &check; |
+| Ignition Status          |         | &check; | &check; |
+| EV Plug/Charging Status  |         | &check;*| &check; |
 
 \* Not supported by all vehicles <br>
 
 
 Device tracker, lock, and services all require a STARLINK Security Plus subscription:
-| Device Tracker           | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Vehicle Location         | &check; | &check; |
+| Device Tracker           | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Vehicle Location         | &check; | &check; | &check; |
 
 
-| Lock                     | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Remote lock/unlock       | &check; | &check; |
+| Lock                     | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Remote lock/unlock       | &check; | &check; | &check; |
 
 
-| Services                 | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Lock/Unlock              | &check; | &check; |
-| Start/Stop Horn/Lights   | &check; | &check; |
-| Poll vehicle             | &check; | &check; |
-| Refresh data             | &check; | &check; |
-| Start/Stop Horn/Lights   | &check; | &check; |
-| Start/Stop Engine        |         | &check;*|
-| Start EV charging        |         | &check;*|
+| Services                 | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Lock/Unlock              | &check; | &check; | &check; |
+| Start/Stop Horn/Lights   | &check; | &check; | &check; |
+| Poll vehicle             | &check; | &check; | &check; |
+| Refresh data             | &check; | &check; | &check; |
+| Start/Stop Horn/Lights   | &check; | &check; | &check; |
+| Start/Stop Engine        |         | &check;*| &check;*|
+| Start EV charging        |         | &check;*| &check;*|
 
 \* Not supported by all vehicles <br>
 
@@ -93,7 +94,7 @@ Clone or download this repository, and copy the `custom_components/subaru` direc
 
 Once installed, the Subaru integration is configured via the Home Assistant UI:
 
-**Configuration** -> **Integrations** -> **Add** -> **Subaru (HACS)**
+**Configuration** -> **Devices & Services** -> **Add Integration** -> **Subaru (HACS)**
 
 **NOTE:** After installation and HA restart, you may need to clear your browser cache for the new integration to appear.
 
@@ -116,7 +117,7 @@ If the PIN prompt does not appear, no supported remote services vehicles were fo
 
 Subaru integration options are set via:
 
-**Configuration** -> **Integrations** -> **Subaru (HACS)** -> **Options**.
+**Configuration** -> **Devices & Services** -> **Subaru (HACS)** -> **Configure**.
 
 All options involve remote commands, thus only apply to vehicles with Security Plus subscriptions:
 
@@ -143,15 +144,33 @@ Services provided by this integration are shown below:
 |`subaru.horn_cancel`    | Stop sounding the horn and flash the lights of the vehicle |
 |`subaru.lights`         | Flash the lights of the vehicle |
 |`subaru.lights_cancel`  | Stop flashing the lights of the vehicle |
-|`subaru.remote_start`   | Start the engine and climate control of the vehicle using the most recent climate control settings |
 |`subaru.remote_stop`    | Stop the engine and climate control of the vehicle |
 |`subaru.update`         | Sends request to vehicle to update data which will update cache on Subaru servers |
 
 All of the above services require the same service data attribute shown below. The service will be invoked on the vehicle identified by `vin`.
 
-| Service Data Attribute | Required | Description                                        |
-| ---------------------- | -------- | -------------------------------------------------- |
-| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+| Service Data Attribute | Required | Type   | Description                                        |
+| ---------------------- | -------- | ------ | -------------------------------------------------- |
+| `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+***
+### Remote Climate Control
+
+For supported vehicles, this integration supports selecting specific remote climate control presets when remotely starting the engine via the following service:
+
+| Service                | Description |
+| ---------------------- | ----------- |
+|`subaru.remote_start`   | Start the engine and climate control of the vehicle using the user specified climate control preset |
+
+`subaru.remote_start` requires an additional data attribute, `preset_name`, which is a preconfigured set of climate control settings. There are 3 "built-in" Subaru presets:
+`Auto` (not available for EVs), `Full Cool`, and `Full Heat`. In addition you may configure up to 4 additional custom presets from the MySubaru website or the
+official mobile app. Although the underlying subarulink python package does support the creation of new presets, that functionality has not yet been implemented in this
+integration.
+
+| Service Data Attribute | Required | Type   | Description                                        |
+| ---------------------- | -------- | ------ | -------------------------------------------------- |
+| `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
+| `preset_name`          |   yes    | String | Either a Subaru or user defined climate control preset name |
 
 ## Lovelace Example
 
