@@ -73,6 +73,7 @@ SUPPORTED_PLATFORMS = [
     Platform.DEVICE_TRACKER,
     Platform.LOCK,
     Platform.SENSOR,
+    Platform.BUTTON,
 ]
 
 ICONS = {
@@ -80,4 +81,13 @@ ICONS = {
     "EV Range": "mdi:ev-station",
     "Odometer": "mdi:road-variant",
     "Range": "mdi:gas-station",
+    "Horn Start": "mdi:volume-high",
+    "Horn Stop": "mdi:volume-off",
+    "Lights Start": "mdi:lightbulb-on",
+    "Lights Stop": "mdi:lightbulb-off",
+    "Locate": "mdi:car-connected",
+    "Refresh": "mdi:refresh",
+    "Engine Start": "mdi:power",
+    "Engine Stop": "mdi:stop-circle-outline",
+    "Charge EV": "mdi:ev-station",
 }

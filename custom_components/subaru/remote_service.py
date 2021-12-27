@@ -43,7 +43,7 @@ SERVICES_THAT_NEED_FETCH = [
 async def async_call_remote_service(
     hass, controller, cmd, vehicle_info, arg, notify_option
 ):
-    """Execute subarulink remote command with start/end notification."""
+    """Execute subarulink remote command with optional start/end notification."""
     car_name = vehicle_info[VEHICLE_NAME]
     vin = vehicle_info[VEHICLE_VIN]
     notify = NotificationOptions.get_by_value(notify_option)
