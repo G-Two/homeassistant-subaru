@@ -1,7 +1,7 @@
 """Support for Subaru door locks."""
 import logging
 
-from subarulink.const import ALL_DOORS, DRIVERS_DOOR, TAILGATE_DOOR
+from subarulink.const import ALL_DOORS
 
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN, LockEntity
 from homeassistant.const import SERVICE_LOCK, SERVICE_UNLOCK
@@ -19,12 +19,6 @@ from .remote_service import async_call_remote_service
 
 _LOGGER = logging.getLogger(__name__)
 
-LOCK_TYPES = {
-    "All Doors": ALL_DOORS,
-    "Driver's Door": DRIVERS_DOOR,
-    "Tailgate": TAILGATE_DOOR,
-}
-
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Subaru locks by config_entry."""
@@ -34,10 +28,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
     for vehicle in vehicle_info.values():
         if vehicle[VEHICLE_HAS_REMOTE_SERVICE]:
-            for title in LOCK_TYPES:
-                entities.append(
-                    SubaruLock(vehicle, title, coordinator, controller, config_entry)
-                )
+            entities.append(SubaruLock(vehicle, coordinator, controller, config_entry))
     async_add_entities(entities, True)
 
 
@@ -49,10 +40,10 @@ class SubaruLock(SubaruEntity, LockEntity):
     Lock status is always unknown.
     """
 
-    def __init__(self, vehicle_info, title, coordinator, controller, config_entry):
+    def __init__(self, vehicle_info, coordinator, controller, config_entry):
         """Initialize the locks for the vehicle."""
         super().__init__(vehicle_info, coordinator)
-        self.entity_type = title
+        self.entity_type = "Door Locks"
         self.hass_type = LOCK_DOMAIN
         self.controller = controller
         self.config_entry = config_entry
@@ -77,6 +68,6 @@ class SubaruLock(SubaruEntity, LockEntity):
             self.controller,
             SERVICE_UNLOCK,
             self.vehicle_info,
-            LOCK_TYPES[self.entity_type],
+            ALL_DOORS,
             self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )
