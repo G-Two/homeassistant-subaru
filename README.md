@@ -21,7 +21,7 @@ The Subaru integration retrieves information provided by Subaru connected vehicl
 This integration requires an active vehicle subscription to the [Subaru STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service (available in USA and Canada).
 
 Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tables below to determine which capabilities are available for your vehicle.
-NOTE: There appears to now be a Gen 3, although it is unclear which model years have this capability. From analysis of the official Android mobile app, Gen 3 uses the same API endpoints as Gen 2, but may offer additional capability (tailgate unlock and hints of remote window open/close?).
+NOTE: There now appears to be a Gen 3, although it is unclear which model years have this capability. From analysis of the official Android mobile app, Gen 3 uses the same API endpoints as Gen 2, but may offer additional capability (tailgate unlock and hints of future remote window open/close?).
 
 | Model     | Gen 1     | Gen 2 | Gen 3 |
 |-----------|-----------|-------|-------|
@@ -153,7 +153,7 @@ All of the above services require the same service data attribute shown below. T
 | ---------------------- | -------- | ------ | -------------------------------------------------- |
 | `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-***
+---
 ### Remote Climate Control
 
 For supported vehicles, this integration supports selecting specific remote climate control presets when remotely starting the engine via the following service:
@@ -313,7 +313,7 @@ views:
                       service: lock.unlock
                       service_data: {}
                       target:
-                        entity_id: lock.subaru_door_lock
+                        entity_id: lock.subaru_all_doors
                     type: button
                 type: horizontal-stack
               - cards:
@@ -404,6 +404,7 @@ views:
                       service: subaru.remote_start
                       service_data:
                         vin: <REPLACE_WITH_VIN>
+                        preset_name: Full Cool
                   - entity: ''
                     hold_action:
                       action: more-info
