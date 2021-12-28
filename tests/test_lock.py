@@ -2,6 +2,13 @@
 
 from unittest.mock import patch
 
+from custom_components.subaru.const import (
+    ATTR_DOOR,
+    DOMAIN as SUBARU_DOMAIN,
+    SERVICE_UNLOCK_SPECIFIC_DOOR,
+    UNLOCK_DOOR_DRIVERS,
+    UNLOCK_VALID_DOORS,
+)
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_LOCK, SERVICE_UNLOCK
 
@@ -34,6 +41,19 @@ async def test_unlock(hass, ev_entry):
     with patch(MOCK_API_UNLOCK) as mock_unlock:
         await hass.services.async_call(
             LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+        mock_unlock.assert_called_once()
+
+
+async def test_unlock_specific_door(hass, ev_entry):
+    """Test subaru unlock specific door function."""
+    with patch(MOCK_API_UNLOCK) as mock_unlock:
+        await hass.services.async_call(
+            SUBARU_DOMAIN,
+            SERVICE_UNLOCK_SPECIFIC_DOOR,
+            {ATTR_ENTITY_ID: DEVICE_ID, ATTR_DOOR: UNLOCK_DOOR_DRIVERS},
+            blocking=True,
         )
         await hass.async_block_till_done()
         mock_unlock.assert_called_once()

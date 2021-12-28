@@ -59,7 +59,7 @@ NOTE: There now appears to be a Gen 3, although it is unclear which model years 
 \* Not supported by all vehicles <br>
 
 
-Device tracker, lock, and services all require a STARLINK Security Plus subscription:
+Device tracker, lock, and buttons (except refresh) all require a STARLINK Security Plus subscription:
 | Device Tracker           | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Vehicle Location         | &check; | &check; | &check; |
@@ -70,7 +70,7 @@ Device tracker, lock, and services all require a STARLINK Security Plus subscrip
 | Remote lock/unlock       | &check; | &check; | &check; |
 
 
-| Services                 | Gen 1   | Gen 2   | Gen 3   |
+| Buttons                  | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Lock/Unlock              | &check; | &check; | &check; |
 | Start/Stop Horn/Lights   | &check; | &check; | &check; |
@@ -132,9 +132,26 @@ All options involve remote commands, thus only apply to vehicles with Security P
 
 ## Services
 
-Services provided by this integration are shown below:
+As of v0.6.0, the following Subaru entities now use the native Home Assistant services:
+- Lock
+- Button (Remote Start, Lights/Horn, Locate, Refresh)
+- Select (Climate Control Preset)
 
-**NOTE:** Subaru lock uses the services provided by the built-in Home Assistant [Lock](https://www.home-assistant.io/integrations/lock/) platform
+The legacy Subaru integration specific services that required the VIN are no longer needed to access the features above and will be removed in a future release.
+
+The Lock entity's "Unlock" will always unlock all doors. The Subaru API supports selecting a specific door to unlock. Users that desire this functionality may use a Subaru integration specific service which allows the user to choose the door to unlock. See the Services UI in Developer Tools for usage. Example YAML for this service is:
+```yaml
+service: subaru.unlock_specific_door
+target:
+  entity_id: lock.subaru_door_locks
+data:
+  # Valid values for door are 'all', 'driver', 'tailgate' (note that 'tailgate' is not supported by all vehicles)
+  door: driver
+```
+
+---
+### Legacy Services
+**NOTE:** All the legacy services below will be removed in a future release:
 
 | Service                | Description |
 | ---------------------- | ----------- |
@@ -153,8 +170,7 @@ All of the above services require the same service data attribute shown below. T
 | ---------------------- | -------- | ------ | -------------------------------------------------- |
 | `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
----
-### Remote Climate Control
+#### Remote Climate Control
 
 For supported vehicles, this integration supports selecting specific remote climate control presets when remotely starting the engine via the following service:
 
@@ -173,7 +189,7 @@ integration.
 | `preset_name`          |   yes    | String | Either a Subaru or user defined climate control preset name |
 
 ## Lovelace Example
-
+TODO: Update with new buttons and select
 ![hass_screenshot](https://user-images.githubusercontent.com/7310260/146694159-ba5da7b1-ec66-4fe5-91a5-2351c2783a34.png)
 
 <details><summary>Example Lovelace YAML</summary>
@@ -181,6 +197,7 @@ integration.
 
 ```yaml
 # Example YAML for the dashboard shown above. Replace entity names and VIN with your vehicle info.
+# TODO: Update with new buttons/select
 title: Home
 views:
   - badges: []

@@ -19,6 +19,7 @@ from .const import (
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
     REMOTE_SERVICE_UPDATE,
+    VEHICLE_CLIMATE_SELECTED_PRESET,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
     VEHICLE_HAS_REMOTE_START,
@@ -41,8 +42,8 @@ G1_REMOTE_BUTTONS = [
 ]
 
 RES_REMOTE_BUTTONS = [
-    {BUTTON_TYPE: "Engine Start", BUTTON_SERVICE: REMOTE_SERVICE_REMOTE_START},
-    {BUTTON_TYPE: "Engine Stop", BUTTON_SERVICE: REMOTE_SERVICE_REMOTE_STOP},
+    {BUTTON_TYPE: "Remote Start", BUTTON_SERVICE: REMOTE_SERVICE_REMOTE_START},
+    {BUTTON_TYPE: "Remote Stop", BUTTON_SERVICE: REMOTE_SERVICE_REMOTE_STOP},
 ]
 
 EV_REMOTE_BUTTONS = [
@@ -99,14 +100,15 @@ class SubaruButton(SubaruEntity, ButtonEntity):
         """Return the icon of the sensor."""
         if not self.device_class:
             return ICONS.get(self.entity_type)
-        return None
 
     async def async_press(self):
         """Press the button."""
-        _LOGGER.debug("%s button pressed for: %s", self.entity_type, self.vin)
+        _LOGGER.debug("%s button pressed for %s", self.entity_type, self.car_name)
         arg = None
         if self.service == REMOTE_SERVICE_REMOTE_START:
-            arg = None  # TODO: Replace with value from selector
+            arg = self.coordinator.data.get(self.vin).get(
+                VEHICLE_CLIMATE_SELECTED_PRESET
+            )
         controller = self.hass.data[SUBARU_DOMAIN][self.config_entry.entry_id][
             ENTRY_CONTROLLER
         ]
