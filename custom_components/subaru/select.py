@@ -22,15 +22,18 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Subaru selectors by config_entry."""
     coordinator = hass.data[SUBARU_DOMAIN][config_entry.entry_id][ENTRY_COORDINATOR]
     vehicle_info = hass.data[SUBARU_DOMAIN][config_entry.entry_id][ENTRY_VEHICLES]
+    climate_select = []
     for vin in vehicle_info:
         if (
             vehicle_info[vin][VEHICLE_HAS_REMOTE_START]
             or vehicle_info[vin][VEHICLE_HAS_EV]
         ):
-            climate_select = SubaruClimateSelect(
-                "Climate Preset", vehicle_info[vin], coordinator, config_entry
+            climate_select.append(
+                SubaruClimateSelect(
+                    "Climate Preset", vehicle_info[vin], coordinator, config_entry
+                )
             )
-    async_add_entities([climate_select], True)
+    async_add_entities(climate_select, True)
 
 
 class SubaruClimateSelect(SubaruEntity, SelectEntity, RestoreEntity):
