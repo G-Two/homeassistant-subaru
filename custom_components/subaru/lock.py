@@ -81,7 +81,7 @@ class SubaruLock(SubaruEntity, LockEntity):
             self.controller,
             SERVICE_UNLOCK,
             self.vehicle_info,
-            UNLOCK_DOOR_ALL,
+            UNLOCK_VALID_DOORS[UNLOCK_DOOR_ALL],
             self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )
 
