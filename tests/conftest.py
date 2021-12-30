@@ -49,6 +49,8 @@ MOCK_API_GET_SAFETY_STATUS = f"{MOCK_API}get_safety_status"
 MOCK_API_GET_DATA = f"{MOCK_API}get_data"
 MOCK_API_UPDATE = f"{MOCK_API}update"
 MOCK_API_FETCH = f"{MOCK_API}fetch"
+MOCK_API_REMOTE_START = f"{MOCK_API}remote_start"
+MOCK_API_LIGHTS = f"{MOCK_API}lights"
 
 TEST_USERNAME = "user@email.com"
 TEST_PASSWORD = "password"

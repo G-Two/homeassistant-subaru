@@ -120,3 +120,4 @@ class SubaruButton(SubaruEntity, ButtonEntity):
             arg,
             self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )
+        await self.coordinator.async_refresh()
