@@ -108,4 +108,5 @@ ICONS = {
     "Remote Start": "mdi:power",
     "Remote Stop": "mdi:stop-circle-outline",
     "Charge EV": "mdi:ev-station",
+    "Climate Preset": "mdi:thermometer-lines",
 }
