@@ -1,4 +1,5 @@
-# Subaru STARLINK integration for Home Assistant
+# Subaru STARLINK Integration for Home Assistant
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 **NOTE:** The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core.
 
@@ -189,31 +190,19 @@ integration.
 | `preset_name`          |   yes    | String | Either a Subaru or user defined climate control preset name |
 
 ## Lovelace Example
-TODO: Update with new buttons and select
-![hass_screenshot](https://user-images.githubusercontent.com/7310260/146694159-ba5da7b1-ec66-4fe5-91a5-2351c2783a34.png)
+<img src="https://user-images.githubusercontent.com/7310260/147894583-5bc87db1-33b2-47e7-b15b-334f72e56f5a.png" width="1024" />
 
 <details><summary>Example Lovelace YAML</summary>
 <p>
 
 ```yaml
-# Example YAML for the dashboard shown above. Replace entity names and VIN with your vehicle info.
-# TODO: Update with new buttons/select
-title: Home
+# Example YAML for the dashboard shown above.
+title: Status
 views:
-  - badges: []
+  - icon: ''
+    title: Status
+    badges: []
     cards:
-      - cards:
-          - entity: sensor.subaru_odometer
-            name: Odometer
-            type: entity
-          - entity: sensor.subaru_avg_fuel_consumption
-            name: Avg Fuel Consumption
-            type: entity
-          - entity: sensor.subaru_range
-            name: Distance to Empty
-            type: entity
-        type: vertical-stack
-        title: Mileage
       - cards:
           - cards:
               - entity: sensor.subaru_tire_pressure_fl
@@ -261,236 +250,115 @@ views:
             type: horizontal-stack
         type: vertical-stack
         title: Tire Pressure
+      - cards:
+          - entity: sensor.subaru_odometer
+            name: Odometer
+            type: entity
+          - entity: sensor.subaru_avg_fuel_consumption
+            name: Avg Fuel Consumption
+            type: entity
+          - entity: sensor.subaru_range
+            name: Distance to Empty
+            type: entity
+        type: vertical-stack
+        title: Mileage
       - type: vertical-stack
+        title: Remote Commands
         cards:
-          - type: horizontal-stack
-            cards:
-              - entity: ''
-                hold_action:
-                  action: more-info
-                icon: mdi:refresh
-                icon_height: 32px
-                name: Refresh
-                show_icon: true
-                show_name: true
-                show_state: false
+          - cards:
+              - type: button
                 tap_action:
-                  action: call-service
-                  service: subaru.fetch
-                  service_data:
-                    vin: <REPLACE_WITH_VIN>
-                type: button
-              - entity: ''
-                hold_action:
                   action: more-info
-                icon: mdi:car-connected
-                icon_height: 32px
-                name: Poll Vehicle
-                show_icon: true
-                show_name: true
+                entity: lock.subaru_door_locks
                 show_state: false
+                show_name: false
+                icon_height: 48px
+            type: horizontal-stack
+          - cards:
+              - type: button
                 tap_action:
                   action: call-service
                   confirmation:
-                    text: Poll Vehicle?
-                  service: subaru.update
-                  service_data:
-                    vin: <REPLACE_WITH_VIN>
+                    text: Flash lights?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id:
+                      - button.subaru_lights_start
+                entity: button.subaru_lights_start
+                show_state: false
+                show_name: false
+                icon_height: 48px
+              - entity: button.subaru_lights_stop
+                icon_height: 48px
+                show_icon: true
+                show_name: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Stop lights?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_lights_stop
                 type: button
-            title: Update Data
-          - type: vertical-stack
-            title: Remote Commands
-            cards:
-              - cards:
-                  - icon: mdi:lock
-                    icon_height: 32px
-                    name: Lock
-                    show_icon: true
-                    show_name: true
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Lock Doors?
-                      service: lock.lock
-                      service_data: {}
-                      target:
-                        entity_id: lock.subaru_door_lock
-                    type: button
-                  - entity: ''
-                    icon: mdi:lock-open-variant
-                    icon_height: 32px
-                    name: Unlock
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Unlock Doors?
-                      service: lock.unlock
-                      service_data: {}
-                      target:
-                        entity_id: lock.subaru_all_doors
-                    type: button
-                type: horizontal-stack
-              - cards:
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:lightbulb-on
-                    icon_height: 32px
-                    name: Flash Lights
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Flash lights?
-                      service: subaru.lights
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon_height: 32px
-                    icon: mdi:lightbulb-off
-                    name: Stop Lights
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Stop lights?
-                      service: subaru.lights_stop
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                type: horizontal-stack
-              - cards:
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:volume-high
-                    icon_height: 32px
-                    name: Sound Horn
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Sound horn?
-                      service: subaru.horn
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon_height: 32px
-                    icon: mdi:volume-off
-                    name: Stop Horn
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Stop horn?
-                      service: subaru.horn_stop
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                type: horizontal-stack
-              - cards:
-                  - type: button
-                    hold_action:
-                      action: more-info
-                    icon: mdi:power
-                    icon_height: 32px
-                    name: Remote Start
-                    show_icon: true
-                    show_name: true
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Remote Start?
-                      service: subaru.remote_start
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                        preset_name: Full Cool
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:stop
-                    icon_height: 32px
-                    name: Remote Stop
-                    show_icon: true
-                    show_name: true
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Remote Stop?
-                      service: subaru.remote_stop
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                type: horizontal-stack
+            type: horizontal-stack
           - cards:
-              - cards:
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:battery-charging
-                    icon_height: 32px
-                    name: Begin Charging
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Begin Charging?
-                      service: subaru.charge_start
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                  - entity: sensor.subaru_ev_battery_level
-                    name: EV Battery Level
-                    type: entity
-                type: horizontal-stack
-              - type: vertical-stack
-                cards:
-                  - type: horizontal-stack
-                    cards:
-                      - type: entity
-                        entity: binary_sensor.subaru_ev_charge_port
-                        name: Plugged In
-                      - type: conditional
-                        conditions:
-                          - entity: sensor.subaru_ev_time_to_full_charge
-                            state_not: '1970-01-01T00:00:00'
-                        card:
-                          type: markdown
-                          content: >
-                            {% set time =
-                            (as_timestamp(states.sensor.subaru_ev_time_to_full_charge.state)
-                            - as_timestamp(now())) %}
-
-                            {% set hours = time // 3600 %}
-
-                            {% set minutes = time // 60 % 60 %}
-
-                            {% if int(hours) > 0 %}
-
-                            {{ int(hours) }} hours {% endif %}{{ int(minutes) }}
-                            minutes
-                          title: Time to Full Charge
-            type: vertical-stack
-            title: EV Functions
+              - type: button
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Sound horn?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_horn_start
+                entity: button.subaru_horn_start
+                show_state: false
+                show_name: false
+                icon_height: 48px
+              - entity: button.subaru_horn_stop
+                icon_height: 48px
+                show_icon: true
+                show_name: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Stop horn?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_horn_stop
+                type: button
+            type: horizontal-stack
+          - cards:
+              - entity: button.subaru_remote_start
+                icon_height: 48px
+                show_icon: true
+                show_name: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Remote Start Car?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_remote_start
+                type: button
+              - type: button
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Remote Stop Car?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_remote_stop
+                entity: button.subaru_remote_stop
+                show_state: false
+                show_name: false
+                icon_height: 48px
+            type: horizontal-stack
       - type: vertical-stack
         cards:
           - detail: -2
@@ -504,8 +372,59 @@ views:
             type: sensor
           - type: entity
             entity: binary_sensor.subaru_ignition
-            name: Subaru Ignition
+            name: ' '
         title: Miscellaneous Data
+      - type: vertical-stack
+        title: EV Functions
+        cards:
+          - cards:
+              - entity: button.subaru_charge_ev
+                hold_action:
+                  action: more-info
+                show_icon: true
+                show_name: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Begin Charging?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_charge_ev
+                type: button
+                icon_height: 48px
+              - entity: sensor.subaru_ev_battery_level
+                name: EV Battery Level
+                type: entity
+            type: horizontal-stack
+          - type: vertical-stack
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: entity
+                    entity: binary_sensor.subaru_ev_charge_port
+                    name: Plugged In
+                  - type: conditional
+                    conditions:
+                      - entity: sensor.subaru_ev_time_to_full_charge
+                        state_not: '1969-12-31T19:00:00'
+                    card:
+                      type: markdown
+                      content: >
+                        {% set time =
+                        (as_timestamp(states.sensor.subaru_ev_time_to_full_charge.state)
+                        - as_timestamp(now())) %}
+
+                        {% set hours = time // 3600 %}
+
+                        {% set minutes = time // 60 % 60 %}
+
+                        {% if int(hours) > 0 %}
+
+                        {{ int(hours) }} hours {% endif %}{{ int(minutes) }}
+                        minutes
+                      title: Time to Full Charge
       - card:
           type: glance
           title: Door(s) Open
@@ -550,8 +469,39 @@ views:
         hours_to_show: 0
         title: Subaru Location
         default_zoom: 14
-    icon: ''
-    title: Subaru
+      - type: horizontal-stack
+        cards:
+          - entity: button.subaru_refresh
+            hold_action:
+              action: more-info
+            show_icon: true
+            show_name: false
+            show_state: false
+            tap_action:
+              action: call-service
+              service: button.press
+              service_data: {}
+              target:
+                entity_id: button.subaru_refresh
+            type: button
+            icon_height: 48px
+          - entity: button.subaru_locate
+            hold_action:
+              action: more-info
+            show_icon: true
+            show_name: false
+            show_state: false
+            tap_action:
+              action: call-service
+              confirmation:
+                text: Poll Vehicle?
+              service: button.press
+              service_data: {}
+              target:
+                entity_id: button.subaru_locate
+            type: button
+            icon_height: 48px
+        title: Update Data
 ```
 </p>
 </details>

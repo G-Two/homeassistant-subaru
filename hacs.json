@@ -2,6 +2,6 @@
     "name": "Subaru (HACS)",
     "content_in_root": false,
     "render_readme": true,
-    "homeassistant": "0.118.0",
+    "homeassistant": "2021.12",
     "iot_class": "Cloud Polling" 
 }
