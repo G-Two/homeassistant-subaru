@@ -6,6 +6,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
+    mock_restore_cache,
 )
 from subarulink.const import COUNTRY_USA
 
@@ -27,6 +28,7 @@ from custom_components.subaru.const import (
 from homeassistant.components.homeassistant import DOMAIN as HA_DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
+from homeassistant.core import State
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
 
@@ -47,6 +49,8 @@ MOCK_API_GET_SAFETY_STATUS = f"{MOCK_API}get_safety_status"
 MOCK_API_GET_DATA = f"{MOCK_API}get_data"
 MOCK_API_UPDATE = f"{MOCK_API}update"
 MOCK_API_FETCH = f"{MOCK_API}fetch"
+MOCK_API_REMOTE_START = f"{MOCK_API}remote_start"
+MOCK_API_LIGHTS = f"{MOCK_API}lights"
 
 TEST_USERNAME = "user@email.com"
 TEST_PASSWORD = "password"
@@ -95,8 +99,14 @@ async def setup_subaru_integration(
     vehicle_status=None,
     connect_effect=None,
     fetch_effect=None,
+    saved_cache=None,
 ):
     """Create Subaru entry."""
+    if saved_cache:
+        mock_restore_cache(
+            hass, (State("select.test_vehicle_2_climate_preset", "Full Heat"),),
+        )
+
     assert await async_setup_component(hass, HA_DOMAIN, {})
     assert await async_setup_component(hass, DOMAIN, {})
 
@@ -144,6 +154,23 @@ async def ev_entry(hass, enable_custom_integrations):
         vehicle_list=[TEST_VIN_2_EV],
         vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
         vehicle_status=VEHICLE_STATUS_EV,
+    )
+    assert DOMAIN in hass.config_entries.async_domains()
+    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
+    assert hass.config_entries.async_get_entry(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
+    return entry
+
+
+@pytest.fixture
+async def ev_entry_with_saved_climate(hass, enable_custom_integrations):
+    """Create Subaru EV entity but with saved climate preset."""
+    entry = await setup_subaru_integration(
+        hass,
+        vehicle_list=[TEST_VIN_2_EV],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
+        vehicle_status=VEHICLE_STATUS_EV,
+        saved_cache=True,
     )
     assert DOMAIN in hass.config_entries.async_domains()
     assert len(hass.config_entries.async_entries(DOMAIN)) == 1

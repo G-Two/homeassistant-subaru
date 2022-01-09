@@ -1,4 +1,5 @@
-# Subaru STARLINK integration for Home Assistant
+# Subaru STARLINK Integration for Home Assistant
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 **NOTE:** The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core.
 
@@ -22,62 +23,64 @@ This integration requires an active vehicle subscription to the [Subaru STARLINK
 
 Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tables below to determine which capabilities are available for your vehicle.
 
-| Model     | Gen 1     | Gen 2 |
-|-----------|-----------|-------|
-| Ascent    |           | 2019+ |
-| Crosstrek | 2016-2018 | 2019+ |
-| Forester  | 2016-2018 | 2019+ |
-| Impreza   | 2016-2018 | 2019+ |
-| Legacy    | 2016-2019 | 2020+ |
-| Outback   | 2016-2019 | 2020+ |
-| WRX       | 2017+     |       |
+NOTE: There now appears to be a Gen 3, although it is unclear which model years have this capability. From analysis of the official Android mobile app, Gen 3 uses the same API endpoints as Gen 2, but may offer additional capability (tailgate unlock and hints of future remote window open/close?).
+
+| Model     | Gen 1     | Gen 2 | Gen 3 |
+|-----------|-----------|-------|-------|
+| Ascent    |           | 2019+ |   ?   |    
+| Crosstrek | 2016-2018 | 2019+ |   ?   | 
+| Forester  | 2016-2018 | 2019+ |   ?   | 
+| Impreza   | 2016-2018 | 2019+ |   ?   | 
+| Legacy    | 2016-2019 | 2020+ |   ?   | 
+| Outback   | 2016-2019 | 2020+ |   ?   | 
+| WRX       | 2017+     |       |   ?   | 
 
 
-| Sensor                   | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| 12V battery voltage      |         | &check; |
-| Average fuel consumption |         | &check; |
-| Distance to empty        |         | &check; |
-| EV battery level         |         | &check; |
-| EV range                 |         | &check; |
-| EV time to full charge   |         | &check; |
-| External temperature     |         | &check; |
-| Odometer                 | &check;*| &check; |
-| Tire pressures           |         | &check; |
+| Sensor                   | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| 12V battery voltage      |         | &check; | &check; |
+| Average fuel consumption |         | &check; | &check; |
+| Distance to empty        |         | &check; | &check; |
+| EV battery level         |         | &check; | &check; |
+| EV range                 |         | &check; | &check; |
+| EV time to full charge   |         | &check; | &check; |
+| External temperature     |         | &check; | &check; |
+| Odometer                 | &check;*| &check; | &check; |
+| Tire pressures           |         | &check; | &check; |
 
 \* Gen 1 odometer only updates every 500 miles <br>
 
 
-| Binary Sensor            | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Door/Trunk/Hood Status   |         | &check; |
-| Window Status            |         | &check;*|
-| Ignition Status          |         | &check; |
-| EV Plug/Charging Status  |         | &check;*|
+| Binary Sensor            | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Door/Trunk/Hood Status   |         | &check; | &check; |
+| Window Status            |         | &check;*| &check; |
+| Ignition Status          |         | &check; | &check; |
+| EV Plug/Charging Status  |         | &check;*| &check; |
 
 \* Not supported by all vehicles <br>
 
 
-Device tracker, lock, and services all require a STARLINK Security Plus subscription:
-| Device Tracker           | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Vehicle Location         | &check; | &check; |
+Device tracker, lock, and buttons (except refresh) all require a STARLINK Security Plus subscription:
+| Device Tracker           | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Vehicle Location         | &check; | &check; | &check; |
 
 
-| Lock                     | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Remote lock/unlock       | &check; | &check; |
+| Lock                     | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Remote lock/unlock       | &check; | &check; | &check; |
 
 
-| Services                 | Gen 1   | Gen 2   |
-|--------------------------|---------|---------|
-| Lock/Unlock              | &check; | &check; |
-| Start/Stop Horn/Lights   | &check; | &check; |
-| Poll vehicle             | &check; | &check; |
-| Refresh data             | &check; | &check; |
-| Start/Stop Horn/Lights   | &check; | &check; |
-| Start/Stop Engine        |         | &check;*|
-| Start EV charging        |         | &check;*|
+| Buttons                  | Gen 1   | Gen 2   | Gen 3   |
+|--------------------------|---------|---------|---------|
+| Lock/Unlock              | &check; | &check; | &check; |
+| Start/Stop Horn/Lights   | &check; | &check; | &check; |
+| Poll vehicle             | &check; | &check; | &check; |
+| Refresh data             | &check; | &check; | &check; |
+| Start/Stop Horn/Lights   | &check; | &check; | &check; |
+| Start/Stop Engine        |         | &check;*| &check;*|
+| Start EV charging        |         | &check;*| &check;*|
 
 \* Not supported by all vehicles <br>
 
@@ -85,7 +88,7 @@ Device tracker, lock, and services all require a STARLINK Security Plus subscrip
 
 ## Installation
 ### HACS
-Add `https://github.com/G-Two/homeassistant-subaru` as a custom integration repository and install the **Subaru (HACS)** integration.
+Add `https://github.com/G-Two/homeassistant-subaru` as a custom integration repository and install the **Subaru (HACS)** integration. Restart Home Assistant.
 ### Manual
 Clone or download this repository, and copy the `custom_components/subaru` directory into the `config/custom_components` directory of your Home Assistant instance. Restart Home Assistant.
 
@@ -93,7 +96,7 @@ Clone or download this repository, and copy the `custom_components/subaru` direc
 
 Once installed, the Subaru integration is configured via the Home Assistant UI:
 
-**Configuration** -> **Integrations** -> **Add** -> **Subaru (HACS)**
+**Configuration** -> **Devices & Services** -> **Add Integration** -> **Subaru (HACS)**
 
 **NOTE:** After installation and HA restart, you may need to clear your browser cache for the new integration to appear.
 
@@ -116,7 +119,7 @@ If the PIN prompt does not appear, no supported remote services vehicles were fo
 
 Subaru integration options are set via:
 
-**Configuration** -> **Integrations** -> **Subaru (HACS)** -> **Options**.
+**Configuration** -> **Devices & Services** -> **Subaru (HACS)** -> **Configure**.
 
 All options involve remote commands, thus only apply to vehicles with Security Plus subscriptions:
 
@@ -131,9 +134,26 @@ All options involve remote commands, thus only apply to vehicles with Security P
 
 ## Services
 
-Services provided by this integration are shown below:
+As of v0.6.0, the following Subaru entities now use the native Home Assistant services:
+- Lock
+- Button (Remote Start, Lights/Horn, Locate, Refresh)
+- Select (Climate Control Preset)
 
-**NOTE:** Subaru lock uses the services provided by the built-in Home Assistant [Lock](https://www.home-assistant.io/integrations/lock/) platform
+The legacy Subaru integration specific services that required the VIN are no longer needed to access the features above and will be removed in a future release.
+
+The Lock entity's "Unlock" will always unlock all doors. The Subaru API supports selecting a specific door to unlock. Users that desire this functionality may use a Subaru integration specific service which allows the user to choose the door to unlock. See the Services UI in Developer Tools for usage. Example YAML for this service is:
+```yaml
+service: subaru.unlock_specific_door
+target:
+  entity_id: lock.subaru_door_locks
+data:
+  # Valid values for door are 'all', 'driver', 'tailgate' (note that 'tailgate' is not supported by all vehicles)
+  door: driver
+```
+
+---
+### Legacy Services
+**NOTE:** All the legacy services below will be removed in a future release:
 
 | Service                | Description |
 | ---------------------- | ----------- |
@@ -143,29 +163,80 @@ Services provided by this integration are shown below:
 |`subaru.horn_cancel`    | Stop sounding the horn and flash the lights of the vehicle |
 |`subaru.lights`         | Flash the lights of the vehicle |
 |`subaru.lights_cancel`  | Stop flashing the lights of the vehicle |
-|`subaru.remote_start`   | Start the engine and climate control of the vehicle using the most recent climate control settings |
 |`subaru.remote_stop`    | Stop the engine and climate control of the vehicle |
 |`subaru.update`         | Sends request to vehicle to update data which will update cache on Subaru servers |
 
 All of the above services require the same service data attribute shown below. The service will be invoked on the vehicle identified by `vin`.
 
-| Service Data Attribute | Required | Description                                        |
-| ---------------------- | -------- | -------------------------------------------------- |
-| `vin`                  |   yes    | The vehicle identification number (VIN) of the vehicle, 17 characters |
+| Service Data Attribute | Required | Type   | Description                                        |
+| ---------------------- | -------- | ------ | -------------------------------------------------- |
+| `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
+
+#### Remote Climate Control
+
+For supported vehicles, this integration supports selecting specific remote climate control presets when remotely starting the engine via the following service:
+
+| Service                | Description |
+| ---------------------- | ----------- |
+|`subaru.remote_start`   | Start the engine and climate control of the vehicle using the user specified climate control preset |
+
+`subaru.remote_start` requires an additional data attribute, `preset_name`, which is a preconfigured set of climate control settings. There are 3 "built-in" Subaru presets:
+`Auto` (not available for EVs), `Full Cool`, and `Full Heat`. In addition you may configure up to 4 additional custom presets from the MySubaru website or the
+official mobile app. Although the underlying subarulink python package does support the creation of new presets, that functionality has not yet been implemented in this
+integration.
+
+| Service Data Attribute | Required | Type   | Description                                        |
+| ---------------------- | -------- | ------ | -------------------------------------------------- |
+| `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
+| `preset_name`          |   yes    | String | Either a Subaru or user defined climate control preset name |
 
 ## Lovelace Example
-
-![hass_screenshot](https://user-images.githubusercontent.com/7310260/146694159-ba5da7b1-ec66-4fe5-91a5-2351c2783a34.png)
+<img src="https://user-images.githubusercontent.com/7310260/148698672-48cdc85f-623b-4f06-88e2-6e1949b4a522.png" width="1024" />
 
 <details><summary>Example Lovelace YAML</summary>
 <p>
 
 ```yaml
-# Example YAML for the dashboard shown above. Replace entity names and VIN with your vehicle info.
-title: Home
+# Example YAML for the dashboard shown above.
+title: Status
 views:
-  - badges: []
+  - icon: ''
+    title: Status
+    badges: []
     cards:
+      - type: horizontal-stack
+        cards:
+          - entity: button.subaru_refresh
+            hold_action:
+              action: more-info
+            show_icon: true
+            show_name: false
+            show_state: false
+            tap_action:
+              action: call-service
+              service: button.press
+              service_data: {}
+              target:
+                entity_id: button.subaru_refresh
+            type: button
+            icon_height: 48px
+          - entity: button.subaru_locate
+            hold_action:
+              action: more-info
+            show_icon: true
+            show_name: false
+            show_state: false
+            tap_action:
+              action: call-service
+              confirmation:
+                text: Poll Vehicle?
+              service: button.press
+              service_data: {}
+              target:
+                entity_id: button.subaru_locate
+            type: button
+            icon_height: 48px
+        title: Update Data
       - cards:
           - entity: sensor.subaru_odometer
             name: Odometer
@@ -226,234 +297,106 @@ views:
         type: vertical-stack
         title: Tire Pressure
       - type: vertical-stack
+        title: Remote Commands
         cards:
-          - type: horizontal-stack
-            cards:
-              - entity: ''
-                hold_action:
-                  action: more-info
-                icon: mdi:refresh
-                icon_height: 32px
-                name: Refresh
-                show_icon: true
-                show_name: true
-                show_state: false
+          - cards:
+              - type: button
                 tap_action:
-                  action: call-service
-                  service: subaru.fetch
-                  service_data:
-                    vin: <REPLACE_WITH_VIN>
-                type: button
-              - entity: ''
-                hold_action:
                   action: more-info
-                icon: mdi:car-connected
-                icon_height: 32px
-                name: Poll Vehicle
-                show_icon: true
-                show_name: true
+                entity: lock.subaru_door_locks
                 show_state: false
+                show_name: false
+                icon_height: 48px
+            type: horizontal-stack
+          - cards:
+              - type: button
                 tap_action:
                   action: call-service
                   confirmation:
-                    text: Poll Vehicle?
-                  service: subaru.update
-                  service_data:
-                    vin: <REPLACE_WITH_VIN>
+                    text: Flash lights?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id:
+                      - button.subaru_lights_start
+                entity: button.subaru_lights_start
+                show_state: false
+                show_name: false
+                icon_height: 48px
+              - entity: button.subaru_lights_stop
+                icon_height: 48px
+                show_icon: true
+                show_name: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Stop lights?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_lights_stop
                 type: button
-            title: Update Data
-          - type: vertical-stack
-            title: Remote Commands
-            cards:
-              - cards:
-                  - icon: mdi:lock
-                    icon_height: 32px
-                    name: Lock
-                    show_icon: true
-                    show_name: true
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Lock Doors?
-                      service: lock.lock
-                      service_data: {}
-                      target:
-                        entity_id: lock.subaru_door_lock
-                    type: button
-                  - entity: ''
-                    icon: mdi:lock-open-variant
-                    icon_height: 32px
-                    name: Unlock
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Unlock Doors?
-                      service: lock.unlock
-                      service_data: {}
-                      target:
-                        entity_id: lock.subaru_door_lock
-                    type: button
-                type: horizontal-stack
-              - cards:
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:lightbulb-on
-                    icon_height: 32px
-                    name: Flash Lights
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Flash lights?
-                      service: subaru.lights
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon_height: 32px
-                    icon: mdi:lightbulb-off
-                    name: Stop Lights
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Stop lights?
-                      service: subaru.lights_stop
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                type: horizontal-stack
-              - cards:
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:volume-high
-                    icon_height: 32px
-                    name: Sound Horn
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Sound horn?
-                      service: subaru.horn
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon_height: 32px
-                    icon: mdi:volume-off
-                    name: Stop Horn
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Stop horn?
-                      service: subaru.horn_stop
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                type: horizontal-stack
-              - cards:
-                  - type: button
-                    hold_action:
-                      action: more-info
-                    icon: mdi:power
-                    icon_height: 32px
-                    name: Remote Start
-                    show_icon: true
-                    show_name: true
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Remote Start?
-                      service: subaru.remote_start
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:stop
-                    icon_height: 32px
-                    name: Remote Stop
-                    show_icon: true
-                    show_name: true
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Remote Stop?
-                      service: subaru.remote_stop
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                type: horizontal-stack
+            type: horizontal-stack
           - cards:
-              - cards:
-                  - entity: ''
-                    hold_action:
-                      action: more-info
-                    icon: mdi:battery-charging
-                    icon_height: 32px
-                    name: Begin Charging
-                    show_icon: true
-                    show_name: true
-                    show_state: false
-                    tap_action:
-                      action: call-service
-                      confirmation:
-                        text: Begin Charging?
-                      service: subaru.charge_start
-                      service_data:
-                        vin: <REPLACE_WITH_VIN>
-                    type: button
-                  - entity: sensor.subaru_ev_battery_level
-                    name: EV Battery Level
-                    type: entity
-                type: horizontal-stack
-              - type: vertical-stack
-                cards:
-                  - type: horizontal-stack
-                    cards:
-                      - type: entity
-                        entity: binary_sensor.subaru_ev_charge_port
-                        name: Plugged In
-                      - type: conditional
-                        conditions:
-                          - entity: sensor.subaru_ev_time_to_full_charge
-                            state_not: '1970-01-01T00:00:00'
-                        card:
-                          type: markdown
-                          content: >
-                            {% set time =
-                            (as_timestamp(states.sensor.subaru_ev_time_to_full_charge.state)
-                            - as_timestamp(now())) %}
-
-                            {% set hours = time // 3600 %}
-
-                            {% set minutes = time // 60 % 60 %}
-
-                            {% if int(hours) > 0 %}
-
-                            {{ int(hours) }} hours {% endif %}{{ int(minutes) }}
-                            minutes
-                          title: Time to Full Charge
-            type: vertical-stack
-            title: EV Functions
+              - type: button
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Sound horn?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_horn_start
+                entity: button.subaru_horn_start
+                show_state: false
+                show_name: false
+                icon_height: 48px
+              - entity: button.subaru_horn_stop
+                icon_height: 48px
+                show_icon: true
+                show_name: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Stop horn?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_horn_stop
+                type: button
+            type: horizontal-stack
+          - cards:
+              - entity: button.subaru_remote_start
+                icon_height: 48px
+                show_icon: true
+                show_name: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Remote Start Car?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_remote_start
+                type: button
+              - type: button
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Remote Stop Car?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_remote_stop
+                entity: button.subaru_remote_stop
+                show_state: false
+                show_name: false
+                icon_height: 48px
+            type: horizontal-stack
+          - type: entities
+            entities:
+              - entity: select.subaru_climate_preset
+            show_header_toggle: true
       - type: vertical-stack
         cards:
           - detail: -2
@@ -467,7 +410,7 @@ views:
             type: sensor
           - type: entity
             entity: binary_sensor.subaru_ignition
-            name: Subaru Ignition
+            name: ' '
         title: Miscellaneous Data
       - card:
           type: glance
@@ -507,14 +450,62 @@ views:
         state_filter:
           - 'on'
         show_empty: false
+      - type: vertical-stack
+        title: EV Functions
+        cards:
+          - cards:
+              - entity: button.subaru_charge_ev
+                hold_action:
+                  action: more-info
+                show_icon: true
+                show_name: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  confirmation:
+                    text: Begin Charging?
+                  service: button.press
+                  service_data: {}
+                  target:
+                    entity_id: button.subaru_charge_ev
+                type: button
+                icon_height: 48px
+              - entity: sensor.subaru_ev_battery_level
+                name: EV Battery Level
+                type: entity
+            type: horizontal-stack
+          - type: vertical-stack
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: entity
+                    entity: binary_sensor.subaru_ev_charge_port
+                    name: Plugged In
+                  - type: conditional
+                    conditions:
+                      - entity: sensor.subaru_ev_time_to_full_charge
+                        state_not: '1969-12-31T19:00:00'
+                    card:
+                      type: markdown
+                      content: >
+                        {% set time =
+                        (as_timestamp(states.sensor.subaru_ev_time_to_full_charge.state)
+                        - as_timestamp(now())) %}
+
+                        {% set hours = time // 3600 %}
+
+                        {% set minutes = time // 60 % 60 %}
+
+                        {% if int(hours) > 0 %}
+
+                        {{ int(hours) }} hours {% endif %}{{ int(minutes) }}
+                        minutes
+                      title: Time to Full Charge
       - type: map
         entities:
           - entity: device_tracker.subaru_location
         hours_to_show: 0
-        title: Subaru Location
-        default_zoom: 14
-    icon: ''
-    title: Subaru
+        default_zoom: 3
 ```
 </p>
 </details>

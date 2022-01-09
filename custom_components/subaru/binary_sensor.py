@@ -103,6 +103,12 @@ API_GEN_2_SENSORS = [
         SENSOR_CLASS: DEVICE_CLASS_WINDOW,
         SENSOR_ON_VALUE: sc.WINDOW_OPEN,
     },
+    {
+        SENSOR_TYPE: "Sunroof",
+        SENSOR_FIELD: sc.WINDOW_SUNROOF_STATUS,
+        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
+    },
 ]
 
 # Binary Sensor data available to "Subaru Safety Plus" subscribers with PHEV vehicles

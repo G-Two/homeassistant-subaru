@@ -2,7 +2,7 @@
 lights:
   description: >
     Flash the lights of the vehicle. The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
@@ -12,7 +12,7 @@ lights:
 lights_stop:
   description: >
     Stop flashing the lights of the vehicle. The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
@@ -22,7 +22,7 @@ lights_stop:
 horn:
   description: >
     Sound the horn of the vehicle. The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
@@ -32,7 +32,7 @@ horn:
 horn_stop:
   description: >
     Stop sounding the horn of the vehicle. The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
@@ -42,17 +42,21 @@ horn_stop:
 remote_start:
   description: >
     Start the engine and climate control of the vehicle.  Uses the climate control settings saved. The vehicle is identified via
-    the vin (see below).
+    the vin (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
         The vehicle identification number (VIN) of the vehicle, 17 characters
       example: JF2ABCDE6L0000001
+    preset_name:
+      description: >
+        The name of the climate control preset desired
+      example: Full Heat
 
 remote_stop:
   description: >
     Stop the engine and climate control of the vehicle. The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
@@ -62,7 +66,7 @@ remote_stop:
 charge_start:
   description: >
     Starts EV charging. This cannot be stopped remotely. The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
@@ -72,7 +76,7 @@ charge_start:
 update:
   description: >
     Sends request to vehicle to update data. The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
@@ -82,9 +86,29 @@ update:
 fetch:
   description: >
     Refreshes data (does not request update from vehicle). The vehicle is identified via the vin
-    (see below).
+    (see below). This service is deprecated and will be removed - Use button service instead.
   fields:
     vin:
       description: >
         The vehicle identification number (VIN) of the vehicle, 17 characters
       example: JF2ABCDE6L0000001
+
+unlock_specific_door:
+  name: Unlock Specific Door
+  description: Unlocks only the door specified
+  target:
+    entity:
+      domain: lock
+      integration: subaru
+  fields:
+    door:
+      name: Door
+      description: "One of the following: 'all', 'driver', 'tailgate'"
+      example: driver
+      required: true
+      selector:
+        select:
+          options:
+            - "all"
+            - "driver"
+            - "tailgate"

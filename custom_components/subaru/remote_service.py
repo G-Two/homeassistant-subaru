@@ -8,6 +8,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DOMAIN,
+    FETCH_INTERVAL,
     REMOTE_SERVICE_CHARGE_START,
     REMOTE_SERVICE_FETCH,
     REMOTE_SERVICE_HORN,
@@ -16,12 +17,14 @@ from .const import (
     REMOTE_SERVICE_LIGHTS_STOP,
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
+    REMOTE_SERVICE_UNLOCK,
     REMOTE_SERVICE_UPDATE,
     UPDATE_INTERVAL,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
+    VEHICLE_LAST_FETCH,
     VEHICLE_LAST_UPDATE,
     VEHICLE_NAME,
     VEHICLE_VIN,
@@ -39,8 +42,10 @@ SERVICES_THAT_NEED_FETCH = [
 ]
 
 
-async def async_call_remote_service(hass, controller, cmd, vehicle_info, notify_option):
-    """Execute subarulink remote command with start/end notification."""
+async def async_call_remote_service(
+    hass, controller, cmd, vehicle_info, arg, notify_option
+):
+    """Execute subarulink remote command with optional start/end notification."""
     car_name = vehicle_info[VEHICLE_NAME]
     vin = vehicle_info[VEHICLE_VIN]
     notify = NotificationOptions.get_by_value(notify_option)
@@ -58,8 +63,18 @@ async def async_call_remote_service(hass, controller, cmd, vehicle_info, notify_
             success = await update_subaru(
                 vehicle_info, controller, override_interval=True
             )
+        elif cmd in [REMOTE_SERVICE_REMOTE_START, REMOTE_SERVICE_UNLOCK]:
+            success = await getattr(controller, cmd)(vin, arg)
+        elif cmd == REMOTE_SERVICE_FETCH:
+            pass
         else:
             success = await getattr(controller, cmd)(vin)
+
+        if cmd in SERVICES_THAT_NEED_FETCH:
+            success = await refresh_subaru(
+                vehicle_info, controller, override_interval=True
+            )
+
     except SubaruException as err:
         err_msg = err.message
 
@@ -112,5 +127,19 @@ async def update_subaru(vehicle, controller, override_interval=False):
     if (cur_time - last_update) > UPDATE_INTERVAL or override_interval:
         success = await controller.update(vehicle[VEHICLE_VIN], force=True)
         vehicle[VEHICLE_LAST_UPDATE] = cur_time
+
+    return success
+
+
+async def refresh_subaru(vehicle, controller, override_interval=False):
+    """Refresh data from Subaru servers."""
+    cur_time = time.time()
+    last_fetch = vehicle[VEHICLE_LAST_FETCH]
+    vin = vehicle[VEHICLE_VIN]
+    success = None
+
+    if (cur_time - last_fetch) > FETCH_INTERVAL or override_interval:
+        success = await controller.fetch(vin, force=True)
+        vehicle[VEHICLE_LAST_FETCH] = cur_time
 
     return success

@@ -24,7 +24,8 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
-    REMOTE_SERVICE_FETCH,
+    REMOTE_CLIMATE_PRESET_NAME,
+    REMOTE_SERVICE_REMOTE_START,
     SUPPORTED_PLATFORMS,
     UPDATE_INTERVAL,
     VEHICLE_API_GEN,
@@ -32,20 +33,19 @@ from .const import (
     VEHICLE_HAS_REMOTE_SERVICE,
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
+    VEHICLE_LAST_FETCH,
     VEHICLE_LAST_UPDATE,
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
 from .remote_service import (
-    SERVICES_THAT_NEED_FETCH,
     async_call_remote_service,
     get_supported_services,
+    refresh_subaru,
     update_subaru,
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-REMOTE_SERVICE_SCHEMA = vol.Schema({vol.Required(VEHICLE_VIN): cv.string})
 
 
 async def async_setup(hass, base_config):
@@ -57,7 +57,7 @@ async def async_setup(hass, base_config):
 async def async_setup_entry(hass, entry):
     """Set up Subaru from a config entry."""
     config = entry.data
-    websession = aiohttp_client.async_get_clientsession(hass)
+    websession = aiohttp_client.async_create_clientsession(hass)
 
     # Backwards compatibility for configs made before v0.3.0
     country = config.get(CONF_COUNTRY)
@@ -119,18 +119,20 @@ async def async_setup_entry(hass, entry):
     async def async_call_service(call):
         """Execute subaru service."""
         vin = call.data[VEHICLE_VIN].upper()
+        arg = None
+        if call.service == REMOTE_SERVICE_REMOTE_START:
+            arg = call.data[REMOTE_CLIMATE_PRESET_NAME]
 
         if vin in vehicles:
-            if call.service != REMOTE_SERVICE_FETCH:
-                await async_call_remote_service(
-                    hass,
-                    controller,
-                    call.service,
-                    vehicles[vin],
-                    entry.options.get(CONF_NOTIFICATION_OPTION),
-                )
-            if call.service in SERVICES_THAT_NEED_FETCH:
-                await coordinator.async_refresh()
+            await async_call_remote_service(
+                hass,
+                controller,
+                call.service,
+                vehicles[vin],
+                arg,
+                entry.options.get(CONF_NOTIFICATION_OPTION),
+            )
+            await coordinator.async_refresh()
             return
 
         hass.components.persistent_notification.create(
@@ -141,9 +143,25 @@ async def async_setup_entry(hass, entry):
     supported_services = get_supported_services(vehicles)
 
     for service in supported_services:
-        hass.services.async_register(
-            DOMAIN, service, async_call_service, schema=REMOTE_SERVICE_SCHEMA
-        )
+        if service == REMOTE_SERVICE_REMOTE_START:
+            hass.services.async_register(
+                DOMAIN,
+                service,
+                async_call_service,
+                schema=vol.Schema(
+                    {
+                        vol.Required(VEHICLE_VIN): cv.string,
+                        vol.Required(REMOTE_CLIMATE_PRESET_NAME): cv.string,
+                    }
+                ),
+            )
+        else:
+            hass.services.async_register(
+                DOMAIN,
+                service,
+                async_call_service,
+                schema=vol.Schema({vol.Required(VEHICLE_VIN): cv.string}),
+            )
 
     return True
 
@@ -185,7 +203,7 @@ async def refresh_subaru_data(config_entry, vehicle_info, controller):
             await update_subaru(vehicle, controller)
 
         # Fetch data from Subaru servers
-        await controller.fetch(vin, force=True)
+        await refresh_subaru(vehicle, controller)
 
         # Update our local data that will go to entity states
         received_data = await controller.get_data(vin)
@@ -206,5 +224,6 @@ def get_vehicle_info(controller, vin):
         VEHICLE_HAS_REMOTE_SERVICE: controller.get_remote_status(vin),
         VEHICLE_HAS_SAFETY_SERVICE: controller.get_safety_status(vin),
         VEHICLE_LAST_UPDATE: 0,
+        VEHICLE_LAST_FETCH: 0,
     }
     return info
