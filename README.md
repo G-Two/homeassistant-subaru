@@ -22,6 +22,7 @@ The Subaru integration retrieves information provided by Subaru connected vehicl
 This integration requires an active vehicle subscription to the [Subaru STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service (available in USA and Canada).
 
 Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tables below to determine which capabilities are available for your vehicle.
+
 NOTE: There now appears to be a Gen 3, although it is unclear which model years have this capability. From analysis of the official Android mobile app, Gen 3 uses the same API endpoints as Gen 2, but may offer additional capability (tailgate unlock and hints of future remote window open/close?).
 
 | Model     | Gen 1     | Gen 2 | Gen 3 |
@@ -87,7 +88,7 @@ Device tracker, lock, and buttons (except refresh) all require a STARLINK Securi
 
 ## Installation
 ### HACS
-Add `https://github.com/G-Two/homeassistant-subaru` as a custom integration repository and install the **Subaru (HACS)** integration.
+Add `https://github.com/G-Two/homeassistant-subaru` as a custom integration repository and install the **Subaru (HACS)** integration. Restart Home Assistant.
 ### Manual
 Clone or download this repository, and copy the `custom_components/subaru` directory into the `config/custom_components` directory of your Home Assistant instance. Restart Home Assistant.
 
@@ -190,7 +191,7 @@ integration.
 | `preset_name`          |   yes    | String | Either a Subaru or user defined climate control preset name |
 
 ## Lovelace Example
-<img src="https://user-images.githubusercontent.com/7310260/147894583-5bc87db1-33b2-47e7-b15b-334f72e56f5a.png" width="1024" />
+<img src="https://user-images.githubusercontent.com/7310260/148698672-48cdc85f-623b-4f06-88e2-6e1949b4a522.png" width="1024" />
 
 <details><summary>Example Lovelace YAML</summary>
 <p>
@@ -203,6 +204,51 @@ views:
     title: Status
     badges: []
     cards:
+      - type: horizontal-stack
+        cards:
+          - entity: button.subaru_refresh
+            hold_action:
+              action: more-info
+            show_icon: true
+            show_name: false
+            show_state: false
+            tap_action:
+              action: call-service
+              service: button.press
+              service_data: {}
+              target:
+                entity_id: button.subaru_refresh
+            type: button
+            icon_height: 48px
+          - entity: button.subaru_locate
+            hold_action:
+              action: more-info
+            show_icon: true
+            show_name: false
+            show_state: false
+            tap_action:
+              action: call-service
+              confirmation:
+                text: Poll Vehicle?
+              service: button.press
+              service_data: {}
+              target:
+                entity_id: button.subaru_locate
+            type: button
+            icon_height: 48px
+        title: Update Data
+      - cards:
+          - entity: sensor.subaru_odometer
+            name: Odometer
+            type: entity
+          - entity: sensor.subaru_avg_fuel_consumption
+            name: Avg Fuel Consumption
+            type: entity
+          - entity: sensor.subaru_range
+            name: Distance to Empty
+            type: entity
+        type: vertical-stack
+        title: Mileage
       - cards:
           - cards:
               - entity: sensor.subaru_tire_pressure_fl
@@ -250,18 +296,6 @@ views:
             type: horizontal-stack
         type: vertical-stack
         title: Tire Pressure
-      - cards:
-          - entity: sensor.subaru_odometer
-            name: Odometer
-            type: entity
-          - entity: sensor.subaru_avg_fuel_consumption
-            name: Avg Fuel Consumption
-            type: entity
-          - entity: sensor.subaru_range
-            name: Distance to Empty
-            type: entity
-        type: vertical-stack
-        title: Mileage
       - type: vertical-stack
         title: Remote Commands
         cards:
@@ -359,6 +393,10 @@ views:
                 show_name: false
                 icon_height: 48px
             type: horizontal-stack
+          - type: entities
+            entities:
+              - entity: select.subaru_climate_preset
+            show_header_toggle: true
       - type: vertical-stack
         cards:
           - detail: -2
@@ -374,6 +412,44 @@ views:
             entity: binary_sensor.subaru_ignition
             name: ' '
         title: Miscellaneous Data
+      - card:
+          type: glance
+          title: Door(s) Open
+        type: entity-filter
+        entities:
+          - entity: binary_sensor.subaru_front_left_door
+            name: FL Door
+            show_state: false
+            show_icon: false
+            icon: None
+          - entity: binary_sensor.subaru_hood
+            name: Hood
+            show_state: false
+            show_icon: false
+            icon: None
+          - entity: binary_sensor.subaru_front_right_door
+            name: FR Door
+            show_state: false
+            show_icon: false
+            icon: None
+          - entity: binary_sensor.subaru_rear_left_door
+            name: RL Door
+            show_state: false
+            show_icon: false
+            icon: None
+          - entity: binary_sensor.subaru_trunk
+            name: Trunk
+            show_state: false
+            show_icon: false
+            icon: None
+          - entity: binary_sensor.subaru_rear_right_door
+            name: RR Door
+            show_state: false
+            show_icon: false
+            icon: None
+        state_filter:
+          - 'on'
+        show_empty: false
       - type: vertical-stack
         title: EV Functions
         cards:
@@ -425,83 +501,11 @@ views:
                         {{ int(hours) }} hours {% endif %}{{ int(minutes) }}
                         minutes
                       title: Time to Full Charge
-      - card:
-          type: glance
-          title: Door(s) Open
-        type: entity-filter
-        entities:
-          - entity: binary_sensor.subaru_front_left_door
-            name: FL Door
-            show_state: false
-            show_icon: false
-            icon: None
-          - entity: binary_sensor.subaru_hood
-            name: Hood
-            show_state: false
-            show_icon: false
-            icon: None
-          - entity: binary_sensor.subaru_front_right_door
-            name: FR Door
-            show_state: false
-            show_icon: false
-            icon: None
-          - entity: binary_sensor.subaru_rear_left_door
-            name: RL Door
-            show_state: false
-            show_icon: false
-            icon: None
-          - entity: binary_sensor.subaru_trunk
-            name: Trunk
-            show_state: false
-            show_icon: false
-            icon: None
-          - entity: binary_sensor.subaru_rear_right_door
-            name: RR Door
-            show_state: false
-            show_icon: false
-            icon: None
-        state_filter:
-          - 'on'
-        show_empty: false
       - type: map
         entities:
           - entity: device_tracker.subaru_location
         hours_to_show: 0
-        title: Subaru Location
-        default_zoom: 14
-      - type: horizontal-stack
-        cards:
-          - entity: button.subaru_refresh
-            hold_action:
-              action: more-info
-            show_icon: true
-            show_name: false
-            show_state: false
-            tap_action:
-              action: call-service
-              service: button.press
-              service_data: {}
-              target:
-                entity_id: button.subaru_refresh
-            type: button
-            icon_height: 48px
-          - entity: button.subaru_locate
-            hold_action:
-              action: more-info
-            show_icon: true
-            show_name: false
-            show_state: false
-            tap_action:
-              action: call-service
-              confirmation:
-                text: Poll Vehicle?
-              service: button.press
-              service_data: {}
-              target:
-                entity_id: button.subaru_locate
-            type: button
-            icon_height: 48px
-        title: Update Data
+        default_zoom: 3
 ```
 </p>
 </details>
