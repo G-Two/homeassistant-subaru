@@ -2,4 +2,4 @@ flake8
 pytest
 pytest-cov
 pytest-homeassistant-custom-component
-subarulink==0.4.0rc5
+subarulink==0.4.0
