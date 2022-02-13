@@ -484,23 +484,10 @@ views:
                   - type: conditional
                     conditions:
                       - entity: sensor.subaru_ev_time_to_full_charge
-                        state_not: '1969-12-31T19:00:00'
+                        state_not: 'unavailable'
                     card:
-                      type: markdown
-                      content: >
-                        {% set time =
-                        (as_timestamp(states.sensor.subaru_ev_time_to_full_charge.state)
-                        - as_timestamp(now())) %}
-
-                        {% set hours = time // 3600 %}
-
-                        {% set minutes = time // 60 % 60 %}
-
-                        {% if int(hours) > 0 %}
-
-                        {{ int(hours) }} hours {% endif %}{{ int(minutes) }}
-                        minutes
-                      title: Time to Full Charge
+                      type: entity
+                      entity: sensor.subaru_ev_time_to_full_charge
       - type: map
         entities:
           - entity: device_tracker.subaru_location
