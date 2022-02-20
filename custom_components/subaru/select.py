@@ -50,7 +50,9 @@ class SubaruClimateSelect(SubaruEntity, SelectEntity, RestoreEntity):
     @property
     def options(self):
         """Return a set of selectable options."""
-        vehicle_data = self.coordinator.data.get(self.vin)
+        vehicle_data = None
+        if self.coordinator.data:
+            vehicle_data = self.coordinator.data.get(self.vin)
         if vehicle_data:
             preset_data = vehicle_data.get(VEHICLE_CLIMATE)
             if isinstance(preset_data, list):
