@@ -12,6 +12,7 @@ from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_US
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import aiohttp_client, config_validation as cv
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -24,6 +25,7 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
+    MANUFACTURER,
     REMOTE_CLIMATE_PRESET_NAME,
     REMOTE_SERVICE_REMOTE_START,
     SUPPORTED_PLATFORMS,
@@ -35,6 +37,8 @@ from .const import (
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_LAST_FETCH,
     VEHICLE_LAST_UPDATE,
+    VEHICLE_MODEL_NAME,
+    VEHICLE_MODEL_YEAR,
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
@@ -217,6 +221,8 @@ def get_vehicle_info(controller, vin):
     """Obtain vehicle identifiers and capabilities."""
     info = {
         VEHICLE_VIN: vin,
+        VEHICLE_MODEL_NAME: controller.get_model_name(vin),
+        VEHICLE_MODEL_YEAR: controller.get_model_year(vin),
         VEHICLE_NAME: controller.vin_to_name(vin),
         VEHICLE_HAS_EV: controller.get_ev_status(vin),
         VEHICLE_API_GEN: controller.get_api_gen(vin),
@@ -227,3 +233,13 @@ def get_vehicle_info(controller, vin):
         VEHICLE_LAST_FETCH: 0,
     }
     return info
+
+
+def get_device_info(vehicle_info):
+    """Return DeviceInfo object based on vehicle info."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, vehicle_info[VEHICLE_VIN])},
+        manufacturer=MANUFACTURER,
+        model=f"{vehicle_info[VEHICLE_MODEL_YEAR]} {vehicle_info[VEHICLE_MODEL_NAME]}",
+        name=vehicle_info[VEHICLE_NAME],
+    )

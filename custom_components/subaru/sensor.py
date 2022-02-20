@@ -1,9 +1,9 @@
 """Support for Subaru sensors."""
 from datetime import datetime
-import logging
 
 import subarulink.const as sc
 
+from custom_components.subaru import get_device_info
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.const import (
     ELECTRIC_POTENTIAL_VOLT,
@@ -34,8 +34,6 @@ from .const import (
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 L_PER_GAL = vol_convert(1, VOLUME_GALLONS, VOLUME_LITERS)
 KM_PER_MI = dist_convert(1, LENGTH_MILES, LENGTH_KILOMETERS)
@@ -194,6 +192,7 @@ class SubaruSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"{vehicle_info[VEHICLE_NAME]} {self.entity_type}"
         self._attr_unique_id = f"{self.vin}_{self.entity_type}"
         self._attr_should_poll = False
+        self._attr_device_info = get_device_info(vehicle_info)
         self.data_field = data_field
 
     @property

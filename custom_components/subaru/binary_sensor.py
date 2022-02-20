@@ -1,14 +1,12 @@
 """Support for Subaru binary sensors."""
 import subarulink.const as sc
 
+from custom_components.subaru import get_device_info
 from homeassistant.components.binary_sensor import (
-    DEVICE_CLASS_BATTERY_CHARGING,
-    DEVICE_CLASS_DOOR,
-    DEVICE_CLASS_PLUG,
-    DEVICE_CLASS_POWER,
-    DEVICE_CLASS_WINDOW,
+    BinarySensorDeviceClass,
     BinarySensorEntity,
 )
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     API_GEN_2,
@@ -17,9 +15,10 @@ from .const import (
     ENTRY_VEHICLES,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
+    VEHICLE_NAME,
+    VEHICLE_STATUS,
     VEHICLE_VIN,
 )
-from .entity import SubaruEntity
 
 SENSOR_TYPE = "name"
 SENSOR_FIELD = "field"
@@ -27,11 +26,17 @@ SENSOR_CLASS = "class"
 SENSOR_ON_VALUE = "on_value"
 
 BINARY_SENSOR_ICONS = {
-    DEVICE_CLASS_POWER: {True: "mdi:engine", False: "mdi:engine-off"},
-    DEVICE_CLASS_BATTERY_CHARGING: {True: "mdi:car-electric", False: "mdi:car"},
-    DEVICE_CLASS_DOOR: {True: "mdi:door-open", False: "mdi:door-closed"},
-    DEVICE_CLASS_PLUG: {True: "mdi:power-plug", False: "mdi:power-plug-off"},
-    DEVICE_CLASS_WINDOW: {True: "mdi:window-open", False: "mdi:window-closed"},
+    BinarySensorDeviceClass.POWER: {True: "mdi:engine", False: "mdi:engine-off"},
+    BinarySensorDeviceClass.BATTERY_CHARGING: {
+        True: "mdi:car-electric",
+        False: "mdi:car",
+    },
+    BinarySensorDeviceClass.DOOR: {True: "mdi:door-open", False: "mdi:door-closed"},
+    BinarySensorDeviceClass.PLUG: {True: "mdi:power-plug", False: "mdi:power-plug-off"},
+    BinarySensorDeviceClass.WINDOW: {
+        True: "mdi:window-open",
+        False: "mdi:window-closed",
+    },
 }
 
 
@@ -40,73 +45,73 @@ API_GEN_2_SENSORS = [
     {
         SENSOR_TYPE: "Ignition",
         SENSOR_FIELD: sc.VEHICLE_STATE,
-        SENSOR_CLASS: DEVICE_CLASS_POWER,
+        SENSOR_CLASS: BinarySensorDeviceClass.POWER,
         SENSOR_ON_VALUE: sc.IGNITION_ON,
     },
     {
         SENSOR_TYPE: "Trunk",
         SENSOR_FIELD: sc.DOOR_BOOT_POSITION,
-        SENSOR_CLASS: DEVICE_CLASS_DOOR,
+        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
         SENSOR_ON_VALUE: sc.DOOR_OPEN,
     },
     {
         SENSOR_TYPE: "Hood",
         SENSOR_FIELD: sc.DOOR_ENGINE_HOOD_POSITION,
-        SENSOR_CLASS: DEVICE_CLASS_DOOR,
+        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
         SENSOR_ON_VALUE: sc.DOOR_OPEN,
     },
     {
         SENSOR_TYPE: "Front Left Door",
         SENSOR_FIELD: sc.DOOR_FRONT_LEFT_POSITION,
-        SENSOR_CLASS: DEVICE_CLASS_DOOR,
+        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
         SENSOR_ON_VALUE: sc.DOOR_OPEN,
     },
     {
         SENSOR_TYPE: "Front Right Door",
         SENSOR_FIELD: sc.DOOR_FRONT_RIGHT_POSITION,
-        SENSOR_CLASS: DEVICE_CLASS_DOOR,
+        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
         SENSOR_ON_VALUE: sc.DOOR_OPEN,
     },
     {
         SENSOR_TYPE: "Rear Left Door",
         SENSOR_FIELD: sc.DOOR_REAR_LEFT_POSITION,
-        SENSOR_CLASS: DEVICE_CLASS_DOOR,
+        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
         SENSOR_ON_VALUE: sc.DOOR_OPEN,
     },
     {
         SENSOR_TYPE: "Rear Right Door",
         SENSOR_FIELD: sc.DOOR_REAR_RIGHT_POSITION,
-        SENSOR_CLASS: DEVICE_CLASS_DOOR,
+        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
         SENSOR_ON_VALUE: sc.DOOR_OPEN,
     },
     {
         SENSOR_TYPE: "Front Left Window",
         SENSOR_FIELD: sc.WINDOW_FRONT_LEFT_STATUS,
-        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
         SENSOR_ON_VALUE: sc.WINDOW_OPEN,
     },
     {
         SENSOR_TYPE: "Front Right Window",
         SENSOR_FIELD: sc.WINDOW_FRONT_RIGHT_STATUS,
-        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
         SENSOR_ON_VALUE: sc.WINDOW_OPEN,
     },
     {
         SENSOR_TYPE: "Rear Left Window",
         SENSOR_FIELD: sc.WINDOW_REAR_LEFT_STATUS,
-        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
         SENSOR_ON_VALUE: sc.WINDOW_OPEN,
     },
     {
         SENSOR_TYPE: "Rear Right Window",
         SENSOR_FIELD: sc.WINDOW_REAR_RIGHT_STATUS,
-        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
         SENSOR_ON_VALUE: sc.WINDOW_OPEN,
     },
     {
         SENSOR_TYPE: "Sunroof",
         SENSOR_FIELD: sc.WINDOW_SUNROOF_STATUS,
-        SENSOR_CLASS: DEVICE_CLASS_WINDOW,
+        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
         SENSOR_ON_VALUE: sc.WINDOW_OPEN,
     },
 ]
@@ -116,13 +121,13 @@ EV_SENSORS = [
     {
         SENSOR_TYPE: "EV Charge Port",
         SENSOR_FIELD: sc.EV_IS_PLUGGED_IN,
-        SENSOR_CLASS: DEVICE_CLASS_PLUG,
+        SENSOR_CLASS: BinarySensorDeviceClass.PLUG,
         SENSOR_ON_VALUE: [sc.LOCKED_CONNECTED, sc.UNLOCKED_CONNECTED],
     },
     {
         SENSOR_TYPE: "EV Battery Charging",
         SENSOR_FIELD: sc.EV_CHARGER_STATE_TYPE,
-        SENSOR_CLASS: DEVICE_CLASS_BATTERY_CHARGING,
+        SENSOR_CLASS: BinarySensorDeviceClass.BATTERY_CHARGING,
         SENSOR_ON_VALUE: sc.CHARGING,
     },
 ]
@@ -130,8 +135,9 @@ EV_SENSORS = [
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Subaru binary sensors by config_entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][ENTRY_COORDINATOR]
-    vehicle_info = hass.data[DOMAIN][config_entry.entry_id][ENTRY_VEHICLES]
+    entry = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = entry[ENTRY_COORDINATOR]
+    vehicle_info = entry[ENTRY_VEHICLES]
     entities = []
     for vin in vehicle_info:
         _create_sensor_entities(entities, vehicle_info[vin], coordinator)
@@ -166,29 +172,27 @@ def _create_sensor_entities(entities, vehicle_info, coordinator):
             )
 
 
-class SubaruBinarySensor(SubaruEntity, BinarySensorEntity):
+class SubaruBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Class for Subaru binary sensors."""
 
     def __init__(
-        self, vehicle_info, coordinator, title, data_field, sensor_class, on_value
+        self, vehicle_info, coordinator, entity_type, data_field, device_class, on_value
     ):
         """Initialize the binary sensor."""
-        super().__init__(vehicle_info, coordinator)
-        self.hass_type = "binary_sensor"
-        self.entity_type = title
+        super().__init__(coordinator)
+        self.vin = vehicle_info[VEHICLE_VIN]
+        self._attr_device_class = device_class
+        self._attr_device_info = get_device_info(vehicle_info)
+        self._attr_name = f"{vehicle_info[VEHICLE_NAME]} {entity_type}"
+        self._attr_unique_id = f"{self.vin}_{entity_type}"
+        self._attr_should_poll = False
         self.data_field = data_field
-        self.sensor_class = sensor_class
         self.on_value = on_value
-
-    @property
-    def device_class(self):
-        """Return the class of this device, from component DEVICE_CLASSES."""
-        return self.sensor_class
 
     @property
     def icon(self):
         """Return icon for sensor."""
-        return BINARY_SENSOR_ICONS[self.sensor_class][self.is_on]
+        return BINARY_SENSOR_ICONS[self._attr_device_class][self.is_on]
 
     @property
     def available(self):
@@ -209,6 +213,7 @@ class SubaruBinarySensor(SubaruEntity, BinarySensorEntity):
 
     def get_current_value(self):
         """Get raw value from the coordinator."""
-        if self.coordinator.data.get(self.vin):
-            return self.coordinator.data[self.vin]["status"].get(self.data_field)
-        return None
+        if isinstance(data := self.coordinator.data, dict):
+            if data.get(self.vin):
+                return data[self.vin][VEHICLE_STATUS].get(self.data_field)
+            return None
