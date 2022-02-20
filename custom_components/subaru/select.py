@@ -34,7 +34,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             climate_select.append(
                 SubaruClimateSelect(vehicle_info[vin], coordinator, config_entry)
             )
-    async_add_entities(climate_select, True)
+    async_add_entities(climate_select)
 
 
 class SubaruClimateSelect(SelectEntity, RestoreEntity):

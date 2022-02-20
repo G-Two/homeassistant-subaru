@@ -62,7 +62,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         entities.extend(
             create_vehicle_buttons(vehicle_info[vin], coordinator, config_entry)
         )
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 def create_vehicle_buttons(vehicle_info, coordinator, config_entry):

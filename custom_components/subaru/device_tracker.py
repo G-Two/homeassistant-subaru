@@ -26,7 +26,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     for vin in vehicle_info:
         if vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
             entities.append(SubaruDeviceTracker(vehicle_info[vin], coordinator))
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 class SubaruDeviceTracker(CoordinatorEntity, TrackerEntity):

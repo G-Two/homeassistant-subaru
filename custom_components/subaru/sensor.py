@@ -143,7 +143,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
     for vin in vehicle_info:
         entities.extend(create_vehicle_sensors(vehicle_info[vin], coordinator))
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 def create_vehicle_sensors(vehicle_info, coordinator):
