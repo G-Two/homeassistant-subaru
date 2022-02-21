@@ -1,11 +1,11 @@
 """Support for Subaru device tracker."""
 import subarulink.const as sc
 
-from custom_components.subaru import get_device_info
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import get_device_info
 from .const import (
     DOMAIN,
     ENTRY_COORDINATOR,

@@ -1,13 +1,13 @@
 """Support for Subaru binary sensors."""
 import subarulink.const as sc
 
-from custom_components.subaru import get_device_info
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import get_device_info
 from .const import (
     API_GEN_2,
     DOMAIN,
