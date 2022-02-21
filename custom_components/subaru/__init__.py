@@ -122,6 +122,9 @@ async def async_setup_entry(hass, entry):
 
     async def async_call_service(call):
         """Execute subaru service."""
+        _LOGGER.warn(
+            "This Subaru-specific service is deprecated and will be removed in v0.7.0. Use button or lock entities (or their respective services) to actuate remove vehicle services."
+        )
         vin = call.data[VEHICLE_VIN].upper()
         arg = None
         if call.service == REMOTE_SERVICE_REMOTE_START:
