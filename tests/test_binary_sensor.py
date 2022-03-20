@@ -4,12 +4,7 @@ from unittest.mock import patch
 
 from subarulink.const import DOOR_ENGINE_HOOD_POSITION, VEHICLE_STATUS
 
-from custom_components.subaru.binary_sensor import (
-    API_GEN_2_SENSORS,
-    EV_SENSORS,
-    SENSOR_FIELD,
-    SENSOR_TYPE,
-)
+from custom_components.subaru.binary_sensor import API_GEN_2_SENSORS, EV_SENSORS
 from custom_components.subaru.const import VEHICLE_NAME
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.util import slugify
@@ -65,8 +60,8 @@ def _assert_data(hass, expected_state):
     expected_states = {}
     for item in sensor_list:
         expected_states[
-            f"binary_sensor.{slugify(f'{VEHICLE_NAME} {item[SENSOR_TYPE]}')}"
-        ] = expected_state[item[SENSOR_FIELD]]
+            f"binary_sensor.{slugify(f'{VEHICLE_NAME} {item.suffix}')}"
+        ] = expected_state[item.key]
 
     for sensor in expected_states:
         actual = hass.states.get(sensor)

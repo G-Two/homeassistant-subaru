@@ -1,9 +1,13 @@
 """Support for Subaru binary sensors."""
+from dataclasses import dataclass
+from typing import List
+
 import subarulink.const as sc
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
+    BinarySensorEntityDescription,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -20,11 +24,6 @@ from .const import (
     VEHICLE_VIN,
 )
 
-SENSOR_TYPE = "name"
-SENSOR_FIELD = "field"
-SENSOR_CLASS = "class"
-SENSOR_ON_VALUE = "on_value"
-
 BINARY_SENSOR_ICONS = {
     BinarySensorDeviceClass.POWER: {True: "mdi:engine", False: "mdi:engine-off"},
     BinarySensorDeviceClass.BATTERY_CHARGING: {
@@ -40,96 +39,111 @@ BINARY_SENSOR_ICONS = {
 }
 
 
-# Binary Sensor data available to "Subaru Safety Plus" subscribers with Gen2 vehicles
+@dataclass
+class SubaruBinarySensorFieldsMixin:
+    """Additional fields needed for Subaru binary sensors."""
+
+    suffix: str
+    on_values: List
+
+
+@dataclass
+class SubaruBinarySensorEntityDescription(
+    BinarySensorEntityDescription, SubaruBinarySensorFieldsMixin
+):
+    """Describes Subaru binary sensor entity."""
+
+
+# Binary Sensors available to "Subaru Safety Plus" subscribers with Gen2 vehicles
 API_GEN_2_SENSORS = [
-    {
-        SENSOR_TYPE: "Ignition",
-        SENSOR_FIELD: sc.VEHICLE_STATE,
-        SENSOR_CLASS: BinarySensorDeviceClass.POWER,
-        SENSOR_ON_VALUE: sc.IGNITION_ON,
-    },
-    {
-        SENSOR_TYPE: "Trunk",
-        SENSOR_FIELD: sc.DOOR_BOOT_POSITION,
-        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
-        SENSOR_ON_VALUE: sc.DOOR_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Hood",
-        SENSOR_FIELD: sc.DOOR_ENGINE_HOOD_POSITION,
-        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
-        SENSOR_ON_VALUE: sc.DOOR_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Front Left Door",
-        SENSOR_FIELD: sc.DOOR_FRONT_LEFT_POSITION,
-        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
-        SENSOR_ON_VALUE: sc.DOOR_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Front Right Door",
-        SENSOR_FIELD: sc.DOOR_FRONT_RIGHT_POSITION,
-        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
-        SENSOR_ON_VALUE: sc.DOOR_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Rear Left Door",
-        SENSOR_FIELD: sc.DOOR_REAR_LEFT_POSITION,
-        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
-        SENSOR_ON_VALUE: sc.DOOR_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Rear Right Door",
-        SENSOR_FIELD: sc.DOOR_REAR_RIGHT_POSITION,
-        SENSOR_CLASS: BinarySensorDeviceClass.DOOR,
-        SENSOR_ON_VALUE: sc.DOOR_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Front Left Window",
-        SENSOR_FIELD: sc.WINDOW_FRONT_LEFT_STATUS,
-        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
-        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Front Right Window",
-        SENSOR_FIELD: sc.WINDOW_FRONT_RIGHT_STATUS,
-        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
-        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Rear Left Window",
-        SENSOR_FIELD: sc.WINDOW_REAR_LEFT_STATUS,
-        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
-        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Rear Right Window",
-        SENSOR_FIELD: sc.WINDOW_REAR_RIGHT_STATUS,
-        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
-        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
-    },
-    {
-        SENSOR_TYPE: "Sunroof",
-        SENSOR_FIELD: sc.WINDOW_SUNROOF_STATUS,
-        SENSOR_CLASS: BinarySensorDeviceClass.WINDOW,
-        SENSOR_ON_VALUE: sc.WINDOW_OPEN,
-    },
+    SubaruBinarySensorEntityDescription(
+        suffix="Ignition",
+        key=sc.VEHICLE_STATE,
+        device_class=BinarySensorDeviceClass.POWER,
+        on_values=[sc.IGNITION_ON],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Trunk",
+        key=sc.DOOR_BOOT_POSITION,
+        device_class=BinarySensorDeviceClass.DOOR,
+        on_values=[sc.DOOR_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Hood",
+        key=sc.DOOR_ENGINE_HOOD_POSITION,
+        device_class=BinarySensorDeviceClass.DOOR,
+        on_values=[sc.DOOR_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Front Left Door",
+        key=sc.DOOR_FRONT_LEFT_POSITION,
+        device_class=BinarySensorDeviceClass.DOOR,
+        on_values=[sc.DOOR_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Front Right Door",
+        key=sc.DOOR_FRONT_RIGHT_POSITION,
+        device_class=BinarySensorDeviceClass.DOOR,
+        on_values=[sc.DOOR_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Rear Left Door",
+        key=sc.DOOR_REAR_LEFT_POSITION,
+        device_class=BinarySensorDeviceClass.DOOR,
+        on_values=[sc.DOOR_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Rear Right Door",
+        key=sc.DOOR_REAR_RIGHT_POSITION,
+        device_class=BinarySensorDeviceClass.DOOR,
+        on_values=[sc.DOOR_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Front Left Window",
+        key=sc.WINDOW_FRONT_LEFT_STATUS,
+        device_class=BinarySensorDeviceClass.WINDOW,
+        on_values=[sc.WINDOW_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Front Right Window",
+        key=sc.WINDOW_FRONT_RIGHT_STATUS,
+        device_class=BinarySensorDeviceClass.WINDOW,
+        on_values=[sc.WINDOW_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Rear Left Window",
+        key=sc.WINDOW_REAR_LEFT_STATUS,
+        device_class=BinarySensorDeviceClass.WINDOW,
+        on_values=[sc.WINDOW_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Rear Right Window",
+        key=sc.WINDOW_REAR_RIGHT_STATUS,
+        device_class=BinarySensorDeviceClass.WINDOW,
+        on_values=[sc.WINDOW_OPEN],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="Sunroof",
+        key=sc.WINDOW_SUNROOF_STATUS,
+        device_class=BinarySensorDeviceClass.WINDOW,
+        on_values=[sc.WINDOW_OPEN],
+    ),
 ]
 
-# Binary Sensor data available to "Subaru Safety Plus" subscribers with PHEV vehicles
+# Binary Sensors available to "Subaru Safety Plus" subscribers with PHEV vehicles
 EV_SENSORS = [
-    {
-        SENSOR_TYPE: "EV Charge Port",
-        SENSOR_FIELD: sc.EV_IS_PLUGGED_IN,
-        SENSOR_CLASS: BinarySensorDeviceClass.PLUG,
-        SENSOR_ON_VALUE: [sc.LOCKED_CONNECTED, sc.UNLOCKED_CONNECTED],
-    },
-    {
-        SENSOR_TYPE: "EV Battery Charging",
-        SENSOR_FIELD: sc.EV_CHARGER_STATE_TYPE,
-        SENSOR_CLASS: BinarySensorDeviceClass.BATTERY_CHARGING,
-        SENSOR_ON_VALUE: sc.CHARGING,
-    },
+    SubaruBinarySensorEntityDescription(
+        suffix="EV Charge Port",
+        key=sc.EV_IS_PLUGGED_IN,
+        device_class=BinarySensorDeviceClass.PLUG,
+        on_values=[sc.LOCKED_CONNECTED, sc.UNLOCKED_CONNECTED],
+    ),
+    SubaruBinarySensorEntityDescription(
+        suffix="EV Battery Charging",
+        key=sc.EV_CHARGER_STATE_TYPE,
+        device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
+        on_values=[sc.CHARGING],
+    ),
 ]
 
 
@@ -153,46 +167,36 @@ def _create_sensor_entities(entities, vehicle_info, coordinator):
     if vehicle_info[VEHICLE_HAS_EV]:
         sensors_to_add.extend(EV_SENSORS)
 
-    for subaru_sensor in sensors_to_add:
+    for sensor_description in sensors_to_add:
         if (
-            coordinator.data[vehicle_info[VEHICLE_VIN]]["status"].get(
-                subaru_sensor[SENSOR_FIELD]
+            coordinator.data[vehicle_info[VEHICLE_VIN]][VEHICLE_STATUS].get(
+                sensor_description.key
             )
             not in sc.BAD_BINARY_SENSOR_VALUES
         ):
             entities.append(
-                SubaruBinarySensor(
-                    vehicle_info,
-                    coordinator,
-                    subaru_sensor[SENSOR_TYPE],
-                    subaru_sensor[SENSOR_FIELD],
-                    subaru_sensor[SENSOR_CLASS],
-                    subaru_sensor[SENSOR_ON_VALUE],
-                )
+                SubaruBinarySensor(vehicle_info, coordinator, sensor_description,)
             )
 
 
 class SubaruBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Class for Subaru binary sensors."""
 
-    def __init__(
-        self, vehicle_info, coordinator, entity_type, data_field, device_class, on_value
-    ):
+    entity_description: SubaruBinarySensorEntityDescription
+
+    def __init__(self, vehicle_info, coordinator, description):
         """Initialize the binary sensor."""
         super().__init__(coordinator)
         self.vin = vehicle_info[VEHICLE_VIN]
-        self._attr_device_class = device_class
+        self.entity_description = description
         self._attr_device_info = get_device_info(vehicle_info)
-        self._attr_name = f"{vehicle_info[VEHICLE_NAME]} {entity_type}"
-        self._attr_unique_id = f"{self.vin}_{entity_type}"
-        self._attr_should_poll = False
-        self.data_field = data_field
-        self.on_value = on_value
+        self._attr_name = f"{vehicle_info[VEHICLE_NAME]} {description.suffix}"
+        self._attr_unique_id = f"{self.vin}_{description.suffix}"
 
     @property
     def icon(self):
         """Return icon for sensor."""
-        return BINARY_SENSOR_ICONS[self._attr_device_class][self.is_on]
+        return BINARY_SENSOR_ICONS[self.device_class][self.is_on]
 
     @property
     def available(self):
@@ -207,13 +211,11 @@ class SubaruBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the binary sensor is on."""
-        if isinstance(self.on_value, list):
-            return self.get_current_value() in self.on_value
-        return self.get_current_value() == self.on_value
+        return self.get_current_value() in self.entity_description.on_values
 
     def get_current_value(self):
         """Get raw value from the coordinator."""
         if isinstance(data := self.coordinator.data, dict):
             if data.get(self.vin):
-                return data[self.vin][VEHICLE_STATUS].get(self.data_field)
+                return data[self.vin][VEHICLE_STATUS].get(self.entity_description.key)
             return None

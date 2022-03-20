@@ -98,10 +98,6 @@ SUPPORTED_PLATFORMS = [
 ]
 
 ICONS = {
-    "Avg Fuel Consumption": "mdi:leaf",
-    "EV Range": "mdi:ev-station",
-    "Odometer": "mdi:road-variant",
-    "Range": "mdi:gas-station",
     "Horn Start": "mdi:volume-high",
     "Horn Stop": "mdi:volume-off",
     "Lights Start": "mdi:lightbulb-on",

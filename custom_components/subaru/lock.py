@@ -5,7 +5,7 @@ import voluptuous as vol
 
 from homeassistant.components.lock import LockEntity
 from homeassistant.const import SERVICE_LOCK, SERVICE_UNLOCK
-from homeassistant.helpers import config_validation as cv, entity_platform
+from homeassistant.helpers import entity_platform
 
 from . import DOMAIN as SUBARU_DOMAIN, get_device_info
 from .const import (
@@ -30,17 +30,18 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entry = hass.data[SUBARU_DOMAIN][config_entry.entry_id]
     controller = entry[ENTRY_CONTROLLER]
     vehicle_info = entry[ENTRY_VEHICLES]
-    entities = []
-    for vehicle in vehicle_info.values():
-        if vehicle[VEHICLE_HAS_REMOTE_SERVICE]:
-            entities.append(SubaruLock(vehicle, controller, config_entry))
-    async_add_entities(entities)
+
+    async_add_entities(
+        SubaruLock(vehicle, controller, config_entry)
+        for vehicle in vehicle_info.values()
+        if vehicle[VEHICLE_HAS_REMOTE_SERVICE]
+    )
 
     platform = entity_platform.async_get_current_platform()
 
     platform.async_register_entity_service(
         SERVICE_UNLOCK_SPECIFIC_DOOR,
-        {vol.Required(ATTR_DOOR): cv.string},
+        {vol.Required(ATTR_DOOR): vol.In(UNLOCK_VALID_DOORS)},
         "async_unlock_specific_door",
     )
 
@@ -90,12 +91,11 @@ class SubaruLock(LockEntity):
     async def async_unlock_specific_door(self, door):
         """Send the unlock command for a specified door."""
         _LOGGER.debug("Unlocking %s door for: %s", self, self.car_name)
-        if door in UNLOCK_VALID_DOORS:
-            await async_call_remote_service(
-                self.hass,
-                self.controller,
-                SERVICE_UNLOCK,
-                self.vehicle_info,
-                UNLOCK_VALID_DOORS[door],
-                self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
-            )
+        await async_call_remote_service(
+            self.hass,
+            self.controller,
+            SERVICE_UNLOCK,
+            self.vehicle_info,
+            UNLOCK_VALID_DOORS[door],
+            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
+        )

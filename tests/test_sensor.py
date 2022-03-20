@@ -64,4 +64,5 @@ def _assert_data(hass, expected_state):
 
     for sensor in expected_states:
         actual = hass.states.get(sensor)
+        assert actual
         assert actual.state == expected_states[sensor]

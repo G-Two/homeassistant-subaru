@@ -87,7 +87,7 @@ async def async_call_remote_service(
                 f"{cmd} command successfully completed for {car_name}", "Subaru",
             )
         _LOGGER.debug("%s command successfully completed for %s", cmd, car_name)
-        return True
+        return
 
     hass.components.persistent_notification.create(
         f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
