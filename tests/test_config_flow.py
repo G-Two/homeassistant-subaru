@@ -1,7 +1,7 @@
 """Tests for the Subaru component config flow."""
 from copy import deepcopy
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -19,7 +19,11 @@ from homeassistant.const import CONF_DEVICE_ID, CONF_PIN
 from homeassistant.setup import async_setup_component
 
 from tests.conftest import (
+    MOCK_API_2FA_CONTACTS,
+    MOCK_API_2FA_REQUEST,
+    MOCK_API_2FA_VERIFY,
     MOCK_API_CONNECT,
+    MOCK_API_DEVICE_REGISTERED,
     MOCK_API_IS_PIN_REQUIRED,
     MOCK_API_TEST_PIN,
     MOCK_API_UPDATE_SAVED_PIN,
@@ -82,17 +86,110 @@ async def test_user_form_invalid_auth(hass, user_form):
     assert result["errors"] == {"base": "invalid_auth"}
 
 
-async def test_user_form_pin_not_required(hass, user_form):
+async def test_registered_no_pin_required(hass, user_form):
+    """Test we handle invalid auth."""
+    with patch(MOCK_API_CONNECT, return_value=True), patch(
+        MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+    ) as mock_device_registered, patch(MOCK_API_IS_PIN_REQUIRED, return_value=False):
+        mock_device_registered.return_value = True
+        await hass.config_entries.flow.async_configure(
+            user_form["flow_id"], user_input=TEST_CREDS
+        )
+
+
+async def test_registered_pin_required(hass, user_form):
+    """Test we handle invalid auth."""
+    with patch(MOCK_API_CONNECT, return_value=True), patch(
+        MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+    ) as mock_device_registered, patch(MOCK_API_IS_PIN_REQUIRED, return_value=True):
+        mock_device_registered.return_value = True
+        await hass.config_entries.flow.async_configure(
+            user_form["flow_id"], user_input=TEST_CREDS
+        )
+
+
+async def test_two_factor_request_success(hass, two_factor_start_form):
+    """Test two factor contact method selection."""
+    with patch(
+        MOCK_API_2FA_REQUEST, return_value=True,
+    ) as mock_two_factor_request, patch(
+        MOCK_API_2FA_CONTACTS, new_callable=PropertyMock
+    ) as mock_contacts:
+        mock_contacts.return_value = {
+            "phone": "123-123-1234",
+            "userName": "email@addr.com",
+        }
+        await hass.config_entries.flow.async_configure(
+            two_factor_start_form["flow_id"],
+            user_input={config_flow.CONF_CONTACT_METHOD: "email@addr.com"},
+        )
+    assert len(mock_two_factor_request.mock_calls) == 1
+
+
+async def test_two_factor_request_fail(hass, two_factor_start_form):
+    """Test two factor contact method selection."""
+    with patch(
+        MOCK_API_2FA_REQUEST, return_value=False,
+    ) as mock_two_factor_request, patch(
+        MOCK_API_2FA_CONTACTS, new_callable=PropertyMock
+    ) as mock_contacts, pytest.raises(
+        SubaruException
+    ):
+        mock_contacts.return_value = {
+            "phone": "123-123-1234",
+            "userName": "email@addr.com",
+        }
+        await hass.config_entries.flow.async_configure(
+            two_factor_start_form["flow_id"],
+            user_input={config_flow.CONF_CONTACT_METHOD: "email@addr.com"},
+        )
+    assert len(mock_two_factor_request.mock_calls) == 1
+
+
+async def test_two_factor_verify_success(hass, two_factor_verify_form):
+    """Test two factor verification."""
+    with patch(
+        MOCK_API_2FA_VERIFY, return_value=True,
+    ) as mock_two_factor_verify, patch(
+        MOCK_API_IS_PIN_REQUIRED, return_value=True
+    ) as mock_is_in_required:
+        await hass.config_entries.flow.async_configure(
+            two_factor_verify_form["flow_id"],
+            user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
+        )
+    assert len(mock_two_factor_verify.mock_calls) == 1
+    assert len(mock_is_in_required.mock_calls) == 1
+
+
+async def test_two_factor_verify_fail(hass, two_factor_verify_form):
+    """Test two factor verification."""
+    with patch(
+        MOCK_API_2FA_VERIFY, return_value=False,
+    ) as mock_two_factor_verify, patch(
+        MOCK_API_IS_PIN_REQUIRED, return_value=True
+    ) as mock_is_pin_required:
+        await hass.config_entries.flow.async_configure(
+            two_factor_verify_form["flow_id"],
+            user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
+        )
+    assert len(mock_two_factor_verify.mock_calls) == 1
+    assert len(mock_is_pin_required.mock_calls) == 0
+
+
+async def test_user_form_pin_not_required(hass, two_factor_verify_form):
     """Test successful login when no PIN is required."""
-    with patch(MOCK_API_CONNECT, return_value=True,) as mock_connect, patch(
+    with patch(
+        MOCK_API_2FA_VERIFY, return_value=True,
+    ) as mock_two_factor_verify, patch(
         MOCK_API_IS_PIN_REQUIRED, return_value=False,
     ) as mock_is_pin_required, patch(
         ASYNC_SETUP_ENTRY, return_value=True
     ) as mock_setup_entry:
         result = await hass.config_entries.flow.async_configure(
-            user_form["flow_id"], TEST_CREDS,
+            two_factor_verify_form["flow_id"],
+            user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
         )
-    assert len(mock_connect.mock_calls) == 1
+    assert len(mock_two_factor_verify.mock_calls) == 1
     assert len(mock_is_pin_required.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
 
@@ -111,21 +208,6 @@ async def test_user_form_pin_not_required(hass, user_form):
     expected["data"][CONF_PIN] = None
     result["data"][CONF_DEVICE_ID] = TEST_DEVICE_ID
     assert result == expected
-
-
-async def test_pin_form_init(pin_form):
-    """Test the pin entry form for second step of the config flow."""
-    expected = {
-        "data_schema": config_flow.PIN_SCHEMA,
-        "description_placeholders": None,
-        "errors": None,
-        "flow_id": mock.ANY,
-        "handler": DOMAIN,
-        "step_id": "pin",
-        "type": "form",
-        "last_step": None,
-    }
-    assert pin_form == expected
 
 
 async def test_pin_form_success(hass, pin_form):
@@ -199,13 +281,45 @@ async def user_form(hass, enable_custom_integrations):
 
 
 @pytest.fixture
-async def pin_form(hass, user_form):
-    """Return second form (PIN input) for Subaru config flow."""
-    with patch(MOCK_API_CONNECT, return_value=True,), patch(
-        MOCK_API_IS_PIN_REQUIRED, return_value=True,
-    ):
+async def two_factor_start_form(hass, user_form):
+    """Return two factor form for Subaru config flow."""
+    with patch(MOCK_API_CONNECT, return_value=True), patch(
+        MOCK_API_2FA_CONTACTS, new_callable=PropertyMock
+    ) as mock_contacts:
+        mock_contacts.return_value = {
+            "phone": "123-123-1234",
+            "userName": "email@addr.com",
+        }
         return await hass.config_entries.flow.async_configure(
             user_form["flow_id"], user_input=TEST_CREDS
+        )
+
+
+@pytest.fixture
+async def two_factor_verify_form(hass, two_factor_start_form):
+    """Return two factor form for Subaru config flow."""
+    with patch(MOCK_API_2FA_REQUEST, return_value=True,), patch(
+        MOCK_API_2FA_CONTACTS, new_callable=PropertyMock
+    ) as mock_contacts:
+        mock_contacts.return_value = {
+            "phone": "123-123-1234",
+            "userName": "email@addr.com",
+        }
+        return await hass.config_entries.flow.async_configure(
+            two_factor_start_form["flow_id"],
+            user_input={config_flow.CONF_CONTACT_METHOD: "email@addr.com"},
+        )
+
+
+@pytest.fixture
+async def pin_form(hass, two_factor_verify_form):
+    """Return PIN input form for Subaru config flow."""
+    with patch(MOCK_API_2FA_VERIFY, return_value=True,), patch(
+        MOCK_API_IS_PIN_REQUIRED, return_value=True
+    ):
+        return await hass.config_entries.flow.async_configure(
+            two_factor_verify_form["flow_id"],
+            user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
         )
 
 

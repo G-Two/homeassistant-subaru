@@ -36,6 +36,10 @@ from tests.api_responses import TEST_VIN_2_EV, VEHICLE_DATA, VEHICLE_STATUS_EV
 
 MOCK_API = "custom_components.subaru.SubaruAPI."
 MOCK_API_CONNECT = f"{MOCK_API}connect"
+MOCK_API_DEVICE_REGISTERED = f"{MOCK_API}device_registered"
+MOCK_API_2FA_CONTACTS = f"{MOCK_API}contact_methods"
+MOCK_API_2FA_REQUEST = f"{MOCK_API}request_auth_code"
+MOCK_API_2FA_VERIFY = f"{MOCK_API}submit_auth_code"
 MOCK_API_IS_PIN_REQUIRED = f"{MOCK_API}is_pin_required"
 MOCK_API_TEST_PIN = f"{MOCK_API}test_pin"
 MOCK_API_UPDATE_SAVED_PIN = f"{MOCK_API}update_saved_pin"
