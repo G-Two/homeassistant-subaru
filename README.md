@@ -106,9 +106,9 @@ When prompted, enter the following configuration parameters:
 - **Password:** The password associated with your MySubaru account
 - **Country:** The country your MySubaru account is associated with
 
-The initial device registration process may take up to 20 seconds.
+After your account is authenticated, you will need to authorize the application with Subaru's two factor authentication. Follow the prompts to select a phone number or email address to receive a verification code and enter when prompted. This should only need to be accomplished during initial configuration.
 
-After successful authentication, if a supported remote services vehicle with active subscription is found in your account, an additional prompt will appear:
+After successful authorization, if a supported remote services vehicle with active subscription is found in your account, an additional prompt will appear:
 - **PIN:** The PIN associated with your MySubaru account
 
     **NOTE:** If your account includes multiple vehicles, the same PIN will be used for all vehicles. Ensure that you have configured all vehicles in your account to have the same PIN.
