@@ -7,7 +7,6 @@ from custom_components.subaru.const import (
     DOMAIN as SUBARU_DOMAIN,
     SERVICE_UNLOCK_SPECIFIC_DOOR,
     UNLOCK_DOOR_DRIVERS,
-    UNLOCK_VALID_DOORS,
 )
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_LOCK, SERVICE_UNLOCK

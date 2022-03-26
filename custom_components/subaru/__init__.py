@@ -8,10 +8,20 @@ from subarulink.const import COUNTRY_USA
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
+from homeassistant.const import (
+    ATTR_DEVICE_ID,
+    CONF_DEVICE_ID,
+    CONF_PASSWORD,
+    CONF_PIN,
+    CONF_USERNAME,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers import aiohttp_client, config_validation as cv
+from homeassistant.helpers import (
+    aiohttp_client,
+    config_validation as cv,
+    device_registry,
+)
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -127,8 +137,6 @@ async def async_setup_entry(hass, entry):
         )
         vin = call.data[VEHICLE_VIN].upper()
         arg = None
-        if call.service == REMOTE_SERVICE_REMOTE_START:
-            arg = call.data[REMOTE_CLIMATE_PRESET_NAME]
 
         if vin in vehicles:
             await async_call_remote_service(
@@ -147,6 +155,28 @@ async def async_setup_entry(hass, entry):
         )
         raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
 
+    async def async_remote_start(call):
+        """Start the vehicle engine."""
+        dev_reg = device_registry.async_get(hass)
+        device_entry = dev_reg.async_get(call.data[ATTR_DEVICE_ID])
+        if device_entry:
+            vin = list(device_entry.identifiers)[0][1]
+            _LOGGER.info(
+                "Remote engine start initiated with climate preset: %s",
+                call.data[REMOTE_CLIMATE_PRESET_NAME],
+            )
+            await async_call_remote_service(
+                hass,
+                controller,
+                call.service,
+                vehicles[vin],
+                call.data[REMOTE_CLIMATE_PRESET_NAME],
+                entry.options.get(CONF_NOTIFICATION_OPTION),
+            )
+            await coordinator.async_refresh()
+        else:
+            raise HomeAssistantError(f"device_id {call.data[ATTR_DEVICE_ID]} not found")
+
     supported_services = get_supported_services(vehicles)
 
     for service in supported_services:
@@ -154,10 +184,10 @@ async def async_setup_entry(hass, entry):
             hass.services.async_register(
                 DOMAIN,
                 service,
-                async_call_service,
+                async_remote_start,
                 schema=vol.Schema(
                     {
-                        vol.Required(VEHICLE_VIN): cv.string,
+                        vol.Required(ATTR_DEVICE_ID): cv.string,
                         vol.Required(REMOTE_CLIMATE_PRESET_NAME): cv.string,
                     }
                 ),
