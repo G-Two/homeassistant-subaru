@@ -1,7 +1,7 @@
 # Subaru STARLINK Integration for Home Assistant
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-**NOTE:** The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor platform is available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core.
+**NOTE:** The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor and lock platforms are available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core.
 
 Users that desire full functionality should continue to use this custom component until all functionality is merged into the official integration. This custom component will override the HA Core built-in integration.
 
@@ -134,14 +134,12 @@ All options involve remote commands, thus only apply to vehicles with Security P
 
 ## Services
 
-As of v0.6.0, the following Subaru entities now use the native Home Assistant services:
+The following Subaru entities use built-in Home Assistant services:
 - Lock
-- Button (Remote Start, Lights/Horn, Locate, Refresh)
+- Button (Remote Start/Stop, Lights/Horn, Locate, Refresh)
 - Select (Climate Control Preset)
 
-The legacy Subaru integration specific services that required the VIN are no longer needed to access the features above and will be removed in a future release.
-
-The Lock entity's "Unlock" will always unlock all doors. The Subaru API supports selecting a specific door to unlock. Users that desire this functionality may use a Subaru integration specific service which allows the user to choose the door to unlock. See the Services UI in Developer Tools for usage. Example YAML for this service is:
+The Lock entity's "Unlock" will unlock all doors. The Subaru API supports selecting a specific door to unlock. Users that wish to use this functionality may call an integration specific service which allows the user to choose the door to unlock. See the Services UI in Developer Tools for usage. Example YAML for this service is:
 ```yaml
 service: subaru.unlock_specific_door
 target:
@@ -150,10 +148,25 @@ data:
   # Valid values for door are 'all', 'driver', 'tailgate' (note that 'tailgate' is not supported by all vehicles)
   door: driver
 ```
+### Remote Climate Control
+
+For supported vehicles, this integration supports selecting specific remote climate control presets when remotely starting the engine. See the Services UI in Developer Tools for usage. Example YAML for this service is:
+```yaml
+service: subaru.remote_start
+data:
+  # preset_name is case sensitive
+  preset_name: Full Heat
+  # Use the Services UI to populate device_id
+  device_id: 0cce5d5135ac6459ce620654362e45b8
+```
+
+There are 3 pre-configured Subaru climate presets, **Auto** (not available for EVs), **Full Cool**, and **Full Heat**. In addition you may configure up to 4 additional custom presets from the MySubaru website or the
+official mobile app. Although the underlying subarulink python package does support the creation of new presets, that functionality has not yet been implemented in this
+integration.
 
 ---
 ### Legacy Services
-**NOTE:** All the legacy services below will be removed in a future release:
+**NOTE:** All the legacy services below will be removed in release v0.7.0:
 
 | Service                | Description |
 | ---------------------- | ----------- |
@@ -166,29 +179,13 @@ data:
 |`subaru.remote_stop`    | Stop the engine and climate control of the vehicle |
 |`subaru.update`         | Sends request to vehicle to update data which will update cache on Subaru servers |
 
-All of the above services require the same service data attribute shown below. The service will be invoked on the vehicle identified by `vin`.
+All of the legacy services require the same service data attribute shown below. The service will be invoked on the vehicle identified by `vin`.
 
 | Service Data Attribute | Required | Type   | Description                                        |
 | ---------------------- | -------- | ------ | -------------------------------------------------- |
 | `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
 
-#### Remote Climate Control
 
-For supported vehicles, this integration supports selecting specific remote climate control presets when remotely starting the engine via the following service:
-
-| Service                | Description |
-| ---------------------- | ----------- |
-|`subaru.remote_start`   | Start the engine and climate control of the vehicle using the user specified climate control preset |
-
-`subaru.remote_start` requires an additional data attribute, `preset_name`, which is a preconfigured set of climate control settings. There are 3 "built-in" Subaru presets:
-`Auto` (not available for EVs), `Full Cool`, and `Full Heat`. In addition you may configure up to 4 additional custom presets from the MySubaru website or the
-official mobile app. Although the underlying subarulink python package does support the creation of new presets, that functionality has not yet been implemented in this
-integration.
-
-| Service Data Attribute | Required | Type   | Description                                        |
-| ---------------------- | -------- | ------ | -------------------------------------------------- |
-| `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
-| `preset_name`          |   yes    | String | Either a Subaru or user defined climate control preset name |
 
 ## Lovelace Example
 <img src="https://user-images.githubusercontent.com/7310260/148698672-48cdc85f-623b-4f06-88e2-6e1949b4a522.png" width="1024" />

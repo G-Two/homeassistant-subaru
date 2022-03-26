@@ -117,6 +117,5 @@ remote_start:
       required: true
       selector:
         device:
-          domain: subaru
           integration: subaru
       
