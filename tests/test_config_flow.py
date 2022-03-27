@@ -161,19 +161,36 @@ async def test_two_factor_verify_success(hass, two_factor_verify_form):
     assert len(mock_is_in_required.mock_calls) == 1
 
 
-async def test_two_factor_verify_fail(hass, two_factor_verify_form):
-    """Test two factor verification."""
+async def test_two_factor_verify_bad_format(hass, two_factor_verify_form):
+    """Test two factor verification bad format."""
     with patch(
         MOCK_API_2FA_VERIFY, return_value=False,
     ) as mock_two_factor_verify, patch(
         MOCK_API_IS_PIN_REQUIRED, return_value=True
     ) as mock_is_pin_required:
-        await hass.config_entries.flow.async_configure(
+        result = await hass.config_entries.flow.async_configure(
+            two_factor_verify_form["flow_id"],
+            user_input={config_flow.CONF_VALIDATION_CODE: "1234567"},
+        )
+    assert len(mock_two_factor_verify.mock_calls) == 0
+    assert len(mock_is_pin_required.mock_calls) == 0
+    assert result["errors"] == {"base": "bad_validation_code_format"}
+
+
+async def test_two_factor_verify_fail(hass, two_factor_verify_form):
+    """Test two factor verification failure."""
+    with patch(
+        MOCK_API_2FA_VERIFY, return_value=False,
+    ) as mock_two_factor_verify, patch(
+        MOCK_API_IS_PIN_REQUIRED, return_value=True
+    ) as mock_is_pin_required:
+        result = await hass.config_entries.flow.async_configure(
             two_factor_verify_form["flow_id"],
             user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
         )
     assert len(mock_two_factor_verify.mock_calls) == 1
     assert len(mock_is_pin_required.mock_calls) == 0
+    assert result["errors"] == {"base": "incorrect_validation_code"}
 
 
 async def test_user_form_pin_not_required(hass, two_factor_verify_form):

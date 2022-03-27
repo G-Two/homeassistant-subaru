@@ -37,7 +37,8 @@
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
       "incorrect_pin": "Incorrect PIN",
       "unknown": "Unknown error",
-      "incorrect_validation_code": "Incorrect validation code"
+      "incorrect_validation_code": "Incorrect validation code",
+      "bad_validation_code_format": "Validation code should be 6 digits"
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",

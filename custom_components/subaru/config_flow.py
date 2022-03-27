@@ -151,14 +151,19 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Validate received 2FA code with Subaru."""
         error = None
         if user_input:
-
-            if await self.controller.submit_auth_code(user_input[CONF_VALIDATION_CODE]):
-                if self.controller.is_pin_required():
-                    return await self.async_step_pin()
-                return self.async_create_entry(
-                    title=self.config_data[CONF_USERNAME], data=self.config_data
-                )
-            error = {"base": "incorrect_validation_code"}
+            try:
+                vol.Match(r"^[0-9]{6}$")(user_input[CONF_VALIDATION_CODE])
+                if await self.controller.submit_auth_code(
+                    user_input[CONF_VALIDATION_CODE]
+                ):
+                    if self.controller.is_pin_required():
+                        return await self.async_step_pin()
+                    return self.async_create_entry(
+                        title=self.config_data[CONF_USERNAME], data=self.config_data
+                    )
+                error = {"base": "incorrect_validation_code"}
+            except vol.Invalid:
+                error = {"base": "bad_validation_code_format"}
 
         data_schema = vol.Schema({vol.Required(CONF_VALIDATION_CODE): str})
         return self.async_show_form(

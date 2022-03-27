@@ -113,7 +113,7 @@ remote_start:
     device_id:
       name: Car
       description: The device (car) to start
-      example: Outback
+      example: 0cce5d5135ac6459ce620654362e45b8
       required: true
       selector:
         device:
