@@ -118,4 +118,5 @@ remote_start:
       selector:
         device:
           integration: subaru
+          manufacturer: Subaru
       
