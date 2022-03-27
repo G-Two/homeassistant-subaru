@@ -39,20 +39,6 @@ horn_stop:
         The vehicle identification number (VIN) of the vehicle, 17 characters
       example: JF2ABCDE6L0000001
 
-remote_start:
-  description: >
-    Start the engine and climate control of the vehicle.  Uses the climate control settings saved. The vehicle is identified via
-    the vin (see below). This service is deprecated and will be removed - Use button service instead.
-  fields:
-    vin:
-      description: >
-        The vehicle identification number (VIN) of the vehicle, 17 characters
-      example: JF2ABCDE6L0000001
-    preset_name:
-      description: >
-        The name of the climate control preset desired
-      example: Full Heat
-
 remote_stop:
   description: >
     Stop the engine and climate control of the vehicle. The vehicle is identified via the vin
@@ -95,7 +81,7 @@ fetch:
 
 unlock_specific_door:
   name: Unlock Specific Door
-  description: Unlocks only the door specified
+  description: Unlocks specified door
   target:
     entity:
       domain: lock
@@ -112,3 +98,25 @@ unlock_specific_door:
             - "all"
             - "driver"
             - "tailgate"
+
+remote_start:
+  name: Remote Engine Start
+  description: Start the engine and set climate control to desired preset
+  fields:
+    preset_name:
+      name: Climate Preset
+      description: Desired climate control preset
+      example: Full Heat
+      required: true
+      selector:
+        text:
+    device_id:
+      name: Car
+      description: The device (car) to start
+      example: 0cce5d5135ac6459ce620654362e45b8
+      required: true
+      selector:
+        device:
+          integration: subaru
+          manufacturer: Subaru
+      

@@ -9,7 +9,9 @@
             "cannot_connect": "Cannot connect",
             "invalid_auth": "Invalid credentials",
             "incorrect_pin": "Incorrect PIN",
-            "unknown": "Unknown error"
+            "unknown": "Unknown error",
+            "incorrect_validation_code": "Incorrect validation code",
+            "bad_validation_code_format": "Validation code should be 6 digits"
         },
         "step": {
             "user": {
@@ -19,9 +21,23 @@
                     "username": "Username",
                     "country": "Select country"
                 },
-                "description": "Please enter your MySubaru credentials\nNOTE: Initial setup may take up to 20 seconds",
+                "description": "Please enter your MySubaru credentials",
                 "title": "Subaru Starlink Configuration"
             },
+            "two_factor": {
+                "title": "Subaru Starlink Configuration",
+                "description": "Two factor authentication required to authorize this application",
+                "data": {
+                  "contact_method": "Please select a contact method"
+                }
+              },
+              "two_factor_validate": {
+                "title": "Subaru Starlink Configuration",
+                "description": "Please enter 6 digit validation code",
+                "data": {
+                  "validation_code": "Validation code"
+                }
+              },
             "pin": {
                 "data": {
                     "pin": "PIN"

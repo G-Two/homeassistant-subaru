@@ -1,9 +1,9 @@
 """Support for Subaru buttons."""
 import logging
 
-from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, ButtonEntity
+from homeassistant.components.button import ButtonEntity
 
-from . import DOMAIN as SUBARU_DOMAIN
+from . import DOMAIN as SUBARU_DOMAIN, get_device_info
 from .const import (
     CONF_NOTIFICATION_OPTION,
     ENTRY_CONTROLLER,
@@ -23,8 +23,9 @@ from .const import (
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
     VEHICLE_HAS_REMOTE_START,
+    VEHICLE_NAME,
+    VEHICLE_VIN,
 )
-from .entity import SubaruEntity
 from .remote_service import async_call_remote_service
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,14 +54,15 @@ EV_REMOTE_BUTTONS = [
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Subaru button by config_entry."""
-    coordinator = hass.data[SUBARU_DOMAIN][config_entry.entry_id][ENTRY_COORDINATOR]
-    vehicle_info = hass.data[SUBARU_DOMAIN][config_entry.entry_id][ENTRY_VEHICLES]
+    entry = hass.data[SUBARU_DOMAIN][config_entry.entry_id]
+    coordinator = entry[ENTRY_COORDINATOR]
+    vehicle_info = entry[ENTRY_VEHICLES]
     entities = []
     for vin in vehicle_info:
         entities.extend(
             create_vehicle_buttons(vehicle_info[vin], coordinator, config_entry)
         )
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 def create_vehicle_buttons(vehicle_info, coordinator, config_entry):
@@ -77,23 +79,27 @@ def create_vehicle_buttons(vehicle_info, coordinator, config_entry):
 
     return [
         SubaruButton(
-            vehicle_info, coordinator, config_entry, b[BUTTON_TYPE], b[BUTTON_SERVICE],
+            vehicle_info, config_entry, coordinator, b[BUTTON_TYPE], b[BUTTON_SERVICE],
         )
         for b in buttons_to_add
     ]
 
 
-class SubaruButton(SubaruEntity, ButtonEntity):
+class SubaruButton(ButtonEntity):
     """Representation of a Subaru button."""
 
-    def __init__(self, vehicle_info, coordinator, config_entry, entity_type, service):
+    def __init__(self, vehicle_info, config_entry, coordinator, entity_type, service):
         """Initialize the button for the vehicle."""
-        super().__init__(vehicle_info, coordinator)
+        self.vin = vehicle_info[VEHICLE_VIN]
+        self.vehicle_info = vehicle_info
         self.entity_type = entity_type
-        self.hass_type = BUTTON_DOMAIN
         self.config_entry = config_entry
         self.service = service
         self.arg = None
+        self.coordinator = coordinator
+        self._attr_device_info = get_device_info(vehicle_info)
+        self._attr_name = f"{vehicle_info[VEHICLE_NAME]} {entity_type}"
+        self._attr_unique_id = f"{self.vin}_{entity_type}"
 
     @property
     def icon(self):
@@ -103,7 +109,7 @@ class SubaruButton(SubaruEntity, ButtonEntity):
 
     async def async_press(self):
         """Press the button."""
-        _LOGGER.debug("%s button pressed for %s", self.entity_type, self.car_name)
+        _LOGGER.info("%s button pressed", self._attr_name)
         arg = None
         if self.service == REMOTE_SERVICE_REMOTE_START:
             arg = self.coordinator.data.get(self.vin).get(

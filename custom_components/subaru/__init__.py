@@ -8,10 +8,21 @@ from subarulink.const import COUNTRY_USA
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
+from homeassistant.const import (
+    ATTR_DEVICE_ID,
+    CONF_DEVICE_ID,
+    CONF_PASSWORD,
+    CONF_PIN,
+    CONF_USERNAME,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers import aiohttp_client, config_validation as cv
+from homeassistant.helpers import (
+    aiohttp_client,
+    config_validation as cv,
+    device_registry,
+)
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -24,6 +35,7 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
+    MANUFACTURER,
     REMOTE_CLIMATE_PRESET_NAME,
     REMOTE_SERVICE_REMOTE_START,
     SUPPORTED_PLATFORMS,
@@ -35,6 +47,8 @@ from .const import (
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_LAST_FETCH,
     VEHICLE_LAST_UPDATE,
+    VEHICLE_MODEL_NAME,
+    VEHICLE_MODEL_YEAR,
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
@@ -118,10 +132,11 @@ async def async_setup_entry(hass, entry):
 
     async def async_call_service(call):
         """Execute subaru service."""
+        _LOGGER.warn(
+            "This Subaru-specific service is deprecated and will be removed in v0.7.0. Use button or lock entities (or their respective services) to actuate remove vehicle services."
+        )
         vin = call.data[VEHICLE_VIN].upper()
         arg = None
-        if call.service == REMOTE_SERVICE_REMOTE_START:
-            arg = call.data[REMOTE_CLIMATE_PRESET_NAME]
 
         if vin in vehicles:
             await async_call_remote_service(
@@ -140,6 +155,28 @@ async def async_setup_entry(hass, entry):
         )
         raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
 
+    async def async_remote_start(call):
+        """Start the vehicle engine."""
+        dev_reg = device_registry.async_get(hass)
+        device_entry = dev_reg.async_get(call.data[ATTR_DEVICE_ID])
+        if device_entry:
+            vin = list(device_entry.identifiers)[0][1]
+            _LOGGER.info(
+                "Remote engine start initiated with climate preset: %s",
+                call.data[REMOTE_CLIMATE_PRESET_NAME],
+            )
+            await async_call_remote_service(
+                hass,
+                controller,
+                call.service,
+                vehicles[vin],
+                call.data[REMOTE_CLIMATE_PRESET_NAME],
+                entry.options.get(CONF_NOTIFICATION_OPTION),
+            )
+            await coordinator.async_refresh()
+        else:
+            raise HomeAssistantError(f"device_id {call.data[ATTR_DEVICE_ID]} not found")
+
     supported_services = get_supported_services(vehicles)
 
     for service in supported_services:
@@ -147,10 +184,10 @@ async def async_setup_entry(hass, entry):
             hass.services.async_register(
                 DOMAIN,
                 service,
-                async_call_service,
+                async_remote_start,
                 schema=vol.Schema(
                     {
-                        vol.Required(VEHICLE_VIN): cv.string,
+                        vol.Required(ATTR_DEVICE_ID): cv.string,
                         vol.Required(REMOTE_CLIMATE_PRESET_NAME): cv.string,
                     }
                 ),
@@ -217,6 +254,8 @@ def get_vehicle_info(controller, vin):
     """Obtain vehicle identifiers and capabilities."""
     info = {
         VEHICLE_VIN: vin,
+        VEHICLE_MODEL_NAME: controller.get_model_name(vin),
+        VEHICLE_MODEL_YEAR: controller.get_model_year(vin),
         VEHICLE_NAME: controller.vin_to_name(vin),
         VEHICLE_HAS_EV: controller.get_ev_status(vin),
         VEHICLE_API_GEN: controller.get_api_gen(vin),
@@ -227,3 +266,13 @@ def get_vehicle_info(controller, vin):
         VEHICLE_LAST_FETCH: 0,
     }
     return info
+
+
+def get_device_info(vehicle_info):
+    """Return DeviceInfo object based on vehicle info."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, vehicle_info[VEHICLE_VIN])},
+        manufacturer=MANUFACTURER,
+        model=f"{vehicle_info[VEHICLE_MODEL_YEAR]} {vehicle_info[VEHICLE_MODEL_NAME]}",
+        name=vehicle_info[VEHICLE_NAME],
+    )

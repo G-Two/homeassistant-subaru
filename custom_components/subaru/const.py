@@ -44,6 +44,8 @@ COORDINATOR_NAME = "subaru_data"
 
 # info fields
 VEHICLE_VIN = "vin"
+VEHICLE_MODEL_NAME = "model_name"
+VEHICLE_MODEL_YEAR = "model_year"
 VEHICLE_NAME = "display_name"
 VEHICLE_HAS_EV = "is_ev"
 VEHICLE_API_GEN = "api_gen"
@@ -54,11 +56,12 @@ VEHICLE_LAST_UPDATE = "last_update"
 VEHICLE_LAST_FETCH = "last_fetch"
 VEHICLE_STATUS = "status"
 VEHICLE_CLIMATE = "climate"
+VEHICLE_CLIMATE_PRESET_NAME = "name"
 VEHICLE_CLIMATE_SELECTED_PRESET = "preset_name"
 
 API_GEN_1 = "g1"
 API_GEN_2 = "g2"
-MANUFACTURER = "Subaru Corp."
+MANUFACTURER = "Subaru"
 
 ATTR_DOOR = "door"
 
@@ -95,10 +98,6 @@ SUPPORTED_PLATFORMS = [
 ]
 
 ICONS = {
-    "Avg Fuel Consumption": "mdi:leaf",
-    "EV Range": "mdi:ev-station",
-    "Odometer": "mdi:road-variant",
-    "Range": "mdi:gas-station",
     "Horn Start": "mdi:volume-high",
     "Horn Stop": "mdi:volume-off",
     "Lights Start": "mdi:lightbulb-on",
