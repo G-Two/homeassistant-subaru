@@ -14,7 +14,7 @@ REMOTE_REFRESH_BUTTON = "button.test_vehicle_2_refresh"
 
 async def test_device_exists(hass, ev_entry):
     """Test subaru button entity exists."""
-    entity_registry = await hass.helpers.entity_registry.async_get_registry()
+    entity_registry = hass.helpers.entity_registry.async_get(hass)
     entry = entity_registry.async_get(REMOTE_START_BUTTON)
     assert entry
 

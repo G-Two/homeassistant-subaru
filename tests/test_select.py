@@ -8,7 +8,7 @@ DEVICE_ID = "select.test_vehicle_2_climate_preset"
 
 async def test_device_exists(hass, ev_entry):
     """Test subaru select entity exists."""
-    entity_registry = await hass.helpers.entity_registry.async_get_registry()
+    entity_registry = hass.helpers.entity_registry.async_get(hass)
     entry = entity_registry.async_get(DEVICE_ID)
     assert entry
     await hass.async_block_till_done()
