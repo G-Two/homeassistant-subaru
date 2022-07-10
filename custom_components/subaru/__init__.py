@@ -150,9 +150,6 @@ async def async_setup_entry(hass, entry):
             await coordinator.async_refresh()
             return
 
-        hass.components.persistent_notification.create(
-            f"ERROR - Invalid VIN provided while calling {call.service}", "Subaru"
-        )
         raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
 
     async def async_remote_start(call):

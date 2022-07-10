@@ -212,7 +212,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(
                     CONF_NOTIFICATION_OPTION,
                     default=self.config_entry.options.get(
-                        CONF_NOTIFICATION_OPTION, NotificationOptions.FAILURE.value
+                        CONF_NOTIFICATION_OPTION, NotificationOptions.DISABLE.value
                     ),
                 ): vol.In(sorted(NotificationOptions.list())),
             }

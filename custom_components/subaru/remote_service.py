@@ -84,14 +84,16 @@ async def async_call_remote_service(
     if success:
         if notify == NotificationOptions.SUCCESS:
             hass.components.persistent_notification.create(
-                f"{cmd} command successfully completed for {car_name}", "Subaru",
+                f"{cmd} command successfully completed for {car_name}",
+                "Subaru",
             )
         _LOGGER.debug("%s command successfully completed for %s", cmd, car_name)
         return
 
-    hass.components.persistent_notification.create(
-        f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
-    )
+    if notify != NotificationOptions.DISABLE:
+        hass.components.persistent_notification.create(
+            f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
+        )
     raise HomeAssistantError(f"Service {cmd} failed for {car_name}: {err_msg}")
 
 

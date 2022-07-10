@@ -16,6 +16,7 @@ CONF_COUNTRY = "country"
 class NotificationOptions(Enum):
     """Lovelace levels of notification."""
 
+    DISABLE = "Disable - No notifications will appear"
     FAILURE = "Failure — Only notify on failure"
     PENDING = "Pending — Temporary notification of remote command in progress"
     SUCCESS = "Success — Persistent notification of completed remote command"
@@ -28,9 +29,11 @@ class NotificationOptions(Enum):
     @classmethod
     def get_by_value(cls, value):
         """Get enum instance by value."""
+        result = cls.DISABLE
         for item in cls:
             if item.value == value:
-                return item
+                result = item
+        return result
 
 
 # entry fields
