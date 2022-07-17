@@ -3,13 +3,13 @@ from unittest.mock import patch
 
 from subarulink import InvalidCredentials, SubaruException
 
-from custom_components.subaru.const import DOMAIN
+from custom_components.subaru.const import DOMAIN, UPDATE_INTERVAL_CHARGING
 from homeassistant.components.homeassistant import (
     DOMAIN as HA_DOMAIN,
     SERVICE_UPDATE_ENTITY,
 )
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
 from homeassistant.setup import async_setup_component
 
 from .api_responses import (
@@ -22,8 +22,10 @@ from .api_responses import (
 )
 from .conftest import (
     MOCK_API_FETCH,
+    MOCK_API_GET_DATA,
     MOCK_API_UPDATE,
     TEST_ENTITY_ID,
+    advance_time,
     setup_subaru_integration,
 )
 
@@ -110,21 +112,6 @@ async def test_update_skip_unsubscribed(hass, enable_custom_integrations):
         mock_fetch.assert_not_called()
 
 
-async def test_update_disabled(hass, ev_entry):
-    """Test update function disable option."""
-    with patch(MOCK_API_FETCH, side_effect=SubaruException("403 Error"),), patch(
-        MOCK_API_UPDATE,
-    ) as mock_update:
-        await hass.services.async_call(
-            HA_DOMAIN,
-            SERVICE_UPDATE_ENTITY,
-            {ATTR_ENTITY_ID: TEST_ENTITY_ID},
-            blocking=True,
-        )
-        await hass.async_block_till_done()
-        mock_update.assert_not_called()
-
-
 async def test_fetch_failed(hass, enable_custom_integrations):
     """Tests when fetch fails."""
     await setup_subaru_integration(
@@ -145,3 +132,32 @@ async def test_unload_entry(hass, ev_entry):
     assert await hass.config_entries.async_unload(ev_entry.entry_id)
     await hass.async_block_till_done()
     assert ev_entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_charging_polling(hass, ev_entry_charge_polling):
+    """Test charging polling option."""
+    hass.states.async_set(
+        "binary_sensor.test_vehicle_2_ev_battery_charging", STATE_OFF, force_update=True
+    )
+
+    with patch(MOCK_API_UPDATE, return_value=True) as mock_update, patch(
+        MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV
+    ) as mock_get_data:
+        # Charging state is off, so update shouldn't happen, but state will be updated by get_data
+        assert (
+            hass.states.get("binary_sensor.test_vehicle_2_ev_battery_charging").state
+            == STATE_OFF
+        )
+        advance_time(hass, UPDATE_INTERVAL_CHARGING)
+        await hass.async_block_till_done()
+        mock_update.assert_not_called()
+        mock_get_data.assert_called_once()
+        assert (
+            hass.states.get("binary_sensor.test_vehicle_2_ev_battery_charging").state
+            == STATE_ON
+        )
+
+        # Charging state is now on, so update should hppen
+        advance_time(hass, UPDATE_INTERVAL_CHARGING)
+        await hass.async_block_till_done()
+        mock_update.assert_called_once()

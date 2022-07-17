@@ -1,7 +1,7 @@
 """Test Subaru sensors."""
 from unittest.mock import patch
 
-from custom_components.subaru.const import VEHICLE_NAME
+from custom_components.subaru.const import FETCH_INTERVAL, VEHICLE_NAME
 from custom_components.subaru.sensor import (
     API_GEN_2_SENSORS,
     EV_SENSORS,
@@ -20,7 +20,7 @@ from .api_responses import (
     VEHICLE_STATUS_EV,
 )
 
-from tests.conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time_to_next_fetch
+from tests.conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time
 
 VEHICLE_NAME = VEHICLE_DATA[TEST_VIN_2_EV][VEHICLE_NAME]
 
@@ -32,7 +32,7 @@ async def test_sensors_ev_imperial(hass, ev_entry):
     with patch(MOCK_API_FETCH), patch(
         MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV
     ):
-        advance_time_to_next_fetch(hass)
+        advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
 
     _assert_data(hass, EXPECTED_STATE_EV_IMPERIAL)
@@ -46,7 +46,7 @@ async def test_sensors_ev_metric(hass, ev_entry):
 async def test_sensors_missing_vin_data(hass, ev_entry):
     """Test for missing VIN dataset."""
     with patch(MOCK_API_FETCH), patch(MOCK_API_GET_DATA, return_value=None):
-        advance_time_to_next_fetch(hass)
+        advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
 
     _assert_data(hass, EXPECTED_STATE_EV_UNAVAILABLE)
