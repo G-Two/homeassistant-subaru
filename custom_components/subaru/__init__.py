@@ -256,10 +256,14 @@ async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
                     (BINARY_SENSOR_DOMAIN, BinarySensorDeviceClass.BATTERY_CHARGING)
                 ]
                 entity = er.async_get(id)
-                if entity.platform == DOMAIN and hass.states.get(id).state == STATE_ON:
-                    await poll_subaru(
-                        vehicle, controller, update_interval=UPDATE_INTERVAL_CHARGING
-                    )
+                state = hass.states.get(id)
+                if entity and state:
+                    if entity.platform == DOMAIN and state.state == STATE_ON:
+                        await poll_subaru(
+                            vehicle,
+                            controller,
+                            update_interval=UPDATE_INTERVAL_CHARGING,
+                        )
         elif polling_option == PollingOptions.ENABLE:
             await poll_subaru(vehicle, controller)
 
