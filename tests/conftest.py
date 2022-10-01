@@ -55,7 +55,7 @@ MOCK_API_REMOTE_START = f"{MOCK_API}remote_start"
 MOCK_API_LIGHTS = f"{MOCK_API}lights"
 
 TEST_USERNAME = "user@email.com"
-TEST_PASSWORD = "password"
+TEST_PASSWORD = "password"  # nosec
 TEST_PIN = "1234"
 TEST_DEVICE_ID = 1613183362
 TEST_COUNTRY = COUNTRY_USA

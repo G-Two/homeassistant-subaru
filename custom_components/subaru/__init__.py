@@ -141,7 +141,7 @@ async def async_setup_entry(hass, entry):
 
     async def async_call_service(call):
         """Execute subaru service."""
-        _LOGGER.warn(
+        _LOGGER.warning(
             "This Subaru-specific service is deprecated and will be removed in v0.7.0. Use button or lock entities (or their respective services) to actuate remove vehicle services."
         )
         vin = call.data[VEHICLE_VIN].upper()
@@ -247,16 +247,16 @@ async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
         )
         if polling_option == PollingOptions.CHARGING:
             # Is there a better way to check if the subaru is charging?
-            er = entity_registry.async_get(hass)
-            battery_charging = er.async_get_device_class_lookup(
+            e_registry = entity_registry.async_get(hass)
+            battery_charging = e_registry.async_get_device_class_lookup(
                 {(Platform.BINARY_SENSOR, BinarySensorDeviceClass.BATTERY_CHARGING)}
             )
             for item in battery_charging.values():
-                id = item[
+                entity_id = item[
                     (BINARY_SENSOR_DOMAIN, BinarySensorDeviceClass.BATTERY_CHARGING)
                 ]
-                entity = er.async_get(id)
-                state = hass.states.get(id)
+                entity = e_registry.async_get(entity_id)
+                state = hass.states.get(entity_id)
                 if entity and state:
                     if entity.platform == DOMAIN and state.state == STATE_ON:
                         await poll_subaru(

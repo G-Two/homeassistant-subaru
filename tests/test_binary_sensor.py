@@ -63,7 +63,7 @@ def _assert_data(hass, expected_state):
             f"binary_sensor.{slugify(f'{VEHICLE_NAME} {item.suffix}')}"
         ] = expected_state[item.key]
 
-    for sensor in expected_states:
+    for sensor, state in expected_states.items():
         actual = hass.states.get(sensor)
         if actual:
-            assert actual.state == expected_states[sensor]
+            assert actual.state == state

@@ -311,16 +311,16 @@ async def test_option_flow(hass, options_form):
     }
 
 
-@pytest.fixture
-async def user_form(hass, enable_custom_integrations):
+@pytest.fixture(name="user_form")
+async def fixture_user_form(hass, enable_custom_integrations):
     """Return initial form for Subaru config flow."""
     return await hass.config_entries.flow.async_init(
         config_flow.DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
 
-@pytest.fixture
-async def two_factor_start_form(hass, user_form):
+@pytest.fixture(name="two_factor_start_form")
+async def fixture_two_factor_start_form(hass, user_form):
     """Return two factor form for Subaru config flow."""
     with patch(MOCK_API_CONNECT, return_value=True), patch(
         MOCK_API_2FA_CONTACTS, new_callable=PropertyMock
@@ -334,8 +334,8 @@ async def two_factor_start_form(hass, user_form):
         )
 
 
-@pytest.fixture
-async def two_factor_verify_form(hass, two_factor_start_form):
+@pytest.fixture(name="two_factor_verify_form")
+async def fixture_two_factor_verify_form(hass, two_factor_start_form):
     """Return two factor form for Subaru config flow."""
     with patch(
         MOCK_API_2FA_REQUEST,
@@ -351,8 +351,8 @@ async def two_factor_verify_form(hass, two_factor_start_form):
         )
 
 
-@pytest.fixture
-async def pin_form(hass, two_factor_verify_form):
+@pytest.fixture(name="pin_form")
+async def fixture_pin_form(hass, two_factor_verify_form):
     """Return PIN input form for Subaru config flow."""
     with patch(
         MOCK_API_2FA_VERIFY,
@@ -364,8 +364,8 @@ async def pin_form(hass, two_factor_verify_form):
         )
 
 
-@pytest.fixture
-async def options_form(hass, enable_custom_integrations):
+@pytest.fixture(name="options_form")
+async def fixture_options_form(hass, enable_custom_integrations):
     """Return options form for Subaru config flow."""
     entry = MockConfigEntry(domain=DOMAIN, data={}, options=None)
     entry.add_to_hass(hass)

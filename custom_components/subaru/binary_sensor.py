@@ -175,7 +175,11 @@ def _create_sensor_entities(entities, vehicle_info, coordinator):
             not in sc.BAD_BINARY_SENSOR_VALUES
         ):
             entities.append(
-                SubaruBinarySensor(vehicle_info, coordinator, sensor_description,)
+                SubaruBinarySensor(
+                    vehicle_info,
+                    coordinator,
+                    sensor_description,
+                )
             )
 
 

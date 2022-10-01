@@ -14,7 +14,7 @@ class ConfigOptionsEnum(Enum):
     @classmethod
     def get_by_value(cls, value):
         """Get enum instance by value."""
-        result = cls.DISABLE
+        result = None
         for item in cls:
             if item.value == value:
                 result = item
