@@ -1,12 +1,11 @@
 """Test Subaru sensors."""
 from unittest.mock import patch
 
-from custom_components.subaru.const import VEHICLE_NAME
+from custom_components.subaru.const import FETCH_INTERVAL
 from custom_components.subaru.sensor import (
     API_GEN_2_SENSORS,
     EV_SENSORS,
     SAFETY_SENSORS,
-    SENSOR_KEY_TO_SUFFIX,
 )
 from homeassistant.util import slugify
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM
@@ -15,14 +14,9 @@ from .api_responses import (
     EXPECTED_STATE_EV_IMPERIAL,
     EXPECTED_STATE_EV_METRIC,
     EXPECTED_STATE_EV_UNAVAILABLE,
-    TEST_VIN_2_EV,
-    VEHICLE_DATA,
     VEHICLE_STATUS_EV,
 )
-
-from tests.conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time_to_next_fetch
-
-VEHICLE_NAME = VEHICLE_DATA[TEST_VIN_2_EV][VEHICLE_NAME]
+from .conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, TEST_DEVICE_NAME, advance_time
 
 
 async def test_sensors_ev_imperial(hass, ev_entry):
@@ -32,7 +26,7 @@ async def test_sensors_ev_imperial(hass, ev_entry):
     with patch(MOCK_API_FETCH), patch(
         MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV
     ):
-        advance_time_to_next_fetch(hass)
+        advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
 
     _assert_data(hass, EXPECTED_STATE_EV_IMPERIAL)
@@ -46,7 +40,7 @@ async def test_sensors_ev_metric(hass, ev_entry):
 async def test_sensors_missing_vin_data(hass, ev_entry):
     """Test for missing VIN dataset."""
     with patch(MOCK_API_FETCH), patch(MOCK_API_GET_DATA, return_value=None):
-        advance_time_to_next_fetch(hass)
+        advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
 
     _assert_data(hass, EXPECTED_STATE_EV_UNAVAILABLE)
@@ -59,10 +53,9 @@ def _assert_data(hass, expected_state):
     expected_states = {}
     for item in sensor_list:
         expected_states[
-            f"sensor.{slugify(f'{VEHICLE_NAME} {SENSOR_KEY_TO_SUFFIX[item.key]}')}"
+            f"sensor.{slugify(f'{TEST_DEVICE_NAME} {item.name}')}"
         ] = expected_state[item.key]
 
-    for sensor in expected_states:
+    for sensor, value in expected_states.items():
         actual = hass.states.get(sensor)
-        assert actual
-        assert actual.state == expected_states[sensor]
+        assert actual.state == value

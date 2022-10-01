@@ -79,7 +79,11 @@ def create_vehicle_buttons(vehicle_info, coordinator, config_entry):
 
     return [
         SubaruButton(
-            vehicle_info, config_entry, coordinator, b[BUTTON_TYPE], b[BUTTON_SERVICE],
+            vehicle_info,
+            config_entry,
+            coordinator,
+            b[BUTTON_TYPE],
+            b[BUTTON_SERVICE],
         )
         for b in buttons_to_add
     ]

@@ -14,15 +14,10 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
 from homeassistant.core import callback
-from homeassistant.helpers import aiohttp_client, config_validation as cv
+from homeassistant.helpers import aiohttp_client
 
-from .const import (
-    CONF_COUNTRY,
-    CONF_NOTIFICATION_OPTION,
-    CONF_UPDATE_ENABLED,
-    DOMAIN,
-    NotificationOptions,
-)
+from .const import CONF_COUNTRY, CONF_NOTIFICATION_OPTION, CONF_POLLING_OPTION, DOMAIN
+from .options import NotificationOptions, PollingOptions
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -206,13 +201,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         data_schema = vol.Schema(
             {
                 vol.Required(
-                    CONF_UPDATE_ENABLED,
-                    default=self.config_entry.options.get(CONF_UPDATE_ENABLED, False),
-                ): cv.boolean,
+                    CONF_POLLING_OPTION,
+                    default=self.config_entry.options.get(
+                        CONF_POLLING_OPTION, PollingOptions.DISABLE.value
+                    ),
+                ): vol.In(sorted(PollingOptions.list())),
                 vol.Required(
                     CONF_NOTIFICATION_OPTION,
                     default=self.config_entry.options.get(
-                        CONF_NOTIFICATION_OPTION, NotificationOptions.FAILURE.value
+                        CONF_NOTIFICATION_OPTION, NotificationOptions.DISABLE.value
                     ),
                 ): vol.In(sorted(NotificationOptions.list())),
             }

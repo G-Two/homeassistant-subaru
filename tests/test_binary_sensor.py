@@ -5,7 +5,7 @@ from unittest.mock import patch
 from subarulink.const import DOOR_ENGINE_HOOD_POSITION, VEHICLE_STATUS
 
 from custom_components.subaru.binary_sensor import API_GEN_2_SENSORS, EV_SENSORS
-from custom_components.subaru.const import VEHICLE_NAME
+from custom_components.subaru.const import FETCH_INTERVAL, VEHICLE_NAME
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.util import slugify
 
@@ -17,7 +17,7 @@ from .api_responses import (
     VEHICLE_STATUS_EV,
 )
 
-from tests.conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time_to_next_fetch
+from tests.conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time
 
 VEHICLE_NAME = VEHICLE_DATA[TEST_VIN_2_EV][VEHICLE_NAME]
 
@@ -30,7 +30,7 @@ async def test_binary_sensors_ev(hass, ev_entry):
 async def test_binary_sensors_missing_vin_data(hass, ev_entry):
     """Test for missing VIN dataset."""
     with patch(MOCK_API_FETCH), patch(MOCK_API_GET_DATA, return_value=None):
-        advance_time_to_next_fetch(hass)
+        advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
 
     _assert_data(hass, EXPECTED_STATE_EV_UNAVAILABLE)
@@ -39,7 +39,7 @@ async def test_binary_sensors_missing_vin_data(hass, ev_entry):
 async def test_binary_sensors_missing_field(hass, ev_entry):
     """Test for missing field."""
     with patch(MOCK_API_FETCH), patch(MOCK_API_GET_DATA, return_value=None):
-        advance_time_to_next_fetch(hass)
+        advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
     missing_field_set = deepcopy(VEHICLE_STATUS_EV)
     missing_field_set[VEHICLE_STATUS].pop(DOOR_ENGINE_HOOD_POSITION)
@@ -47,7 +47,7 @@ async def test_binary_sensors_missing_field(hass, ev_entry):
     with patch(MOCK_API_FETCH), patch(
         MOCK_API_GET_DATA, return_value=missing_field_set
     ):
-        advance_time_to_next_fetch(hass)
+        advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
         expected_state_missing_field = deepcopy(EXPECTED_STATE_EV_BINARY_SENSORS)
         expected_state_missing_field[DOOR_ENGINE_HOOD_POSITION] = STATE_UNAVAILABLE
@@ -63,7 +63,7 @@ def _assert_data(hass, expected_state):
             f"binary_sensor.{slugify(f'{VEHICLE_NAME} {item.suffix}')}"
         ] = expected_state[item.key]
 
-    for sensor in expected_states:
+    for sensor, state in expected_states.items():
         actual = hass.states.get(sensor)
         if actual:
-            assert actual.state == expected_states[sensor]
+            assert actual.state == state

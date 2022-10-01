@@ -1,22 +1,22 @@
 
-name: Test with pytest and flake8
+name: Test code with pytest
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 0 * * *'
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.9", "3.10"]
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -25,11 +25,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install -r requirements.test.txt
-    - name: Lint with flake8
-      run: |
-        flake8
+     
     - name: Test with pytest
       run: |
         pytest

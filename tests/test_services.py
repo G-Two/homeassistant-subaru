@@ -64,7 +64,10 @@ async def test_remote_service_horn(hass, ev_entry):
     """Test remote service horn."""
     with patch(MOCK_API_HORN) as mock_horn:
         await hass.services.async_call(
-            DOMAIN, REMOTE_SERVICE_HORN, {VEHICLE_VIN: TEST_VIN_2_EV}, blocking=True,
+            DOMAIN,
+            REMOTE_SERVICE_HORN,
+            {VEHICLE_VIN: TEST_VIN_2_EV},
+            blocking=True,
         )
         await hass.async_block_till_done()
         mock_horn.assert_called_once()
@@ -76,7 +79,10 @@ async def test_remote_service_fetch(hass, ev_entry):
         MOCK_API_FETCH
     ) as mock_fetch:
         await hass.services.async_call(
-            DOMAIN, REMOTE_SERVICE_FETCH, {VEHICLE_VIN: TEST_VIN_2_EV}, blocking=True,
+            DOMAIN,
+            REMOTE_SERVICE_FETCH,
+            {VEHICLE_VIN: TEST_VIN_2_EV},
+            blocking=True,
         )
         await hass.async_block_till_done()
         mock_fetch.assert_called_once()
@@ -88,7 +94,10 @@ async def test_remote_service_update(hass, ev_entry):
         MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV
     ), patch(MOCK_API_UPDATE, return_value=True) as mock_update:
         await hass.services.async_call(
-            DOMAIN, REMOTE_SERVICE_UPDATE, {VEHICLE_VIN: TEST_VIN_2_EV}, blocking=True,
+            DOMAIN,
+            REMOTE_SERVICE_UPDATE,
+            {VEHICLE_VIN: TEST_VIN_2_EV},
+            blocking=True,
         )
         await hass.async_block_till_done()
         mock_update.assert_called_once()
@@ -110,7 +119,10 @@ async def test_remote_service_invalid_vin(hass, ev_entry):
 
 async def test_remote_service_invalid_pin(hass, ev_entry):
     """Test remote service request with invalid PIN."""
-    with patch(MOCK_API_HORN, side_effect=InvalidPIN("invalid PIN"),) as mock_horn:
+    with patch(
+        MOCK_API_HORN,
+        side_effect=InvalidPIN("invalid PIN"),
+    ) as mock_horn:
         with raises(HomeAssistantError):
             await hass.services.async_call(
                 DOMAIN,

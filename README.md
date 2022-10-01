@@ -124,11 +124,13 @@ Subaru integration options are set via:
 All options involve remote commands, thus only apply to vehicles with Security Plus subscriptions:
 
 - **Enable vehicle polling:**  Sensor data reported by the Subaru API only returns what is cached on Subaru servers, and does not necessarily reflect current conditions. The cached data is updated when the engine is shutdown, or when a location update is requested. This options enables automatic periodic updates.
-  - **Disabled *[Default]*:** New sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). The user may still manually poll the vehicle anytime with the `subaru.update` service.
-  - **Enabled:** Every 2 hours, the integration will send a remote command (equivalent to running the `subaru.update` service), "waking" your vehicle obtain new sensor data. *WARNING:* Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
+  - **Disable *[Default]*:** New sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). The user may still manually poll the vehicle anytime with the Locate button.
+  - **Charging:** For PHEVs, during charging, the integration will poll every 30 minutes to obtain updated charging status. Polling will only occur during charging.
+  - **Enable:** Every 2 hours, the integration will send a remote command (equivalent to pressing the Locate button), "waking" your vehicle obtain new sensor data. *WARNING:* Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
 
 - **Lovelace UI notifications for remote commands:**  It takes 10-15 seconds for remote commands to be processed by the Subaru API and transmitted over the cellular network to your vehicle. Some users may desire UI feedback that the integration is working. This option provides three levels of increasing verbosity:
-  - **Failure *[Default]*:** Only notify when the remote command has failed.
+  - **Disable *[Default]*:** Lovelace notifications are disabled. Errors will still be logged.
+  - **Failure :** Only notify when the remote command has failed.
   - **Pending:** Failure + temporary notification that the command is "working" that will automatically disappear when the Subaru API confirms success (10 to 15 seconds).
   - **Success:** Pending + persistent notification of success in Lovelace. This is the same behavior as v0.5.1 and earlier releases.
 

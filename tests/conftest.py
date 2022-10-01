@@ -13,18 +13,16 @@ from subarulink.const import COUNTRY_USA
 from custom_components.subaru.const import (
     CONF_COUNTRY,
     CONF_NOTIFICATION_OPTION,
-    CONF_UPDATE_ENABLED,
+    CONF_POLLING_OPTION,
     DOMAIN,
-    FETCH_INTERVAL,
-    UPDATE_INTERVAL,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_NAME,
-    NotificationOptions,
 )
+from custom_components.subaru.options import NotificationOptions, PollingOptions
 from homeassistant.components.homeassistant import DOMAIN as HA_DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
@@ -57,7 +55,7 @@ MOCK_API_REMOTE_START = f"{MOCK_API}remote_start"
 MOCK_API_LIGHTS = f"{MOCK_API}lights"
 
 TEST_USERNAME = "user@email.com"
-TEST_PASSWORD = "password"
+TEST_PASSWORD = "password"  # nosec
 TEST_PIN = "1234"
 TEST_DEVICE_ID = 1613183362
 TEST_COUNTRY = COUNTRY_USA
@@ -76,23 +74,13 @@ TEST_CONFIG = {
     CONF_DEVICE_ID: TEST_DEVICE_ID,
 }
 
-TEST_OPTIONS = {
-    CONF_UPDATE_ENABLED: True,
-    CONF_NOTIFICATION_OPTION: NotificationOptions.SUCCESS.value,
-}
-
-TEST_ENTITY_ID = "sensor.test_vehicle_2_odometer"
+TEST_DEVICE_NAME = "test_vehicle_2"
+TEST_ENTITY_ID = f"sensor.{TEST_DEVICE_NAME}_odometer"
 
 
-def advance_time_to_next_fetch(hass):
-    """Fast forward to next fetch."""
-    future = dt_util.utcnow() + timedelta(seconds=FETCH_INTERVAL + 30)
-    async_fire_time_changed(hass, future)
-
-
-def advance_time_to_next_update(hass):
-    """Fast forward to next update."""
-    future = dt_util.utcnow() + timedelta(seconds=UPDATE_INTERVAL + 30)
+def advance_time(hass, seconds):
+    """Fast forward time."""
+    future = dt_util.utcnow() + timedelta(seconds=seconds + 30)
     async_fire_time_changed(hass, future)
 
 
@@ -104,18 +92,30 @@ async def setup_subaru_integration(
     connect_effect=None,
     fetch_effect=None,
     saved_cache=None,
+    charge_polling=None,
 ):
     """Create Subaru entry."""
     if saved_cache:
         mock_restore_cache(
-            hass, (State("select.test_vehicle_2_climate_preset", "Full Heat"),),
+            hass,
+            (State("select.test_vehicle_2_climate_preset", "Full Heat"),),
         )
+
+    test_options = {
+        CONF_POLLING_OPTION: PollingOptions.CHARGING.value
+        if charge_polling
+        else PollingOptions.ENABLE.value,
+        CONF_NOTIFICATION_OPTION: NotificationOptions.SUCCESS.value,
+    }
 
     assert await async_setup_component(hass, HA_DOMAIN, {})
     assert await async_setup_component(hass, DOMAIN, {})
 
     config_entry = MockConfigEntry(
-        domain=DOMAIN, data=TEST_CONFIG, options=TEST_OPTIONS, entry_id=1,
+        domain=DOMAIN,
+        data=TEST_CONFIG,
+        options=test_options,
+        entry_id=1,
     )
     config_entry.add_to_hass(hass)
 
@@ -124,13 +124,17 @@ async def setup_subaru_integration(
         return_value=connect_effect is None,
         side_effect=connect_effect,
     ), patch(MOCK_API_GET_VEHICLES, return_value=vehicle_list,), patch(
-        MOCK_API_VIN_TO_NAME, return_value=vehicle_data[VEHICLE_NAME],
+        MOCK_API_VIN_TO_NAME,
+        return_value=vehicle_data[VEHICLE_NAME],
     ), patch(
-        MOCK_API_GET_API_GEN, return_value=vehicle_data[VEHICLE_API_GEN],
+        MOCK_API_GET_API_GEN,
+        return_value=vehicle_data[VEHICLE_API_GEN],
     ), patch(
-        MOCK_API_GET_EV_STATUS, return_value=vehicle_data[VEHICLE_HAS_EV],
+        MOCK_API_GET_EV_STATUS,
+        return_value=vehicle_data[VEHICLE_HAS_EV],
     ), patch(
-        MOCK_API_GET_RES_STATUS, return_value=vehicle_data[VEHICLE_HAS_REMOTE_START],
+        MOCK_API_GET_RES_STATUS,
+        return_value=vehicle_data[VEHICLE_HAS_REMOTE_START],
     ), patch(
         MOCK_API_GET_REMOTE_STATUS,
         return_value=vehicle_data[VEHICLE_HAS_REMOTE_SERVICE],
@@ -138,7 +142,8 @@ async def setup_subaru_integration(
         MOCK_API_GET_SAFETY_STATUS,
         return_value=vehicle_data[VEHICLE_HAS_SAFETY_SERVICE],
     ), patch(
-        MOCK_API_GET_DATA, return_value=vehicle_status,
+        MOCK_API_GET_DATA,
+        return_value=vehicle_status,
     ), patch(
         MOCK_API_UPDATE,
     ), patch(
@@ -175,6 +180,23 @@ async def ev_entry_with_saved_climate(hass, enable_custom_integrations):
         vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
         vehicle_status=VEHICLE_STATUS_EV,
         saved_cache=True,
+    )
+    assert DOMAIN in hass.config_entries.async_domains()
+    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
+    assert hass.config_entries.async_get_entry(entry.entry_id)
+    assert entry.state is ConfigEntryState.LOADED
+    return entry
+
+
+@pytest.fixture
+async def ev_entry_charge_polling(hass, enable_custom_integrations):
+    """Create a Subaru EV entity but with charge polling option."""
+    entry = await setup_subaru_integration(
+        hass,
+        vehicle_list=[TEST_VIN_2_EV],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
+        vehicle_status=VEHICLE_STATUS_EV,
+        charge_polling=True,
     )
     assert DOMAIN in hass.config_entries.async_domains()
     assert len(hass.config_entries.async_entries(DOMAIN)) == 1

@@ -7,6 +7,10 @@ from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruExcept
 from subarulink.const import COUNTRY_USA
 import voluptuous as vol
 
+from homeassistant.components.binary_sensor import (
+    DOMAIN as BINARY_SENSOR_DOMAIN,
+    BinarySensorDeviceClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_ID,
@@ -14,6 +18,8 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_PIN,
     CONF_USERNAME,
+    STATE_ON,
+    Platform,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
@@ -21,6 +27,7 @@ from homeassistant.helpers import (
     aiohttp_client,
     config_validation as cv,
     device_registry,
+    entity_registry,
 )
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -28,7 +35,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import (
     CONF_COUNTRY,
     CONF_NOTIFICATION_OPTION,
-    CONF_UPDATE_ENABLED,
+    CONF_POLLING_OPTION,
     COORDINATOR_NAME,
     DOMAIN,
     ENTRY_CONTROLLER,
@@ -40,6 +47,7 @@ from .const import (
     REMOTE_SERVICE_REMOTE_START,
     SUPPORTED_PLATFORMS,
     UPDATE_INTERVAL,
+    UPDATE_INTERVAL_CHARGING,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
@@ -52,11 +60,12 @@ from .const import (
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
+from .options import PollingOptions
 from .remote_service import (
     async_call_remote_service,
     get_supported_services,
+    poll_subaru,
     refresh_subaru,
-    update_subaru,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -105,7 +114,7 @@ async def async_setup_entry(hass, entry):
     async def async_update_data():
         """Fetch data from API endpoint."""
         try:
-            return await refresh_subaru_data(entry, vehicles, controller)
+            return await refresh_subaru_data(hass, entry, vehicles, controller)
         except SubaruException as err:
             raise UpdateFailed(err.message) from err
 
@@ -132,7 +141,7 @@ async def async_setup_entry(hass, entry):
 
     async def async_call_service(call):
         """Execute subaru service."""
-        _LOGGER.warn(
+        _LOGGER.warning(
             "This Subaru-specific service is deprecated and will be removed in v0.7.0. Use button or lock entities (or their respective services) to actuate remove vehicle services."
         )
         vin = call.data[VEHICLE_VIN].upper()
@@ -150,9 +159,6 @@ async def async_setup_entry(hass, entry):
             await coordinator.async_refresh()
             return
 
-        hass.components.persistent_notification.create(
-            f"ERROR - Invalid VIN provided while calling {call.service}", "Subaru"
-        )
         raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
 
     async def async_remote_start(call):
@@ -219,7 +225,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return unload_ok
 
 
-async def refresh_subaru_data(config_entry, vehicle_info, controller):
+async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
     """
     Refresh local data with data fetched via Subaru API.
 
@@ -235,9 +241,31 @@ async def refresh_subaru_data(config_entry, vehicle_info, controller):
         if not vehicle[VEHICLE_HAS_SAFETY_SERVICE]:
             continue
 
-        # Send an "update" remote command to vehicle, if supported (throttled with update_interval)
-        if config_entry.options.get(CONF_UPDATE_ENABLED, False):
-            await update_subaru(vehicle, controller)
+        # Poll vehicle, if option is enabled
+        polling_option = PollingOptions.get_by_value(
+            config_entry.options.get(CONF_POLLING_OPTION, PollingOptions.DISABLE.value)
+        )
+        if polling_option == PollingOptions.CHARGING:
+            # Is there a better way to check if the subaru is charging?
+            e_registry = entity_registry.async_get(hass)
+            battery_charging = e_registry.async_get_device_class_lookup(
+                {(Platform.BINARY_SENSOR, BinarySensorDeviceClass.BATTERY_CHARGING)}
+            )
+            for item in battery_charging.values():
+                entity_id = item[
+                    (BINARY_SENSOR_DOMAIN, BinarySensorDeviceClass.BATTERY_CHARGING)
+                ]
+                entity = e_registry.async_get(entity_id)
+                state = hass.states.get(entity_id)
+                if entity and state:
+                    if entity.platform == DOMAIN and state.state == STATE_ON:
+                        await poll_subaru(
+                            vehicle,
+                            controller,
+                            update_interval=UPDATE_INTERVAL_CHARGING,
+                        )
+        elif polling_option == PollingOptions.ENABLE:
+            await poll_subaru(vehicle, controller)
 
         # Fetch data from Subaru servers
         await refresh_subaru(vehicle, controller)

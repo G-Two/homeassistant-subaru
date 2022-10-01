@@ -28,8 +28,8 @@ from .const import (
     VEHICLE_LAST_UPDATE,
     VEHICLE_NAME,
     VEHICLE_VIN,
-    NotificationOptions,
 )
+from .options import NotificationOptions
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,9 +60,7 @@ async def async_call_remote_service(
     err_msg = ""
     try:
         if cmd == REMOTE_SERVICE_UPDATE:
-            success = await update_subaru(
-                vehicle_info, controller, override_interval=True
-            )
+            success = await poll_subaru(vehicle_info, controller, update_interval=0)
         elif cmd in [REMOTE_SERVICE_REMOTE_START, REMOTE_SERVICE_UNLOCK]:
             success = await getattr(controller, cmd)(vin, arg)
         elif cmd == REMOTE_SERVICE_FETCH:
@@ -71,9 +69,7 @@ async def async_call_remote_service(
             success = await getattr(controller, cmd)(vin)
 
         if cmd in SERVICES_THAT_NEED_FETCH:
-            success = await refresh_subaru(
-                vehicle_info, controller, override_interval=True
-            )
+            success = await refresh_subaru(vehicle_info, controller, refresh_interval=0)
 
     except SubaruException as err:
         err_msg = err.message
@@ -84,14 +80,16 @@ async def async_call_remote_service(
     if success:
         if notify == NotificationOptions.SUCCESS:
             hass.components.persistent_notification.create(
-                f"{cmd} command successfully completed for {car_name}", "Subaru",
+                f"{cmd} command successfully completed for {car_name}",
+                "Subaru",
             )
         _LOGGER.debug("%s command successfully completed for %s", cmd, car_name)
         return
 
-    hass.components.persistent_notification.create(
-        f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
-    )
+    if notify != NotificationOptions.DISABLE:
+        hass.components.persistent_notification.create(
+            f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
+        )
     raise HomeAssistantError(f"Service {cmd} failed for {car_name}: {err_msg}")
 
 
@@ -118,27 +116,27 @@ def get_supported_services(vehicle_info):
     return remote_services
 
 
-async def update_subaru(vehicle, controller, override_interval=False):
+async def poll_subaru(vehicle, controller, update_interval=UPDATE_INTERVAL):
     """Commands remote vehicle update (polls the vehicle to update subaru API cache)."""
     cur_time = time.time()
     last_update = vehicle[VEHICLE_LAST_UPDATE]
     success = None
 
-    if (cur_time - last_update) > UPDATE_INTERVAL or override_interval:
+    if (cur_time - last_update) > update_interval:
         success = await controller.update(vehicle[VEHICLE_VIN], force=True)
         vehicle[VEHICLE_LAST_UPDATE] = cur_time
 
     return success
 
 
-async def refresh_subaru(vehicle, controller, override_interval=False):
+async def refresh_subaru(vehicle, controller, refresh_interval=FETCH_INTERVAL):
     """Refresh data from Subaru servers."""
     cur_time = time.time()
     last_fetch = vehicle[VEHICLE_LAST_FETCH]
     vin = vehicle[VEHICLE_VIN]
     success = None
 
-    if (cur_time - last_fetch) > FETCH_INTERVAL or override_interval:
+    if (cur_time - last_fetch) > refresh_interval:
         success = await controller.fetch(vin, force=True)
         vehicle[VEHICLE_LAST_FETCH] = cur_time
 

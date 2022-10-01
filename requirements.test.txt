@@ -1,5 +1,5 @@
-flake8
+pylint
 pytest
 pytest-cov
 pytest-homeassistant-custom-component
-subarulink==0.5.0
+subarulink==0.6.0
