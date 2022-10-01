@@ -15,8 +15,6 @@ from custom_components.subaru.const import (
     CONF_NOTIFICATION_OPTION,
     CONF_POLLING_OPTION,
     DOMAIN,
-    FETCH_INTERVAL,
-    UPDATE_INTERVAL,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
@@ -76,7 +74,8 @@ TEST_CONFIG = {
     CONF_DEVICE_ID: TEST_DEVICE_ID,
 }
 
-TEST_ENTITY_ID = "sensor.test_vehicle_2_odometer"
+TEST_DEVICE_NAME = "test_vehicle_2"
+TEST_ENTITY_ID = f"sensor.{TEST_DEVICE_NAME}_odometer"
 
 
 def advance_time(hass, seconds):
