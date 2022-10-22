@@ -219,7 +219,5 @@ class SubaruBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
     def get_current_value(self):
         """Get raw value from the coordinator."""
-        if isinstance(data := self.coordinator.data, dict):
-            if data.get(self.vin):
-                return data[self.vin][VEHICLE_STATUS].get(self.entity_description.key)
-            return None
+        if data := self.coordinator.data.get(self.vin):
+            return data[VEHICLE_STATUS].get(self.entity_description.key)
