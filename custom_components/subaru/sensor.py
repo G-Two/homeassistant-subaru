@@ -1,7 +1,6 @@
 """Support for Subaru sensors."""
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 import subarulink.const as sc
@@ -23,8 +22,7 @@ from homeassistant.const import (
     VOLUME_GALLONS,
     VOLUME_LITERS,
 )
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import entity_registry as er
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -33,7 +31,7 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util.unit_conversion import DistanceConverter, VolumeConverter
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, LENGTH_UNITS, PRESSURE_UNITS
 
-from . import get_device_info
+from . import async_migrate_entries, get_device_info
 from .const import (
     API_GEN_2,
     DOMAIN,
@@ -45,9 +43,6 @@ from .const import (
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
-
-_LOGGER = logging.getLogger(__name__)
-
 
 # Fuel consumption units
 FUEL_CONSUMPTION_LITERS_PER_HUNDRED_KILOMETERS = "L/100km"
@@ -281,42 +276,9 @@ async def _async_migrate_entries(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> None:
     """Migrate sensor entries from versions prior to 0.6.5 to use preferred unique_id."""
-    entity_registry = er.async_get(hass)
 
-    all_sensors = []
-    all_sensors.extend(EV_SENSORS)
+    all_sensors = EV_SENSORS
     all_sensors.extend(API_GEN_2_SENSORS)
     all_sensors.extend(SAFETY_SENSORS)
 
-    # Old unique_id is (previously title-cased) sensor name (e.g. "VIN_Avg Fuel Consumption")
-    replacements = {str(s.name).upper(): s.key for s in all_sensors}
-
-    @callback
-    def update_unique_id(entry: er.RegistryEntry) -> dict[str, Any] | None:
-        id_split = entry.unique_id.split("_")
-        key = id_split[1].upper() if len(id_split) == 2 else None
-
-        if key not in replacements:
-            return None
-
-        new_unique_id = entry.unique_id.replace(id_split[1], replacements[key])
-        _LOGGER.debug(
-            "Migrating entity '%s' unique_id from '%s' to '%s'",
-            entry.entity_id,
-            entry.unique_id,
-            new_unique_id,
-        )
-        if existing_entity_id := entity_registry.async_get_entity_id(
-            entry.domain, entry.platform, new_unique_id
-        ):
-            _LOGGER.warning(
-                "Cannot migrate to unique_id '%s', already exists for '%s'",
-                new_unique_id,
-                existing_entity_id,
-            )
-            return None
-        return {
-            "new_unique_id": new_unique_id,
-        }
-
-    await er.async_migrate_entries(hass, config_entry.entry_id, update_unique_id)
+    await async_migrate_entries(hass, config_entry, all_sensors)
