@@ -24,7 +24,7 @@ from homeassistant.const import (
     STATE_ON,
     Platform,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import (
     aiohttp_client,
@@ -33,6 +33,7 @@ from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -74,13 +75,13 @@ from .remote_service import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass, base_config):
+async def async_setup(hass: HomeAssistant, base_config: ConfigType) -> bool:
     """Do nothing since this integration does not support configuration.yml setup."""
     hass.data.setdefault(DOMAIN, {})
     return True
 
 
-async def async_setup_entry(hass, entry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Subaru from a config entry."""
     config = entry.data
     websession = aiohttp_client.async_create_clientsession(hass)
@@ -114,7 +115,7 @@ async def async_setup_entry(hass, entry):
     for vin in controller.get_vehicles():
         vehicles[vin] = get_vehicle_info(controller, vin)
 
-    async def async_update_data():
+    async def async_update_data() -> dict:
         """Fetch data from API endpoint."""
         try:
             return await refresh_subaru_data(hass, entry, vehicles, controller)
@@ -142,7 +143,7 @@ async def async_setup_entry(hass, entry):
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
 
-    async def async_call_service(call):
+    async def async_call_service(call: ServiceCall) -> None:
         """Execute subaru service."""
         _LOGGER.warning(
             "This Subaru-specific service is deprecated and will be removed in v0.7.0. Use button or lock entities (or their respective services) to actuate remove vehicle services."
@@ -164,7 +165,7 @@ async def async_setup_entry(hass, entry):
 
         raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
 
-    async def async_remote_start(call):
+    async def async_remote_start(call: ServiceCall) -> None:
         """Start the vehicle engine."""
         dev_reg = device_registry.async_get(hass)
         device_entry = dev_reg.async_get(call.data[ATTR_DEVICE_ID])
@@ -212,7 +213,7 @@ async def async_setup_entry(hass, entry):
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = all(
         await asyncio.gather(
@@ -228,7 +229,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return unload_ok
 
 
-async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
+async def refresh_subaru_data(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    vehicle_info: dict,
+    controller: SubaruAPI,
+) -> dict:
     """
     Refresh local data with data fetched via Subaru API.
 
@@ -281,7 +287,7 @@ async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
     return data
 
 
-def get_vehicle_info(controller, vin):
+def get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
     """Obtain vehicle identifiers and capabilities."""
     info = {
         VEHICLE_VIN: vin,
@@ -299,7 +305,7 @@ def get_vehicle_info(controller, vin):
     return info
 
 
-def get_device_info(vehicle_info):
+def get_device_info(vehicle_info: dict) -> DeviceInfo:
     """Return DeviceInfo object based on vehicle info."""
     return DeviceInfo(
         identifiers={(DOMAIN, vehicle_info[VEHICLE_VIN])},
@@ -320,10 +326,10 @@ async def async_migrate_entries(
 
     @callback
     def update_unique_id(entry: er.RegistryEntry) -> dict[str, Any] | None:
-        id_split = entry.unique_id.split("_")
+        id_split = entry.unique_id.split("_", maxsplit=1)
         key = id_split[1].upper() if len(id_split) == 2 else None
 
-        if key not in replacements:
+        if key not in replacements or id_split[1] == replacements[key]:
             return None
 
         new_unique_id = entry.unique_id.replace(id_split[1], replacements[key])

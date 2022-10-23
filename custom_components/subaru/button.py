@@ -7,8 +7,9 @@ from homeassistant.components.button import ButtonEntity, ButtonEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from . import DOMAIN as SUBARU_DOMAIN, get_device_info
+from . import DOMAIN as SUBARU_DOMAIN, async_migrate_entries, get_device_info
 from .const import (
     CONF_NOTIFICATION_OPTION,
     ENTRY_CONTROLLER,
@@ -82,12 +83,15 @@ async def async_setup_entry(
     coordinator = entry[ENTRY_COORDINATOR]
     vehicle_info = entry[ENTRY_VEHICLES]
     entities = []
+    await _async_migrate_entries(hass, config_entry)
     for info in vehicle_info.values():
         entities.extend(create_vehicle_buttons(info, coordinator, config_entry))
     async_add_entities(entities)
 
 
-def create_vehicle_buttons(vehicle_info, coordinator, config_entry):
+def create_vehicle_buttons(
+    vehicle_info: dict, coordinator: DataUpdateCoordinator, config_entry: ConfigEntry
+) -> list[SubaruButton]:
     """Instantiate all available buttons for the vehicle."""
     buttons_to_add = []
     if vehicle_info[VEHICLE_HAS_REMOTE_SERVICE]:
@@ -106,11 +110,17 @@ def create_vehicle_buttons(vehicle_info, coordinator, config_entry):
 
 
 class SubaruButton(ButtonEntity):
-    """Representation of a Subaru button."""
+    """Class for a Subaru buttons."""
 
     _attr_has_entity_name = True
 
-    def __init__(self, vehicle_info, config_entry, coordinator, description):
+    def __init__(
+        self,
+        vehicle_info: dict,
+        config_entry: ConfigEntry,
+        coordinator: DataUpdateCoordinator,
+        description: ButtonEntityDescription,
+    ) -> None:
         """Initialize the button for the vehicle."""
         self.vin = vehicle_info[VEHICLE_VIN]
         self.vehicle_info = vehicle_info
@@ -119,9 +129,9 @@ class SubaruButton(ButtonEntity):
         self.arg = None
         self.coordinator = coordinator
         self._attr_device_info = get_device_info(vehicle_info)
-        self._attr_unique_id = f"{self.vin}_{description.name}"
+        self._attr_unique_id = f"{self.vin}_{description.key}"
 
-    async def async_press(self):
+    async def async_press(self) -> None:
         """Press the button."""
         _LOGGER.info("%s button pressed", self.name)
         arg = None
@@ -141,3 +151,16 @@ class SubaruButton(ButtonEntity):
             self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )
         await self.coordinator.async_refresh()
+
+
+async def _async_migrate_entries(
+    hass: HomeAssistant, config_entry: ConfigEntry
+) -> None:
+    """Migrate button entries from versions prior to 0.6.5 to use preferred unique_id."""
+
+    all_buttons = []
+    all_buttons.extend(G1_REMOTE_BUTTONS)
+    all_buttons.extend(RES_REMOTE_BUTTONS)
+    all_buttons.extend(EV_REMOTE_BUTTONS)
+
+    await async_migrate_entries(hass, config_entry, all_buttons)

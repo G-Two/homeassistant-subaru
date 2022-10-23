@@ -167,7 +167,7 @@ async def async_setup_entry(
 
 
 def create_vehicle_sensors(
-    vehicle_info, coordinator: DataUpdateCoordinator
+    vehicle_info: dict, coordinator: DataUpdateCoordinator
 ) -> list[SubaruSensor]:
     """Instantiate all available sensors for the vehicle."""
     sensor_descriptions_to_add = []
@@ -277,7 +277,8 @@ async def _async_migrate_entries(
 ) -> None:
     """Migrate sensor entries from versions prior to 0.6.5 to use preferred unique_id."""
 
-    all_sensors = EV_SENSORS
+    all_sensors = []
+    all_sensors.extend(EV_SENSORS)
     all_sensors.extend(API_GEN_2_SENSORS)
     all_sensors.extend(SAFETY_SENSORS)
 

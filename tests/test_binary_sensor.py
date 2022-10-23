@@ -16,24 +16,21 @@ from custom_components.subaru.const import (
     VEHICLE_NAME,
 )
 from homeassistant.const import STATE_UNAVAILABLE
-from homeassistant.helpers import entity_registry as er
 from homeassistant.util import slugify
 
 from .api_responses import (
     EXPECTED_STATE_EV_BINARY_SENSORS,
     EXPECTED_STATE_EV_UNAVAILABLE,
     TEST_VIN_2_EV,
-    VEHICLE_DATA,
     VEHICLE_STATUS_EV,
 )
 from .conftest import (
     MOCK_API_FETCH,
     MOCK_API_GET_DATA,
     advance_time,
-    setup_default_ev_entry,
+    migrate_unique_ids,
+    migrate_unique_ids_duplicate,
 )
-
-VEHICLE_NAME = VEHICLE_DATA[TEST_VIN_2_EV][VEHICLE_NAME]
 
 
 async def test_binary_sensors_ev(hass, ev_entry):
@@ -86,18 +83,9 @@ async def test_binary_sensor_migrate_unique_ids(
     hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
 ) -> None:
     """Test successful migration of entity unique_ids."""
-    entity_registry = er.async_get(hass)
-    entity: er.RegistryEntry = entity_registry.async_get_or_create(
-        **entitydata,
-        config_entry=subaru_config_entry,
+    await migrate_unique_ids(
+        hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
     )
-    assert entity.unique_id == old_unique_id
-
-    await setup_default_ev_entry(hass, subaru_config_entry)
-
-    entity_migrated = entity_registry.async_get(entity.entity_id)
-    assert entity_migrated
-    assert entity_migrated.unique_id == new_unique_id
 
 
 @pytest.mark.parametrize(
@@ -118,32 +106,9 @@ async def test_binary_sensor_migrate_unique_ids_duplicate(
     hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
 ) -> None:
     """Test unsuccessful migration of entity unique_ids due to duplicate."""
-    entity_registry = er.async_get(hass)
-    entity: er.RegistryEntry = entity_registry.async_get_or_create(
-        **entitydata,
-        config_entry=subaru_config_entry,
+    await migrate_unique_ids_duplicate(
+        hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
     )
-    assert entity.unique_id == old_unique_id
-
-    # create existing entry with new_unique_id that conflicts with migrate
-    existing_entity = entity_registry.async_get_or_create(
-        BINARY_SENSOR_DOMAIN,
-        SUBARU_DOMAIN,
-        unique_id=new_unique_id,
-        config_entry=subaru_config_entry,
-    )
-
-    await setup_default_ev_entry(hass, subaru_config_entry)
-
-    entity_migrated = entity_registry.async_get(entity.entity_id)
-    assert entity_migrated
-    assert entity_migrated.unique_id == old_unique_id
-
-    entity_not_changed = entity_registry.async_get(existing_entity.entity_id)
-    assert entity_not_changed
-    assert entity_not_changed.unique_id == new_unique_id
-
-    assert entity_migrated != entity_not_changed
 
 
 def _assert_data(hass, expected_state):

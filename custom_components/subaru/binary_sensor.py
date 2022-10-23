@@ -213,10 +213,12 @@ class SubaruBinarySensor(
         """Return true if the binary sensor is on."""
         return self.get_current_value() in ON_VALUES[self.device_class]
 
-    def get_current_value(self) -> str:
+    def get_current_value(self) -> str | None:
         """Get raw value from the coordinator."""
+        value = None
         if data := self.coordinator.data.get(self.vin):
-            return data[VEHICLE_STATUS].get(self.entity_description.key)
+            value = data[VEHICLE_STATUS].get(self.entity_description.key)
+        return value
 
 
 async def _async_migrate_entries(
@@ -224,7 +226,8 @@ async def _async_migrate_entries(
 ) -> None:
     """Migrate sensor entries from versions prior to 0.6.5 to use preferred unique_id."""
 
-    all_sensors = EV_SENSORS
+    all_sensors = []
     all_sensors.extend(API_GEN_2_SENSORS)
+    all_sensors.extend(EV_SENSORS)
 
     await async_migrate_entries(hass, config_entry, all_sensors)

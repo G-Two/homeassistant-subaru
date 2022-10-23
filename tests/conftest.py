@@ -27,6 +27,7 @@ from homeassistant import config_entries
 from homeassistant.components.homeassistant import DOMAIN as HA_DOMAIN
 from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
 from homeassistant.core import State
+from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
 
@@ -205,3 +206,53 @@ async def ev_entry_charge_polling(
         subaru_config_entry,
     )
     return subaru_config_entry
+
+
+async def migrate_unique_ids(
+    hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
+) -> None:
+    """Test successful migration of entity unique_ids."""
+    entity_registry = er.async_get(hass)
+    entity: er.RegistryEntry = entity_registry.async_get_or_create(
+        **entitydata,
+        config_entry=subaru_config_entry,
+    )
+    assert entity.unique_id == old_unique_id
+
+    await setup_default_ev_entry(hass, subaru_config_entry)
+
+    entity_migrated = entity_registry.async_get(entity.entity_id)
+    assert entity_migrated
+    assert entity_migrated.unique_id == new_unique_id
+
+
+async def migrate_unique_ids_duplicate(
+    hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
+) -> None:
+    """Test unsuccessful migration of entity unique_ids due to duplicate."""
+    entity_registry = er.async_get(hass)
+    entity: er.RegistryEntry = entity_registry.async_get_or_create(
+        **entitydata,
+        config_entry=subaru_config_entry,
+    )
+    assert entity.unique_id == old_unique_id
+
+    # create existing entry with new_unique_id that conflicts with migrate
+    existing_entity = entity_registry.async_get_or_create(
+        entitydata["domain"],
+        entitydata["platform"],
+        unique_id=new_unique_id,
+        config_entry=subaru_config_entry,
+    )
+
+    await setup_default_ev_entry(hass, subaru_config_entry)
+
+    entity_migrated = entity_registry.async_get(entity.entity_id)
+    assert entity_migrated
+    assert entity_migrated.unique_id == old_unique_id
+
+    entity_not_changed = entity_registry.async_get(existing_entity.entity_id)
+    assert entity_not_changed
+    assert entity_not_changed.unique_id == new_unique_id
+
+    assert entity_migrated != entity_not_changed

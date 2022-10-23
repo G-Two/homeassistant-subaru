@@ -74,7 +74,3 @@ SUPPORTED_PLATFORMS = [
     Platform.BUTTON,
     Platform.SELECT,
 ]
-
-ICONS = {
-    "Climate Preset": "mdi:thermometer-lines",
-}
