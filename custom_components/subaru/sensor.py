@@ -31,7 +31,6 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util.unit_conversion import DistanceConverter, VolumeConverter
 from homeassistant.util.unit_system import IMPERIAL_SYSTEM, LENGTH_UNITS, PRESSURE_UNITS
 
-from . import async_migrate_entries, get_device_info
 from .const import (
     API_GEN_2,
     DOMAIN,
@@ -43,6 +42,7 @@ from .const import (
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
+from .device import get_device_info
 
 # Fuel consumption units
 FUEL_CONSUMPTION_LITERS_PER_HUNDRED_KILOMETERS = "L/100km"
@@ -160,7 +160,6 @@ async def async_setup_entry(
     coordinator = entry[ENTRY_COORDINATOR]
     vehicle_info = entry[ENTRY_VEHICLES]
     entities = []
-    await _async_migrate_entries(hass, config_entry)
     for info in vehicle_info.values():
         entities.extend(create_vehicle_sensors(info, coordinator))
     async_add_entities(entities)
@@ -270,16 +269,3 @@ class SubaruSensor(
         if last_update_success and self.vin not in self.coordinator.data:
             return False
         return last_update_success
-
-
-async def _async_migrate_entries(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> None:
-    """Migrate sensor entries from versions prior to 0.6.5 to use preferred unique_id."""
-
-    all_sensors = []
-    all_sensors.extend(EV_SENSORS)
-    all_sensors.extend(API_GEN_2_SENSORS)
-    all_sensors.extend(SAFETY_SENSORS)
-
-    await async_migrate_entries(hass, config_entry, all_sensors)

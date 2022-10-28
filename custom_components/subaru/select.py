@@ -10,8 +10,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from . import DOMAIN as SUBARU_DOMAIN, async_migrate_entries, get_device_info
 from .const import (
+    DOMAIN as SUBARU_DOMAIN,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     VEHICLE_CLIMATE,
@@ -21,6 +21,7 @@ from .const import (
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_VIN,
 )
+from .device import get_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,7 +42,6 @@ async def async_setup_entry(
     coordinator = entry[ENTRY_COORDINATOR]
     vehicle_info = entry[ENTRY_VEHICLES]
     climate_select = []
-    await _async_migrate_entries(hass, config_entry)
     for info in vehicle_info.values():
         if info[VEHICLE_HAS_REMOTE_START] or info[VEHICLE_HAS_EV]:
             climate_select.append(SubaruClimateSelect(info, config_entry, coordinator))
@@ -103,10 +103,3 @@ class SubaruClimateSelect(SelectEntity, RestoreEntity):
                 VEHICLE_CLIMATE_SELECTED_PRESET
             ] = option
             self.async_write_ha_state()
-
-
-async def _async_migrate_entries(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> None:
-    """Migrate sensor entries from versions prior to 0.6.5 to use preferred unique_id."""
-    await async_migrate_entries(hass, config_entry, [OLD_CLIMATE_SELECT])

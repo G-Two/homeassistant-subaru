@@ -18,7 +18,6 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from . import async_migrate_entries, get_device_info
 from .const import (
     API_GEN_2,
     DOMAIN,
@@ -29,6 +28,7 @@ from .const import (
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
+from .device import get_device_info
 
 BINARY_SENSOR_ICONS = {
     BinarySensorDeviceClass.POWER: {True: "mdi:engine", False: "mdi:engine-off"},
@@ -53,7 +53,7 @@ ON_VALUES = {
 }
 
 # Binary Sensors available to "Subaru Safety Plus" subscribers with Gen2 vehicles
-API_GEN_2_SENSORS = [
+API_GEN_2_BINARY_SENSORS = [
     BinarySensorEntityDescription(
         name="Ignition",
         key=sc.VEHICLE_STATE,
@@ -117,7 +117,7 @@ API_GEN_2_SENSORS = [
 ]
 
 # Binary Sensors available to "Subaru Safety Plus" subscribers with PHEV vehicles
-EV_SENSORS = [
+EV_BINARY_SENSORS = [
     BinarySensorEntityDescription(
         name="EV charge port",
         key=sc.EV_IS_PLUGGED_IN,
@@ -141,7 +141,6 @@ async def async_setup_entry(
     coordinator = entry[ENTRY_COORDINATOR]
     vehicle_info = entry[ENTRY_VEHICLES]
     entities = []
-    await _async_migrate_entries(hass, config_entry)
     for info in vehicle_info.values():
         entities.extend(create_vehicle_binary_sensors(info, coordinator))
     async_add_entities(entities)
@@ -154,10 +153,10 @@ def create_vehicle_binary_sensors(
     potential_sensors = []
 
     if vehicle_info[VEHICLE_API_GEN] == API_GEN_2:
-        potential_sensors.extend(API_GEN_2_SENSORS)
+        potential_sensors.extend(API_GEN_2_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_EV]:
-        potential_sensors.extend(EV_SENSORS)
+        potential_sensors.extend(EV_BINARY_SENSORS)
 
     binary_sensors_to_add = []
     for sensor in potential_sensors:
@@ -219,15 +218,3 @@ class SubaruBinarySensor(
         if data := self.coordinator.data.get(self.vin):
             value = data[VEHICLE_STATUS].get(self.entity_description.key)
         return value
-
-
-async def _async_migrate_entries(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> None:
-    """Migrate sensor entries from versions prior to 0.6.5 to use preferred unique_id."""
-
-    all_sensors = []
-    all_sensors.extend(API_GEN_2_SENSORS)
-    all_sensors.extend(EV_SENSORS)
-
-    await async_migrate_entries(hass, config_entry, all_sensors)

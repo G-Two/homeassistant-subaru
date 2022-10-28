@@ -9,9 +9,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from . import DOMAIN as SUBARU_DOMAIN, async_migrate_entries, get_device_info
 from .const import (
     CONF_NOTIFICATION_OPTION,
+    DOMAIN as SUBARU_DOMAIN,
     ENTRY_CONTROLLER,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -30,6 +30,7 @@ from .const import (
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_VIN,
 )
+from .device import get_device_info
 from .remote_service import async_call_remote_service
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,7 +84,6 @@ async def async_setup_entry(
     coordinator = entry[ENTRY_COORDINATOR]
     vehicle_info = entry[ENTRY_VEHICLES]
     entities = []
-    await _async_migrate_entries(hass, config_entry)
     for info in vehicle_info.values():
         entities.extend(create_vehicle_buttons(info, coordinator, config_entry))
     async_add_entities(entities)
@@ -151,16 +151,3 @@ class SubaruButton(ButtonEntity):
             self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
         )
         await self.coordinator.async_refresh()
-
-
-async def _async_migrate_entries(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> None:
-    """Migrate button entries from versions prior to 0.6.5 to use preferred unique_id."""
-
-    all_buttons = []
-    all_buttons.extend(G1_REMOTE_BUTTONS)
-    all_buttons.extend(RES_REMOTE_BUTTONS)
-    all_buttons.extend(EV_REMOTE_BUTTONS)
-
-    await async_migrate_entries(hass, config_entry, all_buttons)

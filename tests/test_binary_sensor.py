@@ -6,9 +6,9 @@ import pytest
 from subarulink.const import DOOR_ENGINE_HOOD_POSITION, VEHICLE_STATUS
 
 from custom_components.subaru.binary_sensor import (
-    API_GEN_2_SENSORS,
+    API_GEN_2_BINARY_SENSORS,
     DOMAIN as BINARY_SENSOR_DOMAIN,
-    EV_SENSORS,
+    EV_BINARY_SENSORS,
 )
 from custom_components.subaru.const import (
     DOMAIN as SUBARU_DOMAIN,
@@ -72,10 +72,10 @@ async def test_binary_sensors_missing_field(hass, ev_entry):
             {
                 "domain": BINARY_SENSOR_DOMAIN,
                 "platform": SUBARU_DOMAIN,
-                "unique_id": f"{TEST_VIN_2_EV}_{API_GEN_2_SENSORS[3].name}",
+                "unique_id": f"{TEST_VIN_2_EV}_{API_GEN_2_BINARY_SENSORS[3].name}",
             },
-            f"{TEST_VIN_2_EV}_{API_GEN_2_SENSORS[3].name}",
-            f"{TEST_VIN_2_EV}_{API_GEN_2_SENSORS[3].key}",
+            f"{TEST_VIN_2_EV}_{API_GEN_2_BINARY_SENSORS[3].name}",
+            f"{TEST_VIN_2_EV}_{API_GEN_2_BINARY_SENSORS[3].key}",
         ),
     ],
 )
@@ -95,10 +95,10 @@ async def test_binary_sensor_migrate_unique_ids(
             {
                 "domain": BINARY_SENSOR_DOMAIN,
                 "platform": SUBARU_DOMAIN,
-                "unique_id": f"{TEST_VIN_2_EV}_{API_GEN_2_SENSORS[3].name}",
+                "unique_id": f"{TEST_VIN_2_EV}_{API_GEN_2_BINARY_SENSORS[3].name}",
             },
-            f"{TEST_VIN_2_EV}_{API_GEN_2_SENSORS[3].name}",
-            f"{TEST_VIN_2_EV}_{API_GEN_2_SENSORS[3].key}",
+            f"{TEST_VIN_2_EV}_{API_GEN_2_BINARY_SENSORS[3].name}",
+            f"{TEST_VIN_2_EV}_{API_GEN_2_BINARY_SENSORS[3].key}",
         )
     ],
 )
@@ -112,8 +112,8 @@ async def test_binary_sensor_migrate_unique_ids_duplicate(
 
 
 def _assert_data(hass, expected_state):
-    sensor_list = EV_SENSORS
-    sensor_list.extend(API_GEN_2_SENSORS)
+    sensor_list = EV_BINARY_SENSORS
+    sensor_list.extend(API_GEN_2_BINARY_SENSORS)
     expected_states = {}
     for item in sensor_list:
         expected_states[

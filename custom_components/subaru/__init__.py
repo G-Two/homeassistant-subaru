@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 import logging
-from typing import Any
 
 from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruException
 from subarulink.const import COUNTRY_USA
@@ -24,7 +23,7 @@ from homeassistant.const import (
     STATE_ON,
     Platform,
 )
-from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import (
     aiohttp_client,
@@ -32,7 +31,6 @@ from homeassistant.helpers import (
     device_registry,
     entity_registry as er,
 )
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -46,7 +44,6 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
-    MANUFACTURER,
     REMOTE_CLIMATE_PRESET_NAME,
     REMOTE_SERVICE_REMOTE_START,
     SUPPORTED_PLATFORMS,
@@ -64,6 +61,7 @@ from .const import (
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
+from .migrate import async_migrate_entries
 from .options import PollingOptions
 from .remote_service import (
     async_call_remote_service,
@@ -113,12 +111,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     vehicles = {}
     for vin in controller.get_vehicles():
-        vehicles[vin] = get_vehicle_info(controller, vin)
+        vehicles[vin] = _get_vehicle_info(controller, vin)
 
     async def async_update_data() -> dict:
         """Fetch data from API endpoint."""
         try:
-            return await refresh_subaru_data(hass, entry, vehicles, controller)
+            return await _refresh_subaru_data(hass, entry, vehicles, controller)
         except SubaruException as err:
             raise UpdateFailed(err.message) from err
 
@@ -137,6 +135,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ENTRY_COORDINATOR: coordinator,
         ENTRY_VEHICLES: vehicles,
     }
+
+    await async_migrate_entries(hass, entry)
 
     for component in SUPPORTED_PLATFORMS:
         hass.async_create_task(
@@ -229,7 +229,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def refresh_subaru_data(
+async def _refresh_subaru_data(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     vehicle_info: dict,
@@ -287,7 +287,7 @@ async def refresh_subaru_data(
     return data
 
 
-def get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
+def _get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
     """Obtain vehicle identifiers and capabilities."""
     info = {
         VEHICLE_VIN: vin,
@@ -303,53 +303,3 @@ def get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
         VEHICLE_LAST_FETCH: 0,
     }
     return info
-
-
-def get_device_info(vehicle_info: dict) -> DeviceInfo:
-    """Return DeviceInfo object based on vehicle info."""
-    return DeviceInfo(
-        identifiers={(DOMAIN, vehicle_info[VEHICLE_VIN])},
-        manufacturer=MANUFACTURER,
-        model=f"{vehicle_info[VEHICLE_MODEL_YEAR]} {vehicle_info[VEHICLE_MODEL_NAME]}",
-        name=vehicle_info[VEHICLE_NAME],
-    )
-
-
-async def async_migrate_entries(
-    hass: HomeAssistant, config_entry: ConfigEntry, all_sensors: list
-) -> None:
-    """Migrate sensor entries from versions prior to 0.6.5 to use preferred unique_id."""
-    entity_registry = er.async_get(hass)
-
-    # Old unique_id is (previously title-cased) sensor name (e.g. "VIN_Avg Fuel Consumption")
-    replacements = {str(s.name).upper(): s.key for s in all_sensors}
-
-    @callback
-    def update_unique_id(entry: er.RegistryEntry) -> dict[str, Any] | None:
-        id_split = entry.unique_id.split("_", maxsplit=1)
-        key = id_split[1].upper() if len(id_split) == 2 else None
-
-        if key not in replacements or id_split[1] == replacements[key]:
-            return None
-
-        new_unique_id = entry.unique_id.replace(id_split[1], replacements[key])
-        _LOGGER.debug(
-            "Migrating entity '%s' unique_id from '%s' to '%s'",
-            entry.entity_id,
-            entry.unique_id,
-            new_unique_id,
-        )
-        if existing_entity_id := entity_registry.async_get_entity_id(
-            entry.domain, entry.platform, new_unique_id
-        ):
-            _LOGGER.warning(
-                "Cannot migrate to unique_id '%s', already exists for '%s'",
-                new_unique_id,
-                existing_entity_id,
-            )
-            return None
-        return {
-            "new_unique_id": new_unique_id,
-        }
-
-    await er.async_migrate_entries(hass, config_entry.entry_id, update_unique_id)

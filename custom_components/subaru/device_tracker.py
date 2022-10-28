@@ -15,7 +15,6 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from . import get_device_info
 from .const import (
     DOMAIN,
     ENTRY_COORDINATOR,
@@ -24,6 +23,7 @@ from .const import (
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
+from .device import get_device_info
 
 
 async def async_setup_entry(

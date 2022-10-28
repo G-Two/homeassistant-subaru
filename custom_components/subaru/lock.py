@@ -14,7 +14,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import DOMAIN, get_device_info
+from . import DOMAIN
 from .const import (
     ATTR_DOOR,
     CONF_NOTIFICATION_OPTION,
@@ -27,6 +27,7 @@ from .const import (
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
+from .device import get_device_info
 from .remote_service import async_call_remote_service
 
 _LOGGER = logging.getLogger(__name__)
