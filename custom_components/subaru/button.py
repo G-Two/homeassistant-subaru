@@ -37,16 +37,16 @@ _LOGGER = logging.getLogger(__name__)
 
 G1_REMOTE_BUTTONS = [
     ButtonEntityDescription(
-        key=REMOTE_SERVICE_HORN, icon="mdi:volume-high", name="Horn Start"
+        key=REMOTE_SERVICE_HORN, icon="mdi:volume-high", name="Horn start"
     ),
     ButtonEntityDescription(
-        key=REMOTE_SERVICE_HORN_STOP, icon="mdi:volume-off", name="Horn Stop"
+        key=REMOTE_SERVICE_HORN_STOP, icon="mdi:volume-off", name="Horn stop"
     ),
     ButtonEntityDescription(
-        key=REMOTE_SERVICE_LIGHTS, icon="mdi:lightbulb-on", name="Lights Start"
+        key=REMOTE_SERVICE_LIGHTS, icon="mdi:lightbulb-on", name="Lights start"
     ),
     ButtonEntityDescription(
-        key=REMOTE_SERVICE_LIGHTS_STOP, icon="mdi:lightbulb-off", name="Lights Stop"
+        key=REMOTE_SERVICE_LIGHTS_STOP, icon="mdi:lightbulb-off", name="Lights stop"
     ),
     ButtonEntityDescription(
         key=REMOTE_SERVICE_UPDATE, icon="mdi:car-connected", name="Locate"
@@ -58,7 +58,7 @@ G1_REMOTE_BUTTONS = [
 
 RES_REMOTE_BUTTONS = [
     ButtonEntityDescription(
-        key=REMOTE_SERVICE_REMOTE_START, icon="mdi:power", name="Remote Start"
+        key=REMOTE_SERVICE_REMOTE_START, icon="mdi:power", name="Remote start"
     ),
     ButtonEntityDescription(
         key=REMOTE_SERVICE_REMOTE_STOP,
