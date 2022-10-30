@@ -1,9 +1,14 @@
 """Remote vehicle services for Subaru integration."""
+from __future__ import annotations
+
 import logging
 import time
+from typing import Any
 
+from subarulink.controller import Controller
 from subarulink.exceptions import SubaruException
 
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
@@ -43,8 +48,13 @@ SERVICES_THAT_NEED_FETCH = [
 
 
 async def async_call_remote_service(
-    hass, controller, cmd, vehicle_info, arg, notify_option
-):
+    hass: HomeAssistant,
+    controller: Controller,
+    cmd: str,
+    vehicle_info: dict,
+    arg: Any | None,
+    notify_option: str,
+) -> None:
     """Execute subarulink remote command with optional start/end notification."""
     car_name = vehicle_info[VEHICLE_NAME]
     vin = vehicle_info[VEHICLE_VIN]
@@ -93,7 +103,7 @@ async def async_call_remote_service(
     raise HomeAssistantError(f"Service {cmd} failed for {car_name}: {err_msg}")
 
 
-def get_supported_services(vehicle_info):
+def get_supported_services(vehicle_info: dict) -> set[str]:
     """Return a list of supported services."""
     remote_services = set()
     for vin in vehicle_info:
@@ -116,11 +126,13 @@ def get_supported_services(vehicle_info):
     return remote_services
 
 
-async def poll_subaru(vehicle, controller, update_interval=UPDATE_INTERVAL):
+async def poll_subaru(
+    vehicle: dict, controller: Controller, update_interval: int = UPDATE_INTERVAL
+) -> bool:
     """Commands remote vehicle update (polls the vehicle to update subaru API cache)."""
     cur_time = time.time()
     last_update = vehicle[VEHICLE_LAST_UPDATE]
-    success = None
+    success = False
 
     if (cur_time - last_update) > update_interval:
         success = await controller.update(vehicle[VEHICLE_VIN], force=True)
@@ -129,12 +141,14 @@ async def poll_subaru(vehicle, controller, update_interval=UPDATE_INTERVAL):
     return success
 
 
-async def refresh_subaru(vehicle, controller, refresh_interval=FETCH_INTERVAL):
+async def refresh_subaru(
+    vehicle: dict, controller: Controller, refresh_interval: int = FETCH_INTERVAL
+) -> bool:
     """Refresh data from Subaru servers."""
     cur_time = time.time()
     last_fetch = vehicle[VEHICLE_LAST_FETCH]
     vin = vehicle[VEHICLE_VIN]
-    success = None
+    success = False
 
     if (cur_time - last_fetch) > refresh_interval:
         success = await controller.fetch(vin, force=True)

@@ -74,16 +74,3 @@ SUPPORTED_PLATFORMS = [
     Platform.BUTTON,
     Platform.SELECT,
 ]
-
-ICONS = {
-    "Horn Start": "mdi:volume-high",
-    "Horn Stop": "mdi:volume-off",
-    "Lights Start": "mdi:lightbulb-on",
-    "Lights Stop": "mdi:lightbulb-off",
-    "Locate": "mdi:car-connected",
-    "Refresh": "mdi:refresh",
-    "Remote Start": "mdi:power",
-    "Remote Stop": "mdi:stop-circle-outline",
-    "Charge EV": "mdi:ev-station",
-    "Climate Preset": "mdi:thermometer-lines",
-}

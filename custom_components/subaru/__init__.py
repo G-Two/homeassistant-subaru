@@ -1,4 +1,6 @@
 """The Subaru integration."""
+from __future__ import annotations
+
 import asyncio
 from datetime import timedelta
 import logging
@@ -21,15 +23,15 @@ from homeassistant.const import (
     STATE_ON,
     Platform,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import (
     aiohttp_client,
     config_validation as cv,
     device_registry,
-    entity_registry,
+    entity_registry as er,
 )
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -42,7 +44,6 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
-    MANUFACTURER,
     REMOTE_CLIMATE_PRESET_NAME,
     REMOTE_SERVICE_REMOTE_START,
     SUPPORTED_PLATFORMS,
@@ -60,6 +61,7 @@ from .const import (
     VEHICLE_NAME,
     VEHICLE_VIN,
 )
+from .migrate import async_migrate_entries
 from .options import PollingOptions
 from .remote_service import (
     async_call_remote_service,
@@ -71,13 +73,13 @@ from .remote_service import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass, base_config):
+async def async_setup(hass: HomeAssistant, base_config: ConfigType) -> bool:
     """Do nothing since this integration does not support configuration.yml setup."""
     hass.data.setdefault(DOMAIN, {})
     return True
 
 
-async def async_setup_entry(hass, entry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Subaru from a config entry."""
     config = entry.data
     websession = aiohttp_client.async_create_clientsession(hass)
@@ -109,12 +111,12 @@ async def async_setup_entry(hass, entry):
 
     vehicles = {}
     for vin in controller.get_vehicles():
-        vehicles[vin] = get_vehicle_info(controller, vin)
+        vehicles[vin] = _get_vehicle_info(controller, vin)
 
-    async def async_update_data():
+    async def async_update_data() -> dict:
         """Fetch data from API endpoint."""
         try:
-            return await refresh_subaru_data(hass, entry, vehicles, controller)
+            return await _refresh_subaru_data(hass, entry, vehicles, controller)
         except SubaruException as err:
             raise UpdateFailed(err.message) from err
 
@@ -134,12 +136,14 @@ async def async_setup_entry(hass, entry):
         ENTRY_VEHICLES: vehicles,
     }
 
+    await async_migrate_entries(hass, entry)
+
     for component in SUPPORTED_PLATFORMS:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
 
-    async def async_call_service(call):
+    async def async_call_service(call: ServiceCall) -> None:
         """Execute subaru service."""
         _LOGGER.warning(
             "This Subaru-specific service is deprecated and will be removed in v0.7.0. Use button or lock entities (or their respective services) to actuate remove vehicle services."
@@ -161,7 +165,7 @@ async def async_setup_entry(hass, entry):
 
         raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
 
-    async def async_remote_start(call):
+    async def async_remote_start(call: ServiceCall) -> None:
         """Start the vehicle engine."""
         dev_reg = device_registry.async_get(hass)
         device_entry = dev_reg.async_get(call.data[ATTR_DEVICE_ID])
@@ -209,7 +213,7 @@ async def async_setup_entry(hass, entry):
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = all(
         await asyncio.gather(
@@ -225,7 +229,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return unload_ok
 
 
-async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
+async def _refresh_subaru_data(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    vehicle_info: dict,
+    controller: SubaruAPI,
+) -> dict:
     """
     Refresh local data with data fetched via Subaru API.
 
@@ -247,7 +256,7 @@ async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
         )
         if polling_option == PollingOptions.CHARGING:
             # Is there a better way to check if the subaru is charging?
-            e_registry = entity_registry.async_get(hass)
+            e_registry = er.async_get(hass)
             battery_charging = e_registry.async_get_device_class_lookup(
                 {(Platform.BINARY_SENSOR, BinarySensorDeviceClass.BATTERY_CHARGING)}
             )
@@ -278,7 +287,7 @@ async def refresh_subaru_data(hass, config_entry, vehicle_info, controller):
     return data
 
 
-def get_vehicle_info(controller, vin):
+def _get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
     """Obtain vehicle identifiers and capabilities."""
     info = {
         VEHICLE_VIN: vin,
@@ -294,13 +303,3 @@ def get_vehicle_info(controller, vin):
         VEHICLE_LAST_FETCH: 0,
     }
     return info
-
-
-def get_device_info(vehicle_info):
-    """Return DeviceInfo object based on vehicle info."""
-    return DeviceInfo(
-        identifiers={(DOMAIN, vehicle_info[VEHICLE_VIN])},
-        manufacturer=MANUFACTURER,
-        model=f"{vehicle_info[VEHICLE_MODEL_YEAR]} {vehicle_info[VEHICLE_MODEL_NAME]}",
-        name=vehicle_info[VEHICLE_NAME],
-    )

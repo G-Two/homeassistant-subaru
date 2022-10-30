@@ -1,4 +1,5 @@
 """Enums for Subaru integration config options."""
+from __future__ import annotations
 
 from enum import Enum
 
@@ -7,12 +8,12 @@ class ConfigOptionsEnum(Enum):
     """Base class for Config UI options enums."""
 
     @classmethod
-    def list(cls):
+    def list(cls) -> list[str]:
         """List values."""
         return [item.value for item in cls]
 
     @classmethod
-    def get_by_value(cls, value):
+    def get_by_value(cls, value: str) -> ConfigOptionsEnum | None:
         """Get enum instance by value."""
         result = None
         for item in cls:

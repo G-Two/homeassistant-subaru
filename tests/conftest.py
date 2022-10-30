@@ -23,10 +23,11 @@ from custom_components.subaru.const import (
     VEHICLE_NAME,
 )
 from custom_components.subaru.options import NotificationOptions, PollingOptions
+from homeassistant import config_entries
 from homeassistant.components.homeassistant import DOMAIN as HA_DOMAIN
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
 from homeassistant.core import State
+from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
 
@@ -74,6 +75,20 @@ TEST_CONFIG = {
     CONF_DEVICE_ID: TEST_DEVICE_ID,
 }
 
+TEST_OPTIONS = {
+    CONF_POLLING_OPTION: PollingOptions.ENABLE.value,
+    CONF_NOTIFICATION_OPTION: NotificationOptions.SUCCESS.value,
+}
+
+TEST_CONFIG_ENTRY = {
+    "entry_id": "1",
+    "domain": DOMAIN,
+    "title": TEST_CONFIG[CONF_USERNAME],
+    "data": TEST_CONFIG,
+    "options": TEST_OPTIONS,
+    "source": config_entries.SOURCE_USER,
+}
+
 TEST_DEVICE_NAME = "test_vehicle_2"
 TEST_ENTITY_ID = f"sensor.{TEST_DEVICE_NAME}_odometer"
 
@@ -84,41 +99,16 @@ def advance_time(hass, seconds):
     async_fire_time_changed(hass, future)
 
 
-async def setup_subaru_integration(
+async def setup_subaru_config_entry(
     hass,
+    config_entry,
     vehicle_list=None,
     vehicle_data=None,
     vehicle_status=None,
     connect_effect=None,
     fetch_effect=None,
-    saved_cache=None,
-    charge_polling=None,
 ):
-    """Create Subaru entry."""
-    if saved_cache:
-        mock_restore_cache(
-            hass,
-            (State("select.test_vehicle_2_climate_preset", "Full Heat"),),
-        )
-
-    test_options = {
-        CONF_POLLING_OPTION: PollingOptions.CHARGING.value
-        if charge_polling
-        else PollingOptions.ENABLE.value,
-        CONF_NOTIFICATION_OPTION: NotificationOptions.SUCCESS.value,
-    }
-
-    assert await async_setup_component(hass, HA_DOMAIN, {})
-    assert await async_setup_component(hass, DOMAIN, {})
-
-    config_entry = MockConfigEntry(
-        domain=DOMAIN,
-        data=TEST_CONFIG,
-        options=test_options,
-        entry_id=1,
-    )
-    config_entry.add_to_hass(hass)
-
+    """Run async_setup with API mocks in place."""
     with patch(
         MOCK_API_CONNECT,
         return_value=connect_effect is None,
@@ -152,54 +142,117 @@ async def setup_subaru_integration(
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
+
+async def setup_default_ev_entry(hass, config_entry):
+    """Run async_setup with API mocks in place and EV subscription responses."""
+    await setup_subaru_config_entry(
+        hass,
+        config_entry,
+        vehicle_list=[TEST_VIN_2_EV],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
+        vehicle_status=VEHICLE_STATUS_EV,
+    )
+
+
+@pytest.fixture(name="subaru_config_entry", scope="function")
+async def fixture_subaru_config_entry(hass, enable_custom_integrations):
+    """Create a Subaru config entry prior to setup."""
+    await async_setup_component(hass, HA_DOMAIN, {})
+    config_entry = MockConfigEntry(**TEST_CONFIG_ENTRY)
+    config_entry.add_to_hass(hass)
     return config_entry
 
 
 @pytest.fixture
-async def ev_entry(hass, enable_custom_integrations):
+async def ev_entry(hass, subaru_config_entry, enable_custom_integrations):
     """Create a Subaru entry representing an EV vehicle with full STARLINK subscription."""
-    entry = await setup_subaru_integration(
-        hass,
-        vehicle_list=[TEST_VIN_2_EV],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
-        vehicle_status=VEHICLE_STATUS_EV,
-    )
-    assert DOMAIN in hass.config_entries.async_domains()
-    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
-    assert hass.config_entries.async_get_entry(entry.entry_id)
-    assert entry.state is ConfigEntryState.LOADED
-    return entry
+    await setup_default_ev_entry(hass, subaru_config_entry)
+    return subaru_config_entry
 
 
 @pytest.fixture
-async def ev_entry_with_saved_climate(hass, enable_custom_integrations):
-    """Create Subaru EV entity but with saved climate preset."""
-    entry = await setup_subaru_integration(
+async def ev_entry_with_saved_climate(
+    hass, subaru_config_entry, enable_custom_integrations
+):
+    """Create Subaru EV entity with saved climate preset."""
+    mock_restore_cache(
         hass,
-        vehicle_list=[TEST_VIN_2_EV],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
-        vehicle_status=VEHICLE_STATUS_EV,
-        saved_cache=True,
+        (State("select.test_vehicle_2_climate_preset", "Full Heat"),),
     )
-    assert DOMAIN in hass.config_entries.async_domains()
-    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
-    assert hass.config_entries.async_get_entry(entry.entry_id)
-    assert entry.state is ConfigEntryState.LOADED
-    return entry
+    await setup_default_ev_entry(
+        hass,
+        subaru_config_entry,
+    )
+    return subaru_config_entry
 
 
 @pytest.fixture
-async def ev_entry_charge_polling(hass, enable_custom_integrations):
-    """Create a Subaru EV entity but with charge polling option."""
-    entry = await setup_subaru_integration(
-        hass,
-        vehicle_list=[TEST_VIN_2_EV],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
-        vehicle_status=VEHICLE_STATUS_EV,
-        charge_polling=True,
+async def ev_entry_charge_polling(
+    hass, subaru_config_entry, enable_custom_integrations
+):
+    """Create a Subaru EV entity with charge polling option enabled."""
+    options_form = await hass.config_entries.options.async_init(
+        subaru_config_entry.entry_id
     )
-    assert DOMAIN in hass.config_entries.async_domains()
-    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
-    assert hass.config_entries.async_get_entry(entry.entry_id)
-    assert entry.state is ConfigEntryState.LOADED
-    return entry
+    await hass.config_entries.options.async_configure(
+        options_form["flow_id"],
+        user_input={
+            CONF_NOTIFICATION_OPTION: NotificationOptions.SUCCESS.value,
+            CONF_POLLING_OPTION: PollingOptions.CHARGING.value,
+        },
+    )
+    await setup_default_ev_entry(
+        hass,
+        subaru_config_entry,
+    )
+    return subaru_config_entry
+
+
+async def migrate_unique_ids(
+    hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
+) -> None:
+    """Test successful migration of entity unique_ids."""
+    entity_registry = er.async_get(hass)
+    entity: er.RegistryEntry = entity_registry.async_get_or_create(
+        **entitydata,
+        config_entry=subaru_config_entry,
+    )
+    assert entity.unique_id == old_unique_id
+
+    await setup_default_ev_entry(hass, subaru_config_entry)
+
+    entity_migrated = entity_registry.async_get(entity.entity_id)
+    assert entity_migrated
+    assert entity_migrated.unique_id == new_unique_id
+
+
+async def migrate_unique_ids_duplicate(
+    hass, entitydata, old_unique_id, new_unique_id, subaru_config_entry
+) -> None:
+    """Test unsuccessful migration of entity unique_ids due to duplicate."""
+    entity_registry = er.async_get(hass)
+    entity: er.RegistryEntry = entity_registry.async_get_or_create(
+        **entitydata,
+        config_entry=subaru_config_entry,
+    )
+    assert entity.unique_id == old_unique_id
+
+    # create existing entry with new_unique_id that conflicts with migrate
+    existing_entity = entity_registry.async_get_or_create(
+        entitydata["domain"],
+        entitydata["platform"],
+        unique_id=new_unique_id,
+        config_entry=subaru_config_entry,
+    )
+
+    await setup_default_ev_entry(hass, subaru_config_entry)
+
+    entity_migrated = entity_registry.async_get(entity.entity_id)
+    assert entity_migrated
+    assert entity_migrated.unique_id == old_unique_id
+
+    entity_not_changed = entity_registry.async_get(existing_entity.entity_id)
+    assert entity_not_changed
+    assert entity_not_changed.unique_id == new_unique_id
+
+    assert entity_migrated != entity_not_changed
