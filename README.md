@@ -38,13 +38,11 @@ NOTE: There now appears to be a Gen 3, although it is unclear which model years 
 
 | Sensor                   | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
-| 12V battery voltage      |         | &check; | &check; |
 | Average fuel consumption |         | &check; | &check; |
 | Distance to empty        |         | &check; | &check; |
 | EV battery level         |         | &check; | &check; |
 | EV range                 |         | &check; | &check; |
 | EV time to full charge   |         | &check; | &check; |
-| External temperature     |         | &check; | &check; |
 | Odometer                 | &check;*| &check; | &check; |
 | Tire pressures           |         | &check; | &check; |
 
@@ -167,27 +165,6 @@ official mobile app. Although the underlying subarulink python package does supp
 integration.
 
 ---
-### Legacy Services
-**NOTE:** All the legacy services below will be removed in release v0.7.0:
-
-| Service                | Description |
-| ---------------------- | ----------- |
-|`subaru.charge_start`   | Starts EV charging (this cannot be stopped remotely) |
-|`subaru.fetch`          | Fetches vehicle data cached on Subaru servers (does not request update from vehicle) |
-|`subaru.horn`           | Sound the horn and flash the lights of the vehicle |
-|`subaru.horn_cancel`    | Stop sounding the horn and flash the lights of the vehicle |
-|`subaru.lights`         | Flash the lights of the vehicle |
-|`subaru.lights_cancel`  | Stop flashing the lights of the vehicle |
-|`subaru.remote_stop`    | Stop the engine and climate control of the vehicle |
-|`subaru.update`         | Sends request to vehicle to update data which will update cache on Subaru servers |
-
-All of the legacy services require the same service data attribute shown below. The service will be invoked on the vehicle identified by `vin`.
-
-| Service Data Attribute | Required | Type   | Description                                        |
-| ---------------------- | -------- | ------ | -------------------------------------------------- |
-| `vin`                  |   yes    | String | The vehicle identification number (VIN) of the vehicle, 17 characters |
-
-
 
 ## Lovelace Example
 <img src="https://user-images.githubusercontent.com/7310260/148698672-48cdc85f-623b-4f06-88e2-6e1949b4a522.png" width="1024" />
@@ -219,7 +196,7 @@ views:
                 entity_id: button.subaru_refresh
             type: button
             icon_height: 48px
-          - entity: button.subaru_locate
+          - entity: button.subaru_poll_vehicle
             hold_action:
               action: more-info
             show_icon: true
@@ -232,7 +209,7 @@ views:
               service: button.press
               service_data: {}
               target:
-                entity_id: button.subaru_locate
+                entity_id: button.subaru_update
             type: button
             icon_height: 48px
         title: Update Data
