@@ -8,7 +8,6 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
     mock_restore_cache,
 )
-from subarulink.const import COUNTRY_USA
 
 from custom_components.subaru.const import (
     CONF_COUNTRY,
@@ -30,6 +29,7 @@ from homeassistant.core import State
 from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
+from subarulink.const import COUNTRY_USA
 
 from tests.api_responses import TEST_VIN_2_EV, VEHICLE_DATA, VEHICLE_STATUS_EV
 
@@ -54,6 +54,7 @@ MOCK_API_UPDATE = f"{MOCK_API}update"
 MOCK_API_FETCH = f"{MOCK_API}fetch"
 MOCK_API_REMOTE_START = f"{MOCK_API}remote_start"
 MOCK_API_LIGHTS = f"{MOCK_API}lights"
+MOCK_API_GET_RAW_DATA = f"{MOCK_API}get_raw_data"
 
 TEST_USERNAME = "user@email.com"
 TEST_PASSWORD = "password"  # nosec

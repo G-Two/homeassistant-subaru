@@ -14,7 +14,12 @@ from homeassistant.core import HomeAssistant, HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 
 from .api_responses import TEST_VIN_2_EV
-from .conftest import MOCK_API_FETCH, MOCK_API_GET_DATA, advance_time
+from .conftest import (
+    MOCK_API_FETCH,
+    MOCK_API_GET_DATA,
+    MOCK_API_GET_RAW_DATA,
+    advance_time,
+)
 
 
 async def test_config_entry_diagnostics(hass: HomeAssistant, ev_entry):
@@ -41,9 +46,11 @@ async def test_device_diagnostics(hass: HomeAssistant, hass_client, ev_entry):
     )
     assert reg_device is not None
 
-    expected = json.loads(load_fixture("diagnostics_device.json"))
-
-    result = await async_get_device_diagnostics(hass, config_entry, reg_device)
+    raw_data = json.loads(load_fixture("raw_api_data.json"))
+    with patch(MOCK_API_GET_RAW_DATA, return_value=raw_data) as mock_get_raw_data:
+        expected = json.loads(load_fixture("diagnostics_device.json"))
+        result = await async_get_device_diagnostics(hass, config_entry, reg_device)
+        mock_get_raw_data.assert_called_once()
     assert json.dumps(expected) == json.dumps(result, default=str)
 
 
