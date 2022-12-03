@@ -3,12 +3,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.diagnostics.util import async_redact_data
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.device_registry import DeviceEntry
 from subarulink.const import (
     LATITUDE,
     LONGITUDE,
@@ -16,6 +10,13 @@ from subarulink.const import (
     RAW_API_FIELDS_TO_REDACT,
     VEHICLE_NAME,
 )
+
+from homeassistant.components.diagnostics.util import async_redact_data
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_DEVICE_ID, CONF_PASSWORD, CONF_PIN, CONF_USERNAME
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.device_registry import DeviceEntry
 
 from .const import DOMAIN, ENTRY_CONTROLLER, ENTRY_COORDINATOR, VEHICLE_VIN
 

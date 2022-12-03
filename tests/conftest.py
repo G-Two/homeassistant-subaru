@@ -8,6 +8,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
     mock_restore_cache,
 )
+from subarulink.const import COUNTRY_USA
 
 from custom_components.subaru.const import (
     CONF_COUNTRY,
@@ -29,7 +30,6 @@ from homeassistant.core import State
 from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
-from subarulink.const import COUNTRY_USA
 
 from tests.api_responses import TEST_VIN_2_EV, VEHICLE_DATA, VEHICLE_STATUS_EV
 
