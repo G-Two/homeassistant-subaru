@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 import logging
+import pprint
 
 from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruException
 from subarulink.const import COUNTRY_USA
@@ -201,6 +202,7 @@ async def _refresh_subaru_data(
         received_data = await controller.get_data(vin)
         if received_data:
             data[vin] = received_data
+            _LOGGER.debug("Subaru data %s", pprint.pformat(received_data))
 
     return data
 
