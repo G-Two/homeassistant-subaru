@@ -4,10 +4,10 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 import logging
+import pprint
 
 from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruException
 from subarulink.const import COUNTRY_USA
-import voluptuous as vol
 
 from homeassistant.components.binary_sensor import (
     DOMAIN as BINARY_SENSOR_DOMAIN,
@@ -15,7 +15,6 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_DEVICE_ID,
     CONF_DEVICE_ID,
     CONF_PASSWORD,
     CONF_PIN,
@@ -23,20 +22,14 @@ from homeassistant.const import (
     STATE_ON,
     Platform,
 )
-from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers import (
-    aiohttp_client,
-    config_validation as cv,
-    device_registry,
-    entity_registry as er,
-)
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import aiohttp_client, entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
     CONF_COUNTRY,
-    CONF_NOTIFICATION_OPTION,
     CONF_POLLING_OPTION,
     COORDINATOR_NAME,
     DOMAIN,
@@ -44,8 +37,6 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     FETCH_INTERVAL,
-    REMOTE_CLIMATE_PRESET_NAME,
-    REMOTE_SERVICE_REMOTE_START,
     SUPPORTED_PLATFORMS,
     UPDATE_INTERVAL,
     UPDATE_INTERVAL_CHARGING,
@@ -63,12 +54,7 @@ from .const import (
 )
 from .migrate import async_migrate_entries
 from .options import PollingOptions
-from .remote_service import (
-    async_call_remote_service,
-    get_supported_services,
-    poll_subaru,
-    refresh_subaru,
-)
+from .remote_service import poll_subaru, refresh_subaru
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -143,73 +129,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
 
-    async def async_call_service(call: ServiceCall) -> None:
-        """Execute subaru service."""
-        _LOGGER.warning(
-            "This Subaru-specific service is deprecated and will be removed in v0.7.0. Use button or lock entities (or their respective services) to actuate remove vehicle services."
-        )
-        vin = call.data[VEHICLE_VIN].upper()
-        arg = None
-
-        if vin in vehicles:
-            await async_call_remote_service(
-                hass,
-                controller,
-                call.service,
-                vehicles[vin],
-                arg,
-                entry.options.get(CONF_NOTIFICATION_OPTION),
-            )
-            await coordinator.async_refresh()
-            return
-
-        raise HomeAssistantError(f"Invalid VIN provided while calling {call.service}")
-
-    async def async_remote_start(call: ServiceCall) -> None:
-        """Start the vehicle engine."""
-        dev_reg = device_registry.async_get(hass)
-        device_entry = dev_reg.async_get(call.data[ATTR_DEVICE_ID])
-        if device_entry:
-            vin = list(device_entry.identifiers)[0][1]
-            _LOGGER.info(
-                "Remote engine start initiated with climate preset: %s",
-                call.data[REMOTE_CLIMATE_PRESET_NAME],
-            )
-            await async_call_remote_service(
-                hass,
-                controller,
-                call.service,
-                vehicles[vin],
-                call.data[REMOTE_CLIMATE_PRESET_NAME],
-                entry.options.get(CONF_NOTIFICATION_OPTION),
-            )
-            await coordinator.async_refresh()
-        else:
-            raise HomeAssistantError(f"device_id {call.data[ATTR_DEVICE_ID]} not found")
-
-    supported_services = get_supported_services(vehicles)
-
-    for service in supported_services:
-        if service == REMOTE_SERVICE_REMOTE_START:
-            hass.services.async_register(
-                DOMAIN,
-                service,
-                async_remote_start,
-                schema=vol.Schema(
-                    {
-                        vol.Required(ATTR_DEVICE_ID): cv.string,
-                        vol.Required(REMOTE_CLIMATE_PRESET_NAME): cv.string,
-                    }
-                ),
-            )
-        else:
-            hass.services.async_register(
-                DOMAIN,
-                service,
-                async_call_service,
-                schema=vol.Schema({vol.Required(VEHICLE_VIN): cv.string}),
-            )
-
     return True
 
 
@@ -283,6 +202,7 @@ async def _refresh_subaru_data(
         received_data = await controller.get_data(vin)
         if received_data:
             data[vin] = received_data
+            _LOGGER.debug("Subaru data %s", pprint.pformat(received_data))
 
     return data
 

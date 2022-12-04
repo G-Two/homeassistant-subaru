@@ -15,20 +15,12 @@ from .const import (
     DOMAIN,
     FETCH_INTERVAL,
     REMOTE_SERVICE_CHARGE_START,
-    REMOTE_SERVICE_FETCH,
-    REMOTE_SERVICE_HORN,
-    REMOTE_SERVICE_HORN_STOP,
-    REMOTE_SERVICE_LIGHTS,
-    REMOTE_SERVICE_LIGHTS_STOP,
+    REMOTE_SERVICE_POLL_VEHICLE,
+    REMOTE_SERVICE_REFRESH,
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
     REMOTE_SERVICE_UNLOCK,
-    REMOTE_SERVICE_UPDATE,
     UPDATE_INTERVAL,
-    VEHICLE_HAS_EV,
-    VEHICLE_HAS_REMOTE_SERVICE,
-    VEHICLE_HAS_REMOTE_START,
-    VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_LAST_FETCH,
     VEHICLE_LAST_UPDATE,
     VEHICLE_NAME,
@@ -39,10 +31,9 @@ from .options import NotificationOptions
 _LOGGER = logging.getLogger(__name__)
 
 SERVICES_THAT_NEED_FETCH = [
-    REMOTE_SERVICE_FETCH,
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
-    REMOTE_SERVICE_UPDATE,
+    REMOTE_SERVICE_POLL_VEHICLE,
     REMOTE_SERVICE_CHARGE_START,
 ]
 
@@ -69,17 +60,17 @@ async def async_call_remote_service(
     success = False
     err_msg = ""
     try:
-        if cmd == REMOTE_SERVICE_UPDATE:
+        if cmd == REMOTE_SERVICE_POLL_VEHICLE:
             success = await poll_subaru(vehicle_info, controller, update_interval=0)
         elif cmd in [REMOTE_SERVICE_REMOTE_START, REMOTE_SERVICE_UNLOCK]:
             success = await getattr(controller, cmd)(vin, arg)
-        elif cmd == REMOTE_SERVICE_FETCH:
-            pass
+        elif cmd == REMOTE_SERVICE_REFRESH:
+            success = await refresh_subaru(vehicle_info, controller, refresh_interval=0)
         else:
             success = await getattr(controller, cmd)(vin)
 
         if cmd in SERVICES_THAT_NEED_FETCH:
-            success = await refresh_subaru(vehicle_info, controller, refresh_interval=0)
+            await refresh_subaru(vehicle_info, controller, refresh_interval=0)
 
     except SubaruException as err:
         err_msg = err.message
@@ -103,32 +94,7 @@ async def async_call_remote_service(
     raise HomeAssistantError(f"Service {cmd} failed for {car_name}: {err_msg}")
 
 
-def get_supported_services(vehicle_info: dict) -> set[str]:
-    """Return a list of supported services."""
-    remote_services = set()
-    for vin in vehicle_info:
-        if vehicle_info[vin][VEHICLE_HAS_SAFETY_SERVICE]:
-            remote_services.add(REMOTE_SERVICE_FETCH)
-        if vehicle_info[vin][VEHICLE_HAS_REMOTE_SERVICE]:
-            remote_services.add(REMOTE_SERVICE_HORN)
-            remote_services.add(REMOTE_SERVICE_HORN_STOP)
-            remote_services.add(REMOTE_SERVICE_LIGHTS)
-            remote_services.add(REMOTE_SERVICE_LIGHTS_STOP)
-            remote_services.add(REMOTE_SERVICE_UPDATE)
-        if (
-            vehicle_info[vin][VEHICLE_HAS_REMOTE_START]
-            or vehicle_info[vin][VEHICLE_HAS_EV]
-        ):
-            remote_services.add(REMOTE_SERVICE_REMOTE_START)
-            remote_services.add(REMOTE_SERVICE_REMOTE_STOP)
-        if vehicle_info[vin][VEHICLE_HAS_EV]:
-            remote_services.add(REMOTE_SERVICE_CHARGE_START)
-    return remote_services
-
-
-async def poll_subaru(
-    vehicle: dict, controller: Controller, update_interval: int = UPDATE_INTERVAL
-) -> bool:
+async def poll_subaru(vehicle, controller, update_interval=UPDATE_INTERVAL):
     """Commands remote vehicle update (polls the vehicle to update subaru API cache)."""
     cur_time = time.time()
     last_update = vehicle[VEHICLE_LAST_UPDATE]

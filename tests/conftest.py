@@ -54,6 +54,7 @@ MOCK_API_UPDATE = f"{MOCK_API}update"
 MOCK_API_FETCH = f"{MOCK_API}fetch"
 MOCK_API_REMOTE_START = f"{MOCK_API}remote_start"
 MOCK_API_LIGHTS = f"{MOCK_API}lights"
+MOCK_API_GET_RAW_DATA = f"{MOCK_API}get_raw_data"
 
 TEST_USERNAME = "user@email.com"
 TEST_PASSWORD = "password"  # nosec

@@ -16,14 +16,14 @@ from .const import (
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
     REMOTE_SERVICE_CHARGE_START,
-    REMOTE_SERVICE_FETCH,
     REMOTE_SERVICE_HORN,
     REMOTE_SERVICE_HORN_STOP,
     REMOTE_SERVICE_LIGHTS,
     REMOTE_SERVICE_LIGHTS_STOP,
+    REMOTE_SERVICE_POLL_VEHICLE,
+    REMOTE_SERVICE_REFRESH,
     REMOTE_SERVICE_REMOTE_START,
     REMOTE_SERVICE_REMOTE_STOP,
-    REMOTE_SERVICE_UPDATE,
     VEHICLE_CLIMATE_SELECTED_PRESET,
     VEHICLE_HAS_EV,
     VEHICLE_HAS_REMOTE_SERVICE,
@@ -49,10 +49,10 @@ G1_REMOTE_BUTTONS = [
         key=REMOTE_SERVICE_LIGHTS_STOP, icon="mdi:lightbulb-off", name="Lights stop"
     ),
     ButtonEntityDescription(
-        key=REMOTE_SERVICE_UPDATE, icon="mdi:car-connected", name="Locate"
+        key=REMOTE_SERVICE_POLL_VEHICLE, icon="mdi:car-connected", name="Poll Vehicle"
     ),
     ButtonEntityDescription(
-        key=REMOTE_SERVICE_FETCH, icon="mdi:refresh", name="Refresh"
+        key=REMOTE_SERVICE_REFRESH, icon="mdi:refresh", name="Refresh"
     ),
 ]
 

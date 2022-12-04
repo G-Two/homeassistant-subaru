@@ -83,3 +83,7 @@ overgeneral-exceptions = [
     "BaseException",
     "Exception",
 ]
+
+[tool.pytest.ini_options]
+testpaths = [ "tests" ]
+addopts = "--strict-markers --cov=custom_components --asyncio-mode=auto"
