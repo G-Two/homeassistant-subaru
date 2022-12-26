@@ -17,9 +17,11 @@ from custom_components.subaru.const import (
     DOMAIN,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
+    VEHICLE_HAS_POWER_WINDOWS,
     VEHICLE_HAS_REMOTE_SERVICE,
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
+    VEHICLE_HAS_SUNROOF,
     VEHICLE_MODEL_NAME,
     VEHICLE_MODEL_YEAR,
     VEHICLE_NAME,
@@ -53,6 +55,8 @@ MOCK_API_GET_EV_STATUS = f"{MOCK_API}get_ev_status"
 MOCK_API_GET_RES_STATUS = f"{MOCK_API}get_res_status"
 MOCK_API_GET_REMOTE_STATUS = f"{MOCK_API}get_remote_status"
 MOCK_API_GET_SAFETY_STATUS = f"{MOCK_API}get_safety_status"
+MOCK_API_HAS_POWER_WINDOWS = f"{MOCK_API}has_power_windows"
+MOCK_API_HAS_MOONROOF = f"{MOCK_API}has_moonroof"
 MOCK_API_GET_DATA = f"{MOCK_API}get_data"
 MOCK_API_UPDATE = f"{MOCK_API}update"
 MOCK_API_FETCH = f"{MOCK_API}fetch"
@@ -133,6 +137,12 @@ async def setup_subaru_config_entry(
     ), patch(
         MOCK_API_GET_EV_STATUS,
         return_value=vehicle_data[VEHICLE_HAS_EV],
+    ), patch(
+        MOCK_API_HAS_POWER_WINDOWS,
+        return_value=vehicle_data[VEHICLE_HAS_POWER_WINDOWS],
+    ), patch(
+        MOCK_API_HAS_MOONROOF,
+        return_value=vehicle_data[VEHICLE_HAS_SUNROOF],
     ), patch(
         MOCK_API_GET_RES_STATUS,
         return_value=vehicle_data[VEHICLE_HAS_REMOTE_START],

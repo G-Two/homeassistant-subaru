@@ -26,6 +26,8 @@ from .const import (
     ENTRY_VEHICLES,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
+    VEHICLE_HAS_POWER_WINDOWS,
+    VEHICLE_HAS_SUNROOF,
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
@@ -53,7 +55,7 @@ ON_VALUES = {
     BinarySensorDeviceClass.BATTERY_CHARGING: [sc.CHARGING],
 }
 
-# Binary Sensors available to "Subaru Safety Plus" subscribers with Gen2 vehicles
+# Binary sensors available to "Subaru Safety Plus" subscribers with Gen2+ vehicles
 API_GEN_2_BINARY_SENSORS = [
     BinarySensorEntityDescription(
         name="Ignition",
@@ -90,6 +92,10 @@ API_GEN_2_BINARY_SENSORS = [
         key=sc.DOOR_REAR_RIGHT_POSITION,
         device_class=BinarySensorDeviceClass.DOOR,
     ),
+]
+
+# Additional binary sensors for certain supported vehicles (Power Windows)
+POWER_WINDOW_BINARY_SENSORS = [
     BinarySensorEntityDescription(
         name="Front left window",
         key=sc.WINDOW_FRONT_LEFT_STATUS,
@@ -110,6 +116,10 @@ API_GEN_2_BINARY_SENSORS = [
         key=sc.WINDOW_REAR_RIGHT_STATUS,
         device_class=BinarySensorDeviceClass.WINDOW,
     ),
+]
+
+# Additional binary sensors for certain supported vehicles (Sunroof)
+SUNROOF_BINARY_SENSORS = [
     BinarySensorEntityDescription(
         name="Sunroof",
         key=sc.WINDOW_SUNROOF_STATUS,
@@ -117,7 +127,8 @@ API_GEN_2_BINARY_SENSORS = [
     ),
 ]
 
-# Binary Sensors available to "Subaru Safety Plus" subscribers with PHEV vehicles
+
+# Additional binary sensors for EVs
 EV_BINARY_SENSORS = [
     BinarySensorEntityDescription(
         name="EV charge port",
@@ -155,6 +166,12 @@ def create_vehicle_binary_sensors(
 
     if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
         potential_sensors.extend(API_GEN_2_BINARY_SENSORS)
+
+    if vehicle_info[VEHICLE_HAS_POWER_WINDOWS]:
+        potential_sensors.extend(POWER_WINDOW_BINARY_SENSORS)
+
+    if vehicle_info[VEHICLE_HAS_SUNROOF]:
+        potential_sensors.extend(SUNROOF_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_EV]:
         potential_sensors.extend(EV_BINARY_SENSORS)
