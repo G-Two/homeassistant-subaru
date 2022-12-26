@@ -31,6 +31,7 @@ from homeassistant.util.unit_system import IMPERIAL_SYSTEM, LENGTH_UNITS, PRESSU
 
 from .const import (
     API_GEN_2,
+    API_GEN_3,
     DOMAIN,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -61,7 +62,7 @@ SAFETY_SENSORS = [
     ),
 ]
 
-# Sensors available to "Subaru Safety Plus" subscribers with Gen2 vehicles
+# Sensors available to "Subaru Safety Plus" subscribers with Gen2/3 vehicles
 API_GEN_2_SENSORS = [
     SensorEntityDescription(
         key=sc.AVG_FUEL_CONSUMPTION,
@@ -104,6 +105,17 @@ API_GEN_2_SENSORS = [
         device_class=SensorDeviceClass.PRESSURE,
         name="Tire pressure RR",
         native_unit_of_measurement=PRESSURE_HPA,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+]
+
+# Sensors available to "Subaru Safety Plus" subscribers with Gen3 vehicles
+API_GEN_3_SENSORS = [
+    SensorEntityDescription(
+        key=sc.REMAINING_FUEL_PERCENT,
+        icon="mdi:gas-station",
+        name="Fuel level",
+        native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 ]
@@ -157,8 +169,11 @@ def create_vehicle_sensors(
     if vehicle_info[VEHICLE_HAS_SAFETY_SERVICE]:
         sensor_descriptions_to_add.extend(SAFETY_SENSORS)
 
-        if vehicle_info[VEHICLE_API_GEN] == API_GEN_2:
+        if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
             sensor_descriptions_to_add.extend(API_GEN_2_SENSORS)
+
+        if vehicle_info[VEHICLE_API_GEN] == API_GEN_3:
+            sensor_descriptions_to_add.extend(API_GEN_3_SENSORS)
 
         if vehicle_info[VEHICLE_HAS_EV]:
             sensor_descriptions_to_add.extend(EV_SENSORS)

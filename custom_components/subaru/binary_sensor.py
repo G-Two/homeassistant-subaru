@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import (
     API_GEN_2,
+    API_GEN_3,
     DOMAIN,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -152,7 +153,7 @@ def create_vehicle_binary_sensors(
     """Instantiate all available binary sensors for the vehicle."""
     potential_sensors = []
 
-    if vehicle_info[VEHICLE_API_GEN] == API_GEN_2:
+    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
         potential_sensors.extend(API_GEN_2_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_EV]:

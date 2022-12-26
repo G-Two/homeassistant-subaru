@@ -12,7 +12,7 @@
     },
     "data": {
         "preset_name": null,
-        "climate": [
+        "vehicle_climate": [
             {
                 "name": "Auto",
                 "runTimeMinutes": "10",
@@ -99,7 +99,7 @@
                 "presetType": "subaruPreset"
             }
         ],
-        "status": {
+        "vehicle_status": {
             "AVG_FUEL_CONSUMPTION": 2.3,
             "DISTANCE_TO_EMPTY_FUEL": 707,
             "DOOR_BOOT_LOCK_STATUS": "UNKNOWN",
@@ -239,7 +239,7 @@
             "intDescrip": "Navy",
             "modelName": "Crosstrek",
             "transCode": "CVT",
-            "provisioned": "**REDACTED**",
+            "provisioned": true,
             "remoteServicePinExist": true,
             "needEmergencyContactPrompt": false,
             "vehicleGeoPosition": "**REDACTED**",
