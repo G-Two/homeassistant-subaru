@@ -136,6 +136,95 @@
                 "HEADING": 170,
                 "LATITUDE": "**REDACTED**",
                 "LONGITUDE": "**REDACTED**"
+            },
+            "vehicle_health": {
+                "FEATURES": {
+                    "ABS_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "AHBL_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "ATF_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "AWD_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "BSDRCT_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "CEL_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "EBD_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "EOL_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "EPAS_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "EPB_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "ESS_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "HEVCM_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "HEV_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "OPL_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "RAB_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "SRS_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "TEL_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "TPMS_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "VDC_MIL": {
+                        "ISTROUBLE": false,
+                        "ONDATE": null
+                    },
+                    "WASH_MIL": {
+                        "ISTROUBLE": true,
+                        "ONDATE": 1662157865000
+                    }
+                },
+                "ISTROUBLE": true,
+                "RECOMMENDED_TIRE_PRESSURE": {
+                    "FRONT_TIRES": 36,
+                    "REAR_TIRES": 35
+                }
             }
         }
     ]

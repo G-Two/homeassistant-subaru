@@ -1,6 +1,7 @@
 """Support for Subaru binary sensors."""
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 import subarulink.const as sc
@@ -55,10 +56,10 @@ ON_VALUES = {
     BinarySensorDeviceClass.WINDOW: [
         sc.WINDOW_OPEN,
         sc.WINDOW_VENTED,
-        sc.MOONROOF_SLIDE_PARTLY_OPEN,
-        sc.MOONROOF_TILT,
-        sc.MOONROOF_TILT_PARTLY_OPEN,
-        sc.MOONROOF_OPEN,
+        sc.SUNROOF_SLIDE_PARTLY_OPEN,
+        sc.SUNROOF_TILT,
+        sc.SUNROOF_TILT_PARTLY_OPEN,
+        sc.SUNROOF_OPEN,
     ],
     BinarySensorDeviceClass.PLUG: [sc.LOCKED_CONNECTED, sc.UNLOCKED_CONNECTED],
     BinarySensorDeviceClass.BATTERY_CHARGING: [sc.CHARGING],
@@ -249,3 +250,20 @@ class SubaruBinarySensor(
             else:
                 value = data[VEHICLE_STATUS].get(self.entity_description.key)
         return value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return entity specific state attributes."""
+        extra_attributes = None
+
+        # If MIL is active, provide MIL names and timestamps
+        if self.device_class == BinarySensorDeviceClass.PROBLEM:
+            health_data = self.coordinator.data[self.vin][sc.VEHICLE_HEALTH]
+            if health_data[sc.HEALTH_TROUBLE]:
+                extra_attributes = {
+                    k: datetime.fromtimestamp(v[sc.HEALTH_ONDATE] / 1000)
+                    for k, v in health_data[sc.HEALTH_FEATURES].items()
+                    if v[sc.HEALTH_TROUBLE]
+                }
+
+        return extra_attributes
