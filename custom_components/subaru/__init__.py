@@ -219,7 +219,7 @@ def _get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
         VEHICLE_HAS_EV: controller.get_ev_status(vin),
         VEHICLE_API_GEN: controller.get_api_gen(vin),
         VEHICLE_HAS_POWER_WINDOWS: controller.has_power_windows(vin),
-        VEHICLE_HAS_SUNROOF: controller.has_moonroof(vin),
+        VEHICLE_HAS_SUNROOF: controller.has_sunroof(vin),
         VEHICLE_HAS_REMOTE_START: controller.get_res_status(vin),
         VEHICLE_HAS_REMOTE_SERVICE: controller.get_remote_status(vin),
         VEHICLE_HAS_SAFETY_SERVICE: controller.get_safety_status(vin),

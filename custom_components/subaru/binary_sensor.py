@@ -28,6 +28,7 @@ from .const import (
     VEHICLE_HAS_EV,
     VEHICLE_HAS_POWER_WINDOWS,
     VEHICLE_HAS_SUNROOF,
+    VEHICLE_HEALTH,
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
@@ -45,15 +46,32 @@ BINARY_SENSOR_ICONS = {
         True: "mdi:window-open",
         False: "mdi:window-closed",
     },
+    BinarySensorDeviceClass.PROBLEM: {True: "mdi:alert", False: "mdi:check"},
 }
 
 ON_VALUES = {
     BinarySensorDeviceClass.DOOR: [sc.DOOR_OPEN],
     BinarySensorDeviceClass.POWER: [sc.IGNITION_ON],
-    BinarySensorDeviceClass.WINDOW: [sc.WINDOW_OPEN],
+    BinarySensorDeviceClass.WINDOW: [
+        sc.WINDOW_OPEN,
+        sc.WINDOW_VENTED,
+        sc.MOONROOF_SLIDE_PARTLY_OPEN,
+        sc.MOONROOF_TILT,
+        sc.MOONROOF_TILT_PARTLY_OPEN,
+        sc.MOONROOF_OPEN,
+    ],
     BinarySensorDeviceClass.PLUG: [sc.LOCKED_CONNECTED, sc.UNLOCKED_CONNECTED],
     BinarySensorDeviceClass.BATTERY_CHARGING: [sc.CHARGING],
+    BinarySensorDeviceClass.PROBLEM: [True],
 }
+
+TROUBLE_BINARY_SENSOR = [
+    BinarySensorEntityDescription(
+        name="Trouble",
+        key=sc.HEALTH_TROUBLE,
+        device_class=BinarySensorDeviceClass.PROBLEM,
+    ),
+]
 
 # Binary sensors available to "Subaru Safety Plus" subscribers with Gen2+ vehicles
 API_GEN_2_BINARY_SENSORS = [
@@ -162,27 +180,19 @@ def create_vehicle_binary_sensors(
     vehicle_info: dict, coordinator: DataUpdateCoordinator
 ) -> list[SubaruBinarySensor]:
     """Instantiate all available binary sensors for the vehicle."""
-    potential_sensors = []
+    binary_sensors_to_add = TROUBLE_BINARY_SENSOR
 
     if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
-        potential_sensors.extend(API_GEN_2_BINARY_SENSORS)
+        binary_sensors_to_add.extend(API_GEN_2_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_POWER_WINDOWS]:
-        potential_sensors.extend(POWER_WINDOW_BINARY_SENSORS)
+        binary_sensors_to_add.extend(POWER_WINDOW_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_SUNROOF]:
-        potential_sensors.extend(SUNROOF_BINARY_SENSORS)
+        binary_sensors_to_add.extend(SUNROOF_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_EV]:
-        potential_sensors.extend(EV_BINARY_SENSORS)
-
-    binary_sensors_to_add = []
-    for sensor in potential_sensors:
-        if (
-            coordinator.data[vehicle_info[VEHICLE_VIN]][VEHICLE_STATUS].get(sensor.key)
-            not in sc.BAD_BINARY_SENSOR_VALUES
-        ):
-            binary_sensors_to_add.append(sensor)
+        binary_sensors_to_add.extend(EV_BINARY_SENSORS)
 
     return [
         SubaruBinarySensor(vehicle_info, coordinator, description)
@@ -234,5 +244,8 @@ class SubaruBinarySensor(
         """Get raw value from the coordinator."""
         value = None
         if data := self.coordinator.data.get(self.vin):
-            value = data[VEHICLE_STATUS].get(self.entity_description.key)
+            if self.device_class == BinarySensorDeviceClass.PROBLEM:
+                value = data[VEHICLE_HEALTH].get(self.entity_description.key)
+            else:
+                value = data[VEHICLE_STATUS].get(self.entity_description.key)
         return value
