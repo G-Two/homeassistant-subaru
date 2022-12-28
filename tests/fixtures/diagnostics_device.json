@@ -12,7 +12,7 @@
     },
     "data": {
         "preset_name": null,
-        "vehicle_climate": [
+        "climate": [
             {
                 "name": "Auto",
                 "runTimeMinutes": "10",

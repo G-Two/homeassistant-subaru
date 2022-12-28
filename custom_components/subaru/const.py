@@ -36,7 +36,7 @@ VEHICLE_HEALTH = "vehicle_health"
 VEHICLE_LAST_UPDATE = "last_update"
 VEHICLE_LAST_FETCH = "last_fetch"
 VEHICLE_STATUS = "vehicle_status"
-VEHICLE_CLIMATE = "vehicle_climate"
+VEHICLE_CLIMATE = "climate"
 VEHICLE_CLIMATE_PRESET_NAME = "name"
 VEHICLE_CLIMATE_SELECTED_PRESET = "preset_name"
 
