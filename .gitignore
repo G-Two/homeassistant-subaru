@@ -1,5 +1,7 @@
 **/*
 
+!.github/
+!.github/**
 !custom_components/
 !custom_components/**
 !tests/

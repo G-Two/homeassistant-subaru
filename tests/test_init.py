@@ -15,10 +15,10 @@ from homeassistant.setup import async_setup_component
 from .api_responses import (
     TEST_VIN_1_G1,
     TEST_VIN_2_EV,
-    TEST_VIN_3_G2,
+    TEST_VIN_3_G3,
     VEHICLE_DATA,
     VEHICLE_STATUS_EV,
-    VEHICLE_STATUS_G2,
+    VEHICLE_STATUS_G3,
 )
 from .conftest import (
     MOCK_API_FETCH,
@@ -44,14 +44,14 @@ async def test_setup_ev(hass, ev_entry):
     assert check_entry.state is ConfigEntryState.LOADED
 
 
-async def test_setup_g2(hass, subaru_config_entry, enable_custom_integrations):
-    """Test setup with a G2 vehicle ."""
+async def test_setup_g3(hass, subaru_config_entry, enable_custom_integrations):
+    """Test setup with a G3 vehicle ."""
     await setup_subaru_config_entry(
         hass,
         subaru_config_entry,
-        vehicle_list=[TEST_VIN_3_G2],
-        vehicle_data=VEHICLE_DATA[TEST_VIN_3_G2],
-        vehicle_status=VEHICLE_STATUS_G2,
+        vehicle_list=[TEST_VIN_3_G3],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_3_G3],
+        vehicle_status=VEHICLE_STATUS_G3,
     )
     check_entry = hass.config_entries.async_get_entry(subaru_config_entry.entry_id)
     assert check_entry
