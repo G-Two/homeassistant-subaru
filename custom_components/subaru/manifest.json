@@ -6,6 +6,6 @@
   "issue_tracker": "https://github.com/G-Two/homeassistant-subaru/issues",
   "requirements": ["subarulink==0.7.2"],
   "codeowners": ["@G-Two"],
-  "version": "0.7.2",
+  "version": "0.7.3",
   "iot_class": "cloud_polling"
 }
