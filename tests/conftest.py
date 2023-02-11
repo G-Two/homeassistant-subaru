@@ -55,6 +55,7 @@ MOCK_API_GET_EV_STATUS = f"{MOCK_API}get_ev_status"
 MOCK_API_GET_RES_STATUS = f"{MOCK_API}get_res_status"
 MOCK_API_GET_REMOTE_STATUS = f"{MOCK_API}get_remote_status"
 MOCK_API_GET_SAFETY_STATUS = f"{MOCK_API}get_safety_status"
+MOCK_API_GET_SUBSCRIPTION_STATUS = f"{MOCK_API}get_subscription_status"
 MOCK_API_HAS_POWER_WINDOWS = f"{MOCK_API}has_power_windows"
 MOCK_API_HAS_SUNROOF = f"{MOCK_API}has_sunroof"
 MOCK_API_GET_DATA = f"{MOCK_API}get_data"
@@ -152,6 +153,9 @@ async def setup_subaru_config_entry(
     ), patch(
         MOCK_API_GET_SAFETY_STATUS,
         return_value=vehicle_data[VEHICLE_HAS_SAFETY_SERVICE],
+    ), patch(
+        MOCK_API_GET_SUBSCRIPTION_STATUS,
+        return_value=True,
     ), patch(
         MOCK_API_GET_DATA,
         return_value=vehicle_status,

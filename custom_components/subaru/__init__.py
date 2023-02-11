@@ -99,7 +99,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     vehicles = {}
     for vin in controller.get_vehicles():
-        vehicles[vin] = _get_vehicle_info(controller, vin)
+        if controller.get_subscription_status(vin):
+            vehicles[vin] = _get_vehicle_info(controller, vin)
 
     async def async_update_data() -> dict:
         """Fetch data from API endpoint."""
@@ -166,10 +167,6 @@ async def _refresh_subaru_data(
 
     for vehicle in vehicle_info.values():
         vin = vehicle[VEHICLE_VIN]
-
-        # Active subscription required
-        if not vehicle[VEHICLE_HAS_SAFETY_SERVICE]:
-            continue
 
         # Poll vehicle, if option is enabled
         polling_option = PollingOptions.get_by_value(
