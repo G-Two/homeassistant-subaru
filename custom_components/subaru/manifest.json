@@ -1,11 +1,11 @@
 {
   "domain": "subaru",
   "name": "Subaru (HACS)",
+  "codeowners": ["@G-Two"],
   "config_flow": true,
   "documentation": "https://github.com/G-Two/homeassistant-subaru",
+  "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/G-Two/homeassistant-subaru/issues",
   "requirements": ["subarulink==0.7.5"],
-  "codeowners": ["@G-Two"],
-  "version": "0.7.5",
-  "iot_class": "cloud_polling"
+  "version": "0.7.5"
 }
