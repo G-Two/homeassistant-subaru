@@ -247,7 +247,10 @@ async def test_user_form_pin_not_required(hass, two_factor_verify_form):
 
 async def test_pin_form_success(hass, pin_form):
     """Test successful PIN entry."""
-    with patch(MOCK_API_TEST_PIN, return_value=True,) as mock_test_pin, patch(
+    with patch(
+        MOCK_API_TEST_PIN,
+        return_value=True,
+    ) as mock_test_pin, patch(
         MOCK_API_UPDATE_SAVED_PIN,
         return_value=True,
     ) as mock_update_saved_pin, patch(
