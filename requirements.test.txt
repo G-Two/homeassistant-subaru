@@ -2,4 +2,4 @@ pylint
 pytest
 pytest-cov
 pytest-homeassistant-custom-component
-subarulink==0.7.5
+subarulink==0.7.6
