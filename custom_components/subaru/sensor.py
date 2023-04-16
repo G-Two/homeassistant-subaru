@@ -276,20 +276,20 @@ class SubaruSensor(
             info = self.coordinator.data[self.vin][sc.VEHICLE_HEALTH][
                 sc.HEALTH_RECOMMENDED_TIRE_PRESSURE
             ]
-            if self.entity_description.key in [
+            if len(info) == 2 and self.entity_description.key in [
                 sc.TIRE_PRESSURE_FL,
                 sc.TIRE_PRESSURE_FR,
             ]:
                 extra_attributes = {
-                    "Recommended pressure": info[
+                    "Recommended pressure": info.get(
                         sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_FRONT
-                    ]
+                    )
                 }
             else:
                 extra_attributes = {
-                    "Recommended pressure": info[
+                    "Recommended pressure": info.get(
                         sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_REAR
-                    ]
+                    )
                 }
 
         return extra_attributes
