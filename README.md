@@ -14,6 +14,7 @@ Users that desire full functionality should continue to use this custom componen
 * [Configuration](#configuration)
 * [Options](#options)
 * [Services](#services)
+* [Events](#events)
 
 ## Description
 The Subaru integration retrieves information provided by Subaru connected vehicle services.  Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
@@ -162,3 +163,39 @@ data:
 There are 3 pre-configured Subaru climate presets, **Auto** (not available for EVs), **Full Cool**, and **Full Heat**. In addition you may configure up to 4 additional custom presets from the MySubaru website or the
 official mobile app. Although the underlying subarulink python package does support the creation of new presets, that functionality has not yet been implemented in this
 integration.
+
+## Events
+
+### subaru_command_sent
+
+This event is fired when a command is called.
+
+| Field      | Description                                                    |
+|------------|----------------------------------------------------------------|
+| `command`  | The command that was called. See [Command list](#command-list) |
+| `car_name` | The name of the vehicle                                        |
+
+### subaru_command_successful
+
+This event is fired when a command is successful.
+
+| Field      | Description                                                    |
+|------------|----------------------------------------------------------------|
+| `command`  | The command that was called. See [Command list](#command-list) |
+| `car_name` | The name of the vehicle                                        |
+
+### subaru_command_failed
+
+This event is fired when a command fails.
+
+| Field      | Description                                                    |
+|------------|----------------------------------------------------------------|
+| `command`  | The command that was called. See [Command list](#command-list) |
+| `car_name` | The name of the vehicle                                        |
+| `message`  | The message returned from the failed command                   |
+
+### Command List
+
+This is a list of possible commands for the above events.
+
+`fetch`, `update`, `lock`, `unlock`, `lights`, `lights_stop`, `horn`, `horn_stop`, `remote_start`, `remote_stop`, `charge_start`, `preset_name`

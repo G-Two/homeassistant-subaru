@@ -17,6 +17,11 @@ ENTRY_COORDINATOR = "coordinator"
 ENTRY_VEHICLES = "vehicles"
 ENTRY_LISTENER = "listener"
 
+# events
+EVENT_SUBARU_COMMAND_SENT = "subaru_command_sent"
+EVENT_SUBARU_COMMAND_SUCCESS = "subaru_command_successful"
+EVENT_SUBARU_COMMAND_FAIL = "subaru_command_failed"
+
 # update coordinator name
 COORDINATOR_NAME = "subaru_data"
 

@@ -25,6 +25,9 @@ from .const import (
     VEHICLE_LAST_UPDATE,
     VEHICLE_NAME,
     VEHICLE_VIN,
+    EVENT_SUBARU_COMMAND_SENT,
+    EVENT_SUBARU_COMMAND_SUCCESS,
+    EVENT_SUBARU_COMMAND_FAIL,
 )
 from .options import NotificationOptions
 
@@ -56,6 +59,7 @@ async def async_call_remote_service(
             "Subaru",
             DOMAIN,
         )
+    hass.bus.async_fire(EVENT_SUBARU_COMMAND_SENT, {"command": cmd, "car_name": car_name})
     _LOGGER.debug("Sending %s command command to %s", cmd, car_name)
     success = False
     err_msg = ""
@@ -84,6 +88,7 @@ async def async_call_remote_service(
                 f"{cmd} command successfully completed for {car_name}",
                 "Subaru",
             )
+        hass.bus.async_fire(EVENT_SUBARU_COMMAND_SUCCESS, {"command": cmd, "car_name": car_name})
         _LOGGER.debug("%s command successfully completed for %s", cmd, car_name)
         return
 
@@ -91,6 +96,7 @@ async def async_call_remote_service(
         hass.components.persistent_notification.create(
             f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
         )
+    hass.bus.async_fire(EVENT_SUBARU_COMMAND_FAIL, {"command": cmd, "car_name": car_name, "message": err_msg})
     raise HomeAssistantError(f"Service {cmd} failed for {car_name}: {err_msg}")
 
 
