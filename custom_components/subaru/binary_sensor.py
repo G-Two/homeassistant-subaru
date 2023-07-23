@@ -186,7 +186,7 @@ def create_vehicle_binary_sensors(
     if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
         binary_sensors_to_add.extend(API_GEN_2_BINARY_SENSORS)
 
-    if vehicle_info[VEHICLE_HAS_POWER_WINDOWS]:
+    if vehicle_info[VEHICLE_HAS_POWER_WINDOWS] or vehicle_info[VEHICLE_HAS_SUNROOF]:
         binary_sensors_to_add.extend(POWER_WINDOW_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_SUNROOF]:
