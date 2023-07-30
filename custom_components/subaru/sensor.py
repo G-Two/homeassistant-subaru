@@ -262,6 +262,34 @@ class SubaruSensor(
         return unit
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return entity specific state attributes."""
+        extra_attributes = None
+
+        # Provide recommended tire pressure
+        if self.device_class == SensorDeviceClass.PRESSURE:
+            info = self.coordinator.data[self.vin][sc.VEHICLE_HEALTH][
+                sc.HEALTH_RECOMMENDED_TIRE_PRESSURE
+            ]
+            if len(info) == 2 and self.entity_description.key in [
+                sc.TIRE_PRESSURE_FL,
+                sc.TIRE_PRESSURE_FR,
+            ]:
+                extra_attributes = {
+                    "Recommended pressure": info.get(
+                        sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_FRONT
+                    )
+                }
+            else:
+                extra_attributes = {
+                    "Recommended pressure": info.get(
+                        sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_REAR
+                    )
+                }
+
+        return extra_attributes
+
+    @property
     def available(self) -> bool:
         """Return if entity is available."""
         last_update_success = super().available
