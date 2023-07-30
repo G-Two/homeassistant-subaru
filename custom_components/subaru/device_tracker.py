@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import subarulink.const as sc
+from subarulink.const import LATITUDE, LONGITUDE, TIMESTAMP
 
 from homeassistant.components.device_tracker import SourceType
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
@@ -32,13 +32,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Subaru device tracker by config_entry."""
-    entry = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = entry[ENTRY_COORDINATOR]
-    vehicle_info = entry[ENTRY_VEHICLES]
-    entities = []
-    for info in vehicle_info.values():
-        if info[VEHICLE_HAS_REMOTE_SERVICE]:
-            entities.append(SubaruDeviceTracker(info, coordinator))
+    entry: dict = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: DataUpdateCoordinator = entry[ENTRY_COORDINATOR]
+    vehicle_info: dict = entry[ENTRY_VEHICLES]
+    entities: list[SubaruDeviceTracker] = []
+    for vehicle in vehicle_info.values():
+        if vehicle[VEHICLE_HAS_REMOTE_SERVICE]:
+            entities.append(SubaruDeviceTracker(vehicle, coordinator))
     async_add_entities(entities)
 
 
@@ -49,7 +49,7 @@ class SubaruDeviceTracker(
 
     _attr_icon = "mdi:car"
     _attr_has_entity_name = True
-    name = None
+    _attr_name = None
 
     def __init__(self, vehicle_info: dict, coordinator: DataUpdateCoordinator) -> None:
         """Initialize the device tracker."""
@@ -61,34 +61,31 @@ class SubaruDeviceTracker(
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return entity specific state attributes."""
-        extra_attributes = None
-        if self.vin in self.coordinator.data:
-            extra_attributes = {
-                "Position timestamp": self.coordinator.data[self.vin][
-                    VEHICLE_STATUS
-                ].get(sc.TIMESTAMP)
-            }
-        return extra_attributes
+        return {
+            "Position timestamp": self.coordinator.data[self.vin][VEHICLE_STATUS].get(
+                TIMESTAMP
+            )
+        }
 
     @property
     def latitude(self) -> float | None:
         """Return latitude value of the vehicle."""
-        latitude = None
-        if self.vin in self.coordinator.data:
-            latitude = self.coordinator.data[self.vin][VEHICLE_STATUS].get(sc.LATITUDE)
-        return latitude
+        return self.coordinator.data[self.vin][VEHICLE_STATUS].get(LATITUDE)
 
     @property
     def longitude(self) -> float | None:
         """Return longitude value of the vehicle."""
-        longitude = None
-        if self.vin in self.coordinator.data:
-            longitude = self.coordinator.data[self.vin][VEHICLE_STATUS].get(
-                sc.LONGITUDE
-            )
-        return longitude
+        return self.coordinator.data[self.vin][VEHICLE_STATUS].get(LONGITUDE)
 
     @property
     def source_type(self) -> SourceType:
         """Return the source type of the vehicle."""
         return SourceType.GPS
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        if vehicle_data := self.coordinator.data.get(self.vin):
+            if status := vehicle_data.get(VEHICLE_STATUS):
+                return status.keys() & {LATITUDE, LONGITUDE, TIMESTAMP}
+        return False

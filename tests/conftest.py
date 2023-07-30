@@ -112,9 +112,9 @@ def advance_time(hass, seconds):
 async def setup_subaru_config_entry(
     hass,
     config_entry,
-    vehicle_list=None,
-    vehicle_data=None,
-    vehicle_status=None,
+    vehicle_list=[TEST_VIN_2_EV],
+    vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
+    vehicle_status=VEHICLE_STATUS_EV,
     connect_effect=None,
     fetch_effect=None,
 ):
