@@ -148,21 +148,6 @@ data:
   # Valid values for door are 'all', 'driver', 'tailgate' (note that 'tailgate' is not supported by all vehicles)
   door: driver
 ```
-### Remote Climate Control
-
-For supported vehicles, this integration supports selecting specific remote climate control presets when remotely starting the engine. See the Services UI in Developer Tools for usage. Example YAML for this service is:
-```yaml
-service: subaru.remote_start
-data:
-  # preset_name is case sensitive
-  preset_name: Full Heat
-  # Use the Services UI to populate device_id
-  device_id: 0cce5d5135ac6459ce620654362e45b8
-```
-
-There are 3 pre-configured Subaru climate presets, **Auto** (not available for EVs), **Full Cool**, and **Full Heat**. In addition you may configure up to 4 additional custom presets from the MySubaru website or the
-official mobile app. Although the underlying subarulink python package does support the creation of new presets, that functionality has not yet been implemented in this
-integration.
 
 ## Events
 
