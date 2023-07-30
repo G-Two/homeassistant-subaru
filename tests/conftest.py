@@ -109,6 +109,7 @@ def advance_time(hass, seconds):
     async_fire_time_changed(hass, future)
 
 
+# pylint: disable=dangerous-default-value
 async def setup_subaru_config_entry(
     hass,
     config_entry,
