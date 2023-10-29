@@ -100,7 +100,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     vehicles = {}
     for vin in controller.get_vehicles():
         if controller.get_subscription_status(vin):
-            vehicles[vin] = _get_vehicle_info(controller, vin)
+            vehicles[vin] = await _get_vehicle_info(controller, vin)
 
     async def async_update_data() -> dict:
         """Fetch data from API endpoint."""
@@ -206,7 +206,7 @@ async def _refresh_subaru_data(
     return data
 
 
-def _get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
+async def _get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
     """Obtain vehicle identifiers and capabilities."""
     info = {
         VEHICLE_VIN: vin,
@@ -215,7 +215,7 @@ def _get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
         VEHICLE_NAME: controller.vin_to_name(vin),
         VEHICLE_HAS_EV: controller.get_ev_status(vin),
         VEHICLE_API_GEN: controller.get_api_gen(vin),
-        VEHICLE_HAS_POWER_WINDOWS: controller.has_power_windows(vin),
+        VEHICLE_HAS_POWER_WINDOWS: await controller.has_power_windows(vin),
         VEHICLE_HAS_SUNROOF: controller.has_sunroof(vin),
         VEHICLE_HAS_REMOTE_START: controller.get_res_status(vin),
         VEHICLE_HAS_REMOTE_SERVICE: controller.get_remote_status(vin),
