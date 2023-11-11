@@ -1,9 +1,8 @@
 # Subaru STARLINK Integration for Home Assistant
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-**NOTE:** The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the sensor and lock platforms are available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core.
-
-Users that desire full functionality should continue to use this custom component until all functionality is merged into the official integration. This custom component will override the HA Core built-in integration.
+> **NOTE:** 
+> The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the device tracker, sensor, and lock platforms are available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core. Users that desire full functionality should continue to use this custom component until all functionality is merged into Home Assistant Core. When installed, this custom component overrides the Home Assistant Core built-in Subaru integration.
 
 ***
 
@@ -17,32 +16,32 @@ Users that desire full functionality should continue to use this custom componen
 * [Events](#events)
 
 ## Description
-The Subaru integration retrieves information provided by Subaru connected vehicle services.  Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
+This Home Assistant custom component retrieves vehicle information and actuates remote services provided by [Subaru STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) (currently only available in USA and Canada).
 
-This integration requires an active vehicle subscription to the [Subaru STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) service (available in USA and Canada).
+This integration requires a telematics equipped Subaru and an active vehicle subscription to the Subaru STARLINK service. Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
 
-Subaru has deployed two generations of telematics, Gen 1 and Gen 2. Use the tables below to determine which capabilities are available for your vehicle.
+Subaru has deployed three generations of STARLINK telematics. Use the table below to determine which generation your vehicle is. This table is a best guess based upon what Subaru [lists as available features](https://www.subaru.com/vehicle-info/subaru-starlink/starlink-safety-and-security/compare-packages.html?model=&year=).
 
-NOTE: There now appears to be a Gen 3, although it is unclear which model years have this capability. From analysis of the official Android mobile app, Gen 3 uses the same API endpoints as Gen 2, but may offer additional capability (tailgate unlock and hints of future remote window open/close?).
 
-| Model     | Gen 1     | Gen 2 | Gen 3 |
-|-----------|-----------|-------|-------|
-| Ascent    |           | 2019+ |   ?   |    
-| Crosstrek | 2016-2018 | 2019+ |   ?   | 
-| Forester  | 2016-2018 | 2019+ |   ?   | 
-| Impreza   | 2016-2018 | 2019+ |   ?   | 
-| Legacy    | 2016-2019 | 2020+ |   ?   | 
-| Outback   | 2016-2019 | 2020+ |   ?   | 
-| WRX       | 2017+     |       |   ?   | 
+| Model     | Gen 1     | Gen 2     | Gen 3 |
+|-----------|-----------|-----------|-------|
+| Ascent    |    ---    | 2019-2023 | 2024+ |
+| BRZ       |    ---    | 2022-2023 |  ---  |
+| Crosstrek | 2016-2018 | 2019+     |  ---  |
+| Forester  | 2016-2018 | 2019+     |  ---  |
+| Impreza   | 2016-2018 | 2019-2022 | 2023+ |
+| Legacy    | 2016-2019 | 2020-2022 | 2023+ |
+| Outback   | 2016-2019 | 2020-2022 | 2023+ |
+| WRX       | 2017-2021 | 2022-2023 |  ---  |
 
 
 | Sensor                   | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Average fuel consumption |         | &check; | &check; |
 | Distance to empty        |         | &check; | &check; |
-| EV battery level         |         | &check; | &check; |
-| EV range                 |         | &check; | &check; |
-| EV time to full charge   |         | &check; | &check; |
+| EV battery level         |         | &check; | ? |
+| EV range                 |         | &check; | ? |
+| EV time to full charge   |         | &check; | ? |
 | Odometer                 | &check;*| &check; | &check; |
 | Tire pressures           |         | &check; | &check; |
 
@@ -54,7 +53,7 @@ NOTE: There now appears to be a Gen 3, although it is unclear which model years 
 | Door/Trunk/Hood Status   |         | &check; | &check; |
 | Window Status            |         | &check;*| &check; |
 | Ignition Status          |         | &check; | &check; |
-| EV Plug/Charging Status  |         | &check;*| &check; |
+| EV Plug/Charging Status  |         | &check;*| ? |
 
 \* Not supported by all vehicles <br>
 
@@ -78,7 +77,7 @@ Device tracker, lock, and buttons (except refresh) all require a STARLINK Securi
 | Refresh data             | &check; | &check; | &check; |
 | Start/Stop Horn/Lights   | &check; | &check; | &check; |
 | Start/Stop Engine        |         | &check;*| &check;*|
-| Start EV charging        |         | &check;*| &check;*|
+| Start EV charging        |         | &check;*| ? |
 
 \* Not supported by all vehicles <br>
 
@@ -109,7 +108,7 @@ After your account is authenticated, you will need to authorize the application 
 After successful authorization, if a supported remote services vehicle with active subscription is found in your account, an additional prompt will appear:
 - **PIN:** The PIN associated with your MySubaru account
 
-    **NOTE:** If your account includes multiple vehicles, the same PIN will be used for all vehicles. Ensure that you have configured all vehicles in your account to have the same PIN.
+    > **NOTE:** If your account includes multiple vehicles, the same PIN will be used for all vehicles. Ensure that you have configured all vehicles in your account to have the same PIN.
 
 If the PIN prompt does not appear, no supported remote services vehicles were found in your account. Limited vehicle data may still appear as sensors.
 
@@ -124,7 +123,8 @@ All options involve remote commands, thus only apply to vehicles with Security P
 - **Enable vehicle polling:**  Sensor data reported by the Subaru API only returns what is cached on Subaru servers, and does not necessarily reflect current conditions. The cached data is updated when the engine is shutdown, or when a location update is requested. This options enables automatic periodic updates.
   - **Disable *[Default]*:** New sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). The user may still manually poll the vehicle anytime with the Locate button.
   - **Charging:** For PHEVs, during charging, the integration will poll every 30 minutes to obtain updated charging status. Polling will only occur during charging.
-  - **Enable:** Every 2 hours, the integration will send a remote command (equivalent to pressing the Locate button), "waking" your vehicle obtain new sensor data. *WARNING:* Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
+  - **Enable:** Every 2 hours, the integration will send a remote command (equivalent to pressing the Locate button), "waking" your vehicle obtain new sensor data. 
+  > **WARNING:** Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
 
 - **Lovelace UI notifications for remote commands:**  It takes 10-15 seconds for remote commands to be processed by the Subaru API and transmitted over the cellular network to your vehicle. Some users may desire UI feedback that the integration is working. This option provides three levels of increasing verbosity:
   - **Disable *[Default]*:** Lovelace notifications are disabled. Errors will still be logged.
