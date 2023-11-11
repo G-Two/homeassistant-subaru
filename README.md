@@ -1,7 +1,7 @@
 # Subaru STARLINK Integration for Home Assistant
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-> **NOTE:** 
+> [!NOTE] 
 > The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the device tracker, sensor, and lock platforms are available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core. Users that desire full functionality should continue to use this custom component until all functionality is merged into Home Assistant Core. When installed, this custom component overrides the Home Assistant Core built-in Subaru integration.
 
 ***
@@ -95,7 +95,8 @@ Once installed, the Subaru integration is configured via the Home Assistant UI:
 
 **Configuration** -> **Devices & Services** -> **Add Integration** -> **Subaru (HACS)**
 
-**NOTE:** After installation and HA restart, you may need to clear your browser cache for the new integration to appear.
+> [!IMPORTANT]
+> After installation and HA restart, you may need to clear your browser cache for the new integration to appear.
 
 When prompted, enter the following configuration parameters:
 
@@ -108,7 +109,8 @@ After your account is authenticated, you will need to authorize the application 
 After successful authorization, if a supported remote services vehicle with active subscription is found in your account, an additional prompt will appear:
 - **PIN:** The PIN associated with your MySubaru account
 
-    > **NOTE:** If your account includes multiple vehicles, the same PIN will be used for all vehicles. Ensure that you have configured all vehicles in your account to have the same PIN.
+    > [!IMPORTANT]
+    > If your account includes multiple vehicles, the same PIN will be used for all vehicles. Ensure that you have configured all vehicles in your account to have the same PIN.
 
 If the PIN prompt does not appear, no supported remote services vehicles were found in your account. Limited vehicle data may still appear as sensors.
 
@@ -124,7 +126,8 @@ All options involve remote commands, thus only apply to vehicles with Security P
   - **Disable *[Default]*:** New sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). The user may still manually poll the vehicle anytime with the Locate button.
   - **Charging:** For PHEVs, during charging, the integration will poll every 30 minutes to obtain updated charging status. Polling will only occur during charging.
   - **Enable:** Every 2 hours, the integration will send a remote command (equivalent to pressing the Locate button), "waking" your vehicle obtain new sensor data. 
-  > **WARNING:** Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
+  > [!WARNING]
+  > Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
 
 - **Lovelace UI notifications for remote commands:**  It takes 10-15 seconds for remote commands to be processed by the Subaru API and transmitted over the cellular network to your vehicle. Some users may desire UI feedback that the integration is working. This option provides three levels of increasing verbosity:
   - **Disable *[Default]*:** Lovelace notifications are disabled. Errors will still be logged.
