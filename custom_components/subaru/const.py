@@ -1,4 +1,5 @@
 """Constants for the Subaru integration."""
+
 import subarulink.const as sc
 
 from homeassistant.const import Platform
