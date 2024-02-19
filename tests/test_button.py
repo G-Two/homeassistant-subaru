@@ -1,4 +1,5 @@
 """Test Subaru buttons."""
+
 from unittest.mock import patch
 
 from pytest import raises
@@ -33,9 +34,10 @@ async def test_device_exists(hass, ev_entry):
 
 async def test_button_with_fetch(hass, ev_entry):
     """Test subaru button function."""
-    with patch(MOCK_API_REMOTE_START) as mock_remote_start, patch(
-        MOCK_API_FETCH
-    ) as mock_fetch:
+    with (
+        patch(MOCK_API_REMOTE_START) as mock_remote_start,
+        patch(MOCK_API_FETCH) as mock_fetch,
+    ):
         await hass.services.async_call(
             BUTTON_DOMAIN, "press", {ATTR_ENTITY_ID: REMOTE_START_BUTTON}, blocking=True
         )
@@ -60,9 +62,11 @@ async def test_button_without_fetch(hass, ev_entry):
 
 async def test_button_update(hass, ev_entry):
     """Test subaru fetch button function."""
-    with patch(MOCK_API_FETCH), patch(
-        MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV
-    ), patch(MOCK_API_UPDATE, return_value=True) as mock_update:
+    with (
+        patch(MOCK_API_FETCH),
+        patch(MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV),
+        patch(MOCK_API_UPDATE, return_value=True) as mock_update,
+    ):
         await hass.services.async_call(
             BUTTON_DOMAIN,
             "press",
@@ -88,9 +92,10 @@ async def test_button_fetch(hass, ev_entry):
 
 async def test_button_remote_start(hass, ev_entry):
     """Test subaru remote start button function."""
-    with patch(MOCK_API_REMOTE_START) as mock_remote_start, patch(
-        MOCK_API_FETCH
-    ) as mock_fetch:
+    with (
+        patch(MOCK_API_REMOTE_START) as mock_remote_start,
+        patch(MOCK_API_FETCH) as mock_fetch,
+    ):
         await hass.services.async_call(
             BUTTON_DOMAIN,
             "press",
@@ -104,9 +109,10 @@ async def test_button_remote_start(hass, ev_entry):
 
 async def test_button_remote_start_failed(hass, ev_entry):
     """Test subaru remote start button function."""
-    with patch(MOCK_API_REMOTE_START, return_value=False) as mock_remote_start, patch(
-        MOCK_API_FETCH
-    ) as mock_fetch:
+    with (
+        patch(MOCK_API_REMOTE_START, return_value=False) as mock_remote_start,
+        patch(MOCK_API_FETCH) as mock_fetch,
+    ):
         with raises(HomeAssistantError):
             await hass.services.async_call(
                 BUTTON_DOMAIN,

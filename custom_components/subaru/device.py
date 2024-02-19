@@ -1,4 +1,5 @@
 """Common device information for a vehicle."""
+
 from __future__ import annotations
 
 from homeassistant.helpers.entity import DeviceInfo

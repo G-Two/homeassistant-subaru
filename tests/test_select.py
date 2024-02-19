@@ -1,4 +1,5 @@
 """Test Subaru select."""
+
 import pytest
 
 from custom_components.subaru.const import DOMAIN as SUBARU_DOMAIN

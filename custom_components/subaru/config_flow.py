@@ -1,4 +1,5 @@
 """Config flow for Subaru integration."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -86,9 +87,9 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): str,
                     vol.Required(
                         CONF_COUNTRY,
-                        default=user_input.get(CONF_COUNTRY)
-                        if user_input
-                        else COUNTRY_USA,
+                        default=(
+                            user_input.get(CONF_COUNTRY) if user_input else COUNTRY_USA
+                        ),
                     ): vol.In([COUNTRY_CAN, COUNTRY_USA]),
                 }
             ),

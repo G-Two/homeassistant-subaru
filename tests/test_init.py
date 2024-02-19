@@ -1,4 +1,5 @@
 """Test Subaru component setup and updates."""
+
 from unittest.mock import patch
 
 from subarulink import InvalidCredentials, SubaruException
@@ -156,9 +157,10 @@ async def test_charging_polling(hass, ev_entry_charge_polling):
         "binary_sensor.test_vehicle_2_ev_battery_charging", STATE_OFF, force_update=True
     )
 
-    with patch(MOCK_API_UPDATE, return_value=True) as mock_update, patch(
-        MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV
-    ) as mock_get_data:
+    with (
+        patch(MOCK_API_UPDATE, return_value=True) as mock_update,
+        patch(MOCK_API_GET_DATA, return_value=VEHICLE_STATUS_EV) as mock_get_data,
+    ):
         # Charging state is off, so update shouldn't happen, but state will be updated by get_data
         assert (
             hass.states.get("binary_sensor.test_vehicle_2_ev_battery_charging").state

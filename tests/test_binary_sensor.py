@@ -1,4 +1,5 @@
 """Test Subaru binary sensors."""
+
 from copy import deepcopy
 from unittest.mock import patch
 
@@ -55,8 +56,9 @@ async def test_binary_sensors_missing_field(hass, ev_entry):
     missing_field_set = deepcopy(VEHICLE_STATUS_EV)
     missing_field_set[VEHICLE_STATUS].pop(DOOR_ENGINE_HOOD_POSITION)
 
-    with patch(MOCK_API_FETCH), patch(
-        MOCK_API_GET_DATA, return_value=missing_field_set
+    with (
+        patch(MOCK_API_FETCH),
+        patch(MOCK_API_GET_DATA, return_value=missing_field_set),
     ):
         advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
@@ -116,9 +118,9 @@ def _assert_data(hass, expected_state):
     sensor_list.extend(API_GEN_2_BINARY_SENSORS)
     expected_states = {}
     for item in sensor_list:
-        expected_states[
-            f"binary_sensor.{slugify(f'{VEHICLE_NAME} {item.name}')}"
-        ] = expected_state[item.key]
+        expected_states[f"binary_sensor.{slugify(f'{VEHICLE_NAME} {item.name}')}"] = (
+            expected_state[item.key]
+        )
 
     for sensor, state in expected_states.items():
         actual = hass.states.get(sensor)

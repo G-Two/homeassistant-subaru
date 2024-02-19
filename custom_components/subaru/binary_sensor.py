@@ -1,4 +1,5 @@
 """Support for Subaru binary sensors."""
+
 from __future__ import annotations
 
 from datetime import datetime

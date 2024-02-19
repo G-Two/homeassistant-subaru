@@ -1,4 +1,5 @@
 """Sample API response data for tests."""
+
 from datetime import datetime, timezone
 
 from custom_components.subaru.const import (

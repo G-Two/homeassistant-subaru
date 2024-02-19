@@ -1,4 +1,5 @@
 """Migrate entity unique_ids."""
+
 from __future__ import annotations
 
 import logging

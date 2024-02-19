@@ -1,4 +1,5 @@
 """Enums for Subaru integration config options."""
+
 from __future__ import annotations
 
 from enum import Enum
