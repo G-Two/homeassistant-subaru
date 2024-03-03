@@ -22,12 +22,12 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
-from homeassistant.util.unit_conversion import DistanceConverter, VolumeConverter
-from homeassistant.util.unit_system import (
-    LENGTH_UNITS,
-    PRESSURE_UNITS,
-    US_CUSTOMARY_SYSTEM,
+from homeassistant.util.unit_conversion import (
+    DistanceConverter,
+    PressureConverter,
+    VolumeConverter,
 )
+from homeassistant.util.unit_system import LENGTH_UNITS, METRIC_SYSTEM, PRESSURE_UNITS
 
 from .const import (
     API_GEN_2,
@@ -59,7 +59,7 @@ SAFETY_SENSORS = [
         translation_key="odometer",
         device_class=SensorDeviceClass.DISTANCE,
         icon="mdi:road-variant",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        native_unit_of_measurement=UnitOfLength.MILES,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
 ]
@@ -70,7 +70,7 @@ API_GEN_2_SENSORS = [
         key=sc.AVG_FUEL_CONSUMPTION,
         translation_key="average_fuel_consumption",
         icon="mdi:leaf",
-        native_unit_of_measurement=FUEL_CONSUMPTION_LITERS_PER_HUNDRED_KILOMETERS,
+        native_unit_of_measurement=FUEL_CONSUMPTION_MILES_PER_GALLON,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -78,35 +78,35 @@ API_GEN_2_SENSORS = [
         translation_key="range",
         device_class=SensorDeviceClass.DISTANCE,
         icon="mdi:gas-station",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        native_unit_of_measurement=UnitOfLength.MILES,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=sc.TIRE_PRESSURE_FL,
         translation_key="tire_pressure_front_left",
         device_class=SensorDeviceClass.PRESSURE,
-        native_unit_of_measurement=UnitOfPressure.HPA,
+        native_unit_of_measurement=UnitOfPressure.PSI,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=sc.TIRE_PRESSURE_FR,
         translation_key="tire_pressure_front_right",
         device_class=SensorDeviceClass.PRESSURE,
-        native_unit_of_measurement=UnitOfPressure.HPA,
+        native_unit_of_measurement=UnitOfPressure.PSI,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=sc.TIRE_PRESSURE_RL,
         translation_key="tire_pressure_rear_left",
         device_class=SensorDeviceClass.PRESSURE,
-        native_unit_of_measurement=UnitOfPressure.HPA,
+        native_unit_of_measurement=UnitOfPressure.PSI,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=sc.TIRE_PRESSURE_RR,
         translation_key="tire_pressure_rear_right",
         device_class=SensorDeviceClass.PRESSURE,
-        native_unit_of_measurement=UnitOfPressure.HPA,
+        native_unit_of_measurement=UnitOfPressure.PSI,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 ]
@@ -220,13 +220,12 @@ class SubaruSensor(
         if current_value is None:
             return None
 
-        if unit in LENGTH_UNITS:
+        if unit in LENGTH_UNITS and unit_system == METRIC_SYSTEM:
             return round(unit_system.length(current_value, cast(str, unit)), 1)
 
-        if unit in PRESSURE_UNITS and unit_system == US_CUSTOMARY_SYSTEM:
+        if unit in PRESSURE_UNITS and unit_system == METRIC_SYSTEM:
             return round(
-                unit_system.pressure(current_value, cast(str, unit)),
-                1,
+                PressureConverter.convert(current_value, unit, UnitOfPressure.KPA), 0
             )
 
         if (
@@ -235,7 +234,7 @@ class SubaruSensor(
                 FUEL_CONSUMPTION_LITERS_PER_HUNDRED_KILOMETERS,
                 FUEL_CONSUMPTION_MILES_PER_GALLON,
             ]
-            and unit_system == US_CUSTOMARY_SYSTEM
+            and unit_system == METRIC_SYSTEM
         ):
             return round((100.0 * L_PER_GAL) / (KM_PER_MI * current_value), 1)
 
@@ -247,18 +246,19 @@ class SubaruSensor(
         unit = self.entity_description.native_unit_of_measurement
 
         if unit in LENGTH_UNITS:
-            return self.hass.config.units.length_unit
+            if self.hass.config.units == METRIC_SYSTEM:
+                return self.hass.config.units.length_unit
 
         if unit in PRESSURE_UNITS:
-            if self.hass.config.units == US_CUSTOMARY_SYSTEM:
-                return self.hass.config.units.pressure_unit
+            if self.hass.config.units == METRIC_SYSTEM:
+                return UnitOfPressure.KPA
 
         if unit in [
             FUEL_CONSUMPTION_LITERS_PER_HUNDRED_KILOMETERS,
             FUEL_CONSUMPTION_MILES_PER_GALLON,
         ]:
-            if self.hass.config.units == US_CUSTOMARY_SYSTEM:
-                return FUEL_CONSUMPTION_MILES_PER_GALLON
+            if self.hass.config.units == METRIC_SYSTEM:
+                return FUEL_CONSUMPTION_LITERS_PER_HUNDRED_KILOMETERS
 
         return unit
 
@@ -266,6 +266,7 @@ class SubaruSensor(
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return entity specific state attributes."""
         extra_attributes = None
+        unit_system = self.hass.config.units
 
         # Provide recommended tire pressure
         if self.device_class == SensorDeviceClass.PRESSURE:
@@ -276,17 +277,27 @@ class SubaruSensor(
                 sc.TIRE_PRESSURE_FL,
                 sc.TIRE_PRESSURE_FR,
             ]:
-                extra_attributes = {
-                    "Recommended pressure": info.get(
-                        sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_FRONT
+                value = info.get(sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_FRONT)
+                if unit_system == METRIC_SYSTEM:
+                    value = round(
+                        PressureConverter.convert(
+                            value, UnitOfPressure.PSI, UnitOfPressure.KPA
+                        ),
+                        0,
                     )
-                }
+
+                extra_attributes = {"Recommended pressure": value}
             else:
-                extra_attributes = {
-                    "Recommended pressure": info.get(
-                        sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_REAR
+                value = info.get(sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_REAR)
+                if unit_system == METRIC_SYSTEM:
+                    value = round(
+                        PressureConverter.convert(
+                            value, UnitOfPressure.PSI, UnitOfPressure.KPA
+                        ),
+                        0,
                     )
-                }
+
+                extra_attributes = {"Recommended pressure": value}
 
         return extra_attributes
 
