@@ -34,7 +34,7 @@ Subaru has deployed three generations of STARLINK telematics. Use the table belo
 | Outback   | 2016-2019 | 2020-2022 | 2023+ |
 | WRX       | 2017-2021 | 2022-2023 |  ---  |
 
-
+### Sensors
 | Sensor                   | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Average fuel consumption |         | &check; | &check; |
@@ -47,7 +47,7 @@ Subaru has deployed three generations of STARLINK telematics. Use the table belo
 
 \* Gen 1 odometer only updates every 500 miles <br>
 
-
+### Binary Sensors
 | Binary Sensor            | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Door/Trunk/Hood Status   |         | &check; | &check; |
@@ -57,21 +57,24 @@ Subaru has deployed three generations of STARLINK telematics. Use the table belo
 
 \* Not supported by all vehicles <br>
 
-
+### Device Tracker
 Device tracker, lock, and buttons (except refresh) all require a STARLINK Security Plus subscription:
 | Device Tracker           | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Vehicle Location         | &check; | &check; | &check; |
 
-
+### Lock
 | Lock                     | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Remote lock/unlock       | &check; | &check; | &check; |
 
+This integration supports remote locking and unlocking of vehicle doors. If doors are remotely unlocked, they will automatically relock if a door is not opened within a minute. There is no remote notification of this automatic relock.
+> [!NOTE]
+> The actual lock status is always unknown due to the fact that the Subaru API does not report this data. 
 
+### Buttons
 | Buttons                  | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
-| Lock/Unlock              | &check; | &check; | &check; |
 | Start/Stop Horn/Lights   | &check; | &check; | &check; |
 | Poll vehicle             | &check; | &check; | &check; |
 | Refresh data             | &check; | &check; | &check; |
