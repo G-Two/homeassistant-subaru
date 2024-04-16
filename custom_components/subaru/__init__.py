@@ -10,10 +10,6 @@ import pprint
 from subarulink import Controller as SubaruAPI, InvalidCredentials, SubaruException
 from subarulink.const import COUNTRY_USA
 
-from homeassistant.components.binary_sensor import (
-    DOMAIN as BINARY_SENSOR_DOMAIN,
-    BinarySensorDeviceClass,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_ID,
@@ -154,7 +150,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def _refresh_subaru_data(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: ConfigEntry,
     vehicle_info: dict,
     controller: SubaruAPI,
 ) -> dict:
@@ -171,22 +167,15 @@ async def _refresh_subaru_data(
 
         # Poll vehicle, if option is enabled
         polling_option = PollingOptions.get_by_value(
-            config_entry.options.get(CONF_POLLING_OPTION, PollingOptions.DISABLE.value)
+            entry.options.get(CONF_POLLING_OPTION, PollingOptions.DISABLE.value)
         )
         if polling_option == PollingOptions.CHARGING:
-            # Is there a better way to check if the subaru is charging?
-            e_registry = er.async_get(hass)
-            battery_charging = e_registry.async_get_device_class_lookup(
-                {(Platform.BINARY_SENSOR, BinarySensorDeviceClass.BATTERY_CHARGING)}
-            )
-            for item in battery_charging.values():
-                entity_id = item[
-                    (BINARY_SENSOR_DOMAIN, BinarySensorDeviceClass.BATTERY_CHARGING)
-                ]
-                entity = e_registry.async_get(entity_id)
-                state = hass.states.get(entity_id)
-                if entity and state:
-                    if entity.platform == DOMAIN and state.state == STATE_ON:
+            entity_registry = er.async_get(hass)
+            if entity_id := entity_registry.async_get_entity_id(
+                Platform.BINARY_SENSOR, DOMAIN, f"{vin.upper()}_EV_CHARGER_STATE_TYPE"
+            ):
+                if state := hass.states.get(entity_id):
+                    if state.state == STATE_ON:
                         await poll_subaru(
                             vehicle,
                             controller,
