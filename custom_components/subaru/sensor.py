@@ -273,34 +273,32 @@ class SubaruSensor(
             info = self.coordinator.data[self.vin][sc.VEHICLE_HEALTH][
                 sc.HEALTH_RECOMMENDED_TIRE_PRESSURE
             ]
-            if value := info.get(
-                sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_FRONT
-            ) and self.entity_description.key in [
+            if self.entity_description.key in [
                 sc.TIRE_PRESSURE_FL,
                 sc.TIRE_PRESSURE_FR,
             ]:
-                if unit_system == METRIC_SYSTEM:
-                    value = round(
-                        PressureConverter.convert(
-                            value, UnitOfPressure.PSI, UnitOfPressure.KPA
-                        ),
-                        0,
-                    )
+                if value := info.get(sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_FRONT):
+                    if unit_system == METRIC_SYSTEM:
+                        value = round(
+                            PressureConverter.convert(
+                                value, UnitOfPressure.PSI, UnitOfPressure.KPA
+                            ),
+                            0,
+                        )
 
                 extra_attributes = {"Recommended pressure": value}
-            if value := info.get(
-                sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_REAR
-            ) and self.entity_description.key in [
+            if self.entity_description.key in [
                 sc.TIRE_PRESSURE_RL,
                 sc.TIRE_PRESSURE_RR,
             ]:
-                if unit_system == METRIC_SYSTEM:
-                    value = round(
-                        PressureConverter.convert(
-                            value, UnitOfPressure.PSI, UnitOfPressure.KPA
-                        ),
-                        0,
-                    )
+                if value := info.get(sc.HEALTH_RECOMMENDED_TIRE_PRESSURE_REAR):
+                    if unit_system == METRIC_SYSTEM:
+                        value = round(
+                            PressureConverter.convert(
+                                value, UnitOfPressure.PSI, UnitOfPressure.KPA
+                            ),
+                            0,
+                        )
 
                 extra_attributes = {"Recommended pressure": value}
 
