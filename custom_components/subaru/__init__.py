@@ -44,6 +44,7 @@ from .const import (
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_HAS_SUNROOF,
+    VEHICLE_HAS_TPMS,
     VEHICLE_LAST_FETCH,
     VEHICLE_LAST_UPDATE,
     VEHICLE_MODEL_NAME,
@@ -210,6 +211,7 @@ async def _get_vehicle_info(controller: SubaruAPI, vin: str) -> dict:
         VEHICLE_HAS_REMOTE_START: controller.get_res_status(vin),
         VEHICLE_HAS_REMOTE_SERVICE: controller.get_remote_status(vin),
         VEHICLE_HAS_SAFETY_SERVICE: controller.get_safety_status(vin),
+        VEHICLE_HAS_TPMS: controller.has_tpms(vin),
         VEHICLE_LAST_UPDATE: 0,
         VEHICLE_LAST_FETCH: 0,
     }

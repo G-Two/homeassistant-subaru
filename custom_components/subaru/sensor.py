@@ -37,6 +37,7 @@ from .const import (
     ENTRY_VEHICLES,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
+    VEHICLE_HAS_TPMS,
     VEHICLE_STATUS,
     VEHICLE_VIN,
 )
@@ -81,6 +82,10 @@ API_GEN_2_SENSORS = [
         native_unit_of_measurement=UnitOfLength.MILES,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+]
+
+# Sensors available to subscribers with TPMS equipped vehicles
+TPMS_SENSORS = [
     SensorEntityDescription(
         key=sc.TIRE_PRESSURE_FL,
         translation_key="tire_pressure_front_left",
@@ -178,6 +183,9 @@ def create_vehicle_sensors(
 
     if vehicle_info[VEHICLE_HAS_EV]:
         sensor_descriptions_to_add.extend(EV_SENSORS)
+
+    if vehicle_info[VEHICLE_HAS_TPMS]:
+        sensor_descriptions_to_add.extend(TPMS_SENSORS)
 
     return [
         SubaruSensor(

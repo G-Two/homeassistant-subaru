@@ -15,6 +15,7 @@ from custom_components.subaru.const import (
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_HAS_SUNROOF,
+    VEHICLE_HAS_TPMS,
     VEHICLE_HEALTH,
     VEHICLE_MODEL_NAME,
     VEHICLE_MODEL_YEAR,
@@ -41,6 +42,7 @@ VEHICLE_DATA = {
         VEHICLE_HAS_SAFETY_SERVICE: False,
         VEHICLE_HAS_POWER_WINDOWS: False,
         VEHICLE_HAS_SUNROOF: False,
+        VEHICLE_HAS_TPMS: False,
     },
     TEST_VIN_2_EV: {
         VEHICLE_VIN: TEST_VIN_2_EV,
@@ -54,6 +56,7 @@ VEHICLE_DATA = {
         VEHICLE_HAS_SAFETY_SERVICE: True,
         VEHICLE_HAS_POWER_WINDOWS: False,
         VEHICLE_HAS_SUNROOF: False,
+        VEHICLE_HAS_TPMS: True,
     },
     TEST_VIN_3_G3: {
         VEHICLE_VIN: TEST_VIN_3_G3,
@@ -67,6 +70,7 @@ VEHICLE_DATA = {
         VEHICLE_HAS_SAFETY_SERVICE: True,
         VEHICLE_HAS_POWER_WINDOWS: True,
         VEHICLE_HAS_SUNROOF: True,
+        VEHICLE_HAS_TPMS: True,
     },
 }
 

@@ -23,6 +23,7 @@ from custom_components.subaru.const import (
     VEHICLE_HAS_REMOTE_START,
     VEHICLE_HAS_SAFETY_SERVICE,
     VEHICLE_HAS_SUNROOF,
+    VEHICLE_HAS_TPMS,
     VEHICLE_MODEL_NAME,
     VEHICLE_MODEL_YEAR,
     VEHICLE_NAME,
@@ -59,6 +60,7 @@ MOCK_API_GET_SAFETY_STATUS = f"{MOCK_API}get_safety_status"
 MOCK_API_GET_SUBSCRIPTION_STATUS = f"{MOCK_API}get_subscription_status"
 MOCK_API_HAS_POWER_WINDOWS = f"{MOCK_API}has_power_windows"
 MOCK_API_HAS_SUNROOF = f"{MOCK_API}has_sunroof"
+MOCK_API_HAS_TPMS = f"{MOCK_API}has_tpms"
 MOCK_API_GET_DATA = f"{MOCK_API}get_data"
 MOCK_API_UPDATE = f"{MOCK_API}update"
 MOCK_API_FETCH = f"{MOCK_API}fetch"
@@ -158,6 +160,10 @@ async def setup_subaru_config_entry(
         patch(
             MOCK_API_HAS_SUNROOF,
             return_value=vehicle_data[VEHICLE_HAS_SUNROOF],
+        ),
+        patch(
+            MOCK_API_HAS_TPMS,
+            return_value=vehicle_data[VEHICLE_HAS_TPMS],
         ),
         patch(
             MOCK_API_GET_RES_STATUS,
