@@ -6,6 +6,7 @@ from custom_components.subaru.const import DOMAIN as SUBARU_DOMAIN
 from custom_components.subaru.select import CLIMATE_SELECT, OLD_CLIMATE_SELECT
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_OPTION, SERVICE_SELECT_OPTION
+from homeassistant.helpers import entity_registry as er
 
 from .api_responses import TEST_VIN_2_EV
 from .conftest import migrate_unique_ids, migrate_unique_ids_duplicate
@@ -13,9 +14,8 @@ from .conftest import migrate_unique_ids, migrate_unique_ids_duplicate
 DEVICE_ID = "select.test_vehicle_2_climate_preset"
 
 
-async def test_device_exists(hass, ev_entry):
+async def test_device_exists(hass, entity_registry: er.EntityRegistry, ev_entry):
     """Test subaru select entity exists."""
-    entity_registry = hass.helpers.entity_registry.async_get(hass)
     entry = entity_registry.async_get(DEVICE_ID)
     assert entry
     await hass.async_block_till_done()

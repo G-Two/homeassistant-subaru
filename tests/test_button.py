@@ -8,6 +8,7 @@ from subarulink import InvalidPIN
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 
 from .api_responses import VEHICLE_STATUS_EV
 from .conftest import (
@@ -25,9 +26,8 @@ REMOTE_REFRESH_BUTTON = "button.test_vehicle_2_refresh"
 REMOTE_POLL_VEHICLE_BUTTON = "button.test_vehicle_2_poll_vehicle"
 
 
-async def test_device_exists(hass, ev_entry):
+async def test_device_exists(hass, entity_registry: er.EntityRegistry, ev_entry):
     """Test subaru button entity exists."""
-    entity_registry = hass.helpers.entity_registry.async_get(hass)
     entry = entity_registry.async_get(REMOTE_START_BUTTON)
     assert entry
 
