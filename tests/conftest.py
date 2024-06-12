@@ -313,14 +313,3 @@ async def migrate_unique_ids_duplicate(
     assert entity_not_changed.unique_id == new_unique_id
 
     assert entity_migrated != entity_not_changed
-
-
-@pytest.fixture(autouse=True)
-def expected_lingering_timers() -> bool:
-    """Temporary ability to bypass test failures.
-
-    Parametrize to True to bypass the pytest failure.
-    @pytest.mark.parametrize("expected_lingering_timers", [True])
-    This should be removed when all lingering timers have been cleaned up.
-    """
-    return True

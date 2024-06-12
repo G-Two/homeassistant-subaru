@@ -182,7 +182,8 @@ def create_vehicle_binary_sensors(
     vehicle_info: dict, coordinator: DataUpdateCoordinator
 ) -> list[SubaruBinarySensor]:
     """Instantiate all available binary sensors for the vehicle."""
-    binary_sensors_to_add = TROUBLE_BINARY_SENSOR
+    binary_sensors_to_add = []
+    binary_sensors_to_add.extend(TROUBLE_BINARY_SENSOR)
 
     if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
         binary_sensors_to_add.extend(API_GEN_2_BINARY_SENSORS)

@@ -109,7 +109,7 @@
                 "DOOR_FRONT_LEFT_POSITION": "CLOSED",
                 "DOOR_FRONT_RIGHT_POSITION": "CLOSED",
                 "DOOR_REAR_LEFT_POSITION": "CLOSED",
-                "DOOR_REAR_RIGHT_POSITION": "CLOSED",
+                "DOOR_REAR_RIGHT_POSITION": null,
                 "EV_CHARGER_STATE_TYPE": "CHARGING",
                 "EV_CHARGE_SETTING_AMPERE_TYPE": "MAXIMUM",
                 "EV_CHARGE_VOLT_TYPE": "CHARGE_LEVEL_1",

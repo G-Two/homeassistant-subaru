@@ -122,7 +122,8 @@ async def test_sensor_migrate_unique_ids_duplicate(
 
 
 def _assert_data(hass: HomeAssistant, expected_state: dict[str, Any]) -> None:
-    sensor_list = EV_SENSORS
+    sensor_list = []
+    sensor_list.extend(EV_SENSORS)
     sensor_list.extend(API_GEN_2_SENSORS)
     sensor_list.extend(SAFETY_SENSORS)
     expected_states = {}

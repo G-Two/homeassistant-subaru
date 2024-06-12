@@ -91,7 +91,8 @@ async def test_binary_sensor_migrate_unique_ids_duplicate(
 
 
 def _assert_data(hass, expected_state):
-    sensor_list = EV_BINARY_SENSORS
+    sensor_list = []
+    sensor_list.extend(EV_BINARY_SENSORS)
     sensor_list.extend(API_GEN_2_BINARY_SENSORS)
     expected_states = {}
     for item in sensor_list:
