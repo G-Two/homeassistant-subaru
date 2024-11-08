@@ -42,6 +42,7 @@ SERVICES_THAT_NEED_FETCH = [
 ]
 
 
+# pylint: disable=too-many-positional-arguments
 async def async_call_remote_service(
     hass: HomeAssistant,
     controller: Controller,

@@ -115,6 +115,7 @@ def advance_time(hass, seconds):
 
 
 # pylint: disable=dangerous-default-value
+# pylint: disable=too-many-positional-arguments
 async def setup_subaru_config_entry(
     hass,
     config_entry,
