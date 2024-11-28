@@ -153,6 +153,28 @@ class SubaruLock(LockEntity):
             return True
         return None
 
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return entity specific state attributes."""
+        if self.lock_status_available:
+            return {
+                LOCK_BOOT_STATUS: self.coordinator.data[self.vin][VEHICLE_STATUS].get(
+                    LOCK_BOOT_STATUS
+                ),
+                LOCK_FRONT_LEFT_STATUS: self.coordinator.data[self.vin][
+                    VEHICLE_STATUS
+                ].get(LOCK_FRONT_LEFT_STATUS),
+                LOCK_FRONT_RIGHT_STATUS: self.coordinator.data[self.vin][
+                    VEHICLE_STATUS
+                ].get(LOCK_FRONT_RIGHT_STATUS),
+                LOCK_REAR_LEFT_STATUS: self.coordinator.data[self.vin][
+                    VEHICLE_STATUS
+                ].get(LOCK_REAR_LEFT_STATUS),
+                LOCK_REAR_RIGHT_STATUS: self.coordinator.data[self.vin][
+                    VEHICLE_STATUS
+                ].get(LOCK_REAR_RIGHT_STATUS),
+            }
+
     async def async_unlock_specific_door(self, door: str) -> None:
         """Send the unlock command for a specified door."""
         _LOGGER.debug("Unlocking %s door for: %s", self, self.car_name)
