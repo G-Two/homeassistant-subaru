@@ -9,6 +9,7 @@ from typing import Any
 from subarulink.controller import Controller
 from subarulink.exceptions import SubaruException
 
+from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
@@ -56,7 +57,8 @@ async def async_call_remote_service(
     vin = vehicle_info[VEHICLE_VIN]
     notify = NotificationOptions.get_by_value(notify_option)
     if notify in [NotificationOptions.PENDING, NotificationOptions.SUCCESS]:
-        hass.components.persistent_notification.create(
+        persistent_notification.create(
+            hass,
             f"Sending {cmd} command to {car_name}\nThis may take 10-15 seconds",
             "Subaru",
             DOMAIN,

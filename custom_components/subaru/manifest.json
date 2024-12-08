@@ -6,6 +6,6 @@
   "documentation": "https://github.com/G-Two/homeassistant-subaru",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/G-Two/homeassistant-subaru/issues",
-  "requirements": ["subarulink==0.7.13rc1"],
-  "version": "0.7.16rc1"
+  "requirements": ["subarulink==0.7.13rc2"],
+  "version": "0.7.16rc2"
 }
