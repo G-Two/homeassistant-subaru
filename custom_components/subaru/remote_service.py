@@ -103,8 +103,7 @@ async def async_call_remote_service(
 
     if notify != NotificationOptions.DISABLE:
         persistent_notification.create(
-            hass,
-            f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
+            hass, f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
         )
     hass.bus.async_fire(
         EVENT_SUBARU_COMMAND_FAIL,
