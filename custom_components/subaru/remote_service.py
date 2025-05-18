@@ -86,11 +86,12 @@ async def async_call_remote_service(
         err_msg = err.message
 
     if notify in [NotificationOptions.PENDING, NotificationOptions.SUCCESS]:
-        hass.components.persistent_notification.dismiss(DOMAIN)
+        persistent_notification.dismiss(hass, DOMAIN)
 
     if success:
         if notify == NotificationOptions.SUCCESS:
-            hass.components.persistent_notification.create(
+            persistent_notification.create(
+                hass,
                 f"{cmd} command successfully completed for {car_name}",
                 "Subaru",
             )
@@ -101,8 +102,8 @@ async def async_call_remote_service(
         return
 
     if notify != NotificationOptions.DISABLE:
-        hass.components.persistent_notification.create(
-            f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
+        persistent_notification.create(
+            hass, f"{cmd} command failed for {car_name}: {err_msg}", "Subaru"
         )
     hass.bus.async_fire(
         EVENT_SUBARU_COMMAND_FAIL,
