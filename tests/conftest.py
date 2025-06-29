@@ -223,7 +223,7 @@ async def fixture_subaru_config_entry(hass, enable_custom_integrations):
 
 @pytest.fixture
 async def ev_entry(hass, subaru_config_entry, enable_custom_integrations):
-    """Create a Subaru entry representing an EV vehicle with full STARLINK subscription."""
+    """Create a Subaru entry representing an EV vehicle with full MySubaru subscription."""
     await setup_default_ev_entry(hass, subaru_config_entry)
     return subaru_config_entry
 

@@ -1,4 +1,4 @@
-# Subaru STARLINK Integration for Home Assistant
+# MySubaru Connected Services Custom Integration for Home Assistant
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 > [!NOTE] 
@@ -16,11 +16,11 @@
 * [Events](#events)
 
 ## Description
-This Home Assistant custom component retrieves vehicle information and actuates remote services provided by [Subaru STARLINK](https://www.subaru.com/engineering/starlink/safety-security.html) (currently only available in USA and Canada).
+This Home Assistant custom component retrieves vehicle information and actuates remote services provided by MySubaru Connected Services (formerly known as Subaru STARLINK) available in USA/Canada.
 
-This integration requires a telematics equipped Subaru and an active vehicle subscription to the Subaru STARLINK service. Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
+This integration requires a telematics equipped Subaru and an active vehicle subscription to MySubaru Connected Services. Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
 
-Subaru has deployed three generations of STARLINK telematics. Use the table below to determine which generation your vehicle is. This table is a best guess based upon what Subaru [lists as available features](https://www.subaru.com/vehicle-info/subaru-starlink/starlink-safety-and-security/compare-packages.html?model=&year=).
+Subaru has deployed three generations of telematics. Use the table below to determine which generation your vehicle is. This table is a best guess based upon what Subaru [lists as available features](https://www.subaru.com/vehicle-info/subaru-starlink/starlink-safety-and-security/compare-packages.html?model=&year=).
 
 
 | Model     | Gen 1     | Gen 2     | Gen 3 |
@@ -58,7 +58,7 @@ Subaru has deployed three generations of STARLINK telematics. Use the table belo
 \* Not supported by all vehicles <br>
 
 ### Device Tracker
-Device tracker, lock, and buttons (except refresh) all require a STARLINK Security Plus subscription:
+Device tracker, lock, and buttons (except refresh) all require a MySubaru Security Plus subscription:
 | Device Tracker           | Gen 1   | Gen 2   | Gen 3   |
 |--------------------------|---------|---------|---------|
 | Vehicle Location         | &check; | &check; | &check; |
