@@ -28,6 +28,7 @@ from .const import (
     ENTRY_VEHICLES,
     VEHICLE_API_GEN,
     VEHICLE_HAS_EV,
+    VEHICLE_HAS_LOCK_STATUS,
     VEHICLE_HAS_POWER_WINDOWS,
     VEHICLE_HAS_SUNROOF,
     VEHICLE_HEALTH,
@@ -65,6 +66,7 @@ ON_VALUES = {
     BinarySensorDeviceClass.PLUG: [sc.LOCKED_CONNECTED, sc.UNLOCKED_CONNECTED],
     BinarySensorDeviceClass.BATTERY_CHARGING: [sc.CHARGING],
     BinarySensorDeviceClass.PROBLEM: [True],
+    BinarySensorDeviceClass.LOCK: [sc.LOCK_LOCKED],
 }
 
 TROUBLE_BINARY_SENSOR = [
@@ -162,6 +164,35 @@ EV_BINARY_SENSORS = [
     ),
 ]
 
+# Additional binary sensors for vehicles that report lock status
+LOCK_BINARY_SENSORS = [
+    BinarySensorEntityDescription(
+        name="Trunk lock",
+        key=sc.LOCK_BOOT_STATUS,
+        device_class=BinarySensorDeviceClass.DOOR,
+    ),
+    BinarySensorEntityDescription(
+        name="Front left door lock",
+        key=sc.LOCK_FRONT_LEFT_STATUS,
+        device_class=BinarySensorDeviceClass.DOOR,
+    ),
+    BinarySensorEntityDescription(
+        name="Front right door lock",
+        key=sc.LOCK_FRONT_RIGHT_STATUS,
+        device_class=BinarySensorDeviceClass.DOOR,
+    ),
+    BinarySensorEntityDescription(
+        name="Rear left door lock",
+        key=sc.LOCK_REAR_LEFT_STATUS,
+        device_class=BinarySensorDeviceClass.DOOR,
+    ),
+    BinarySensorEntityDescription(
+        name="Rear right door lock",
+        key=sc.LOCK_REAR_RIGHT_STATUS,
+        device_class=BinarySensorDeviceClass.DOOR,
+    ),
+]
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -196,6 +227,9 @@ def create_vehicle_binary_sensors(
 
     if vehicle_info[VEHICLE_HAS_EV]:
         binary_sensors_to_add.extend(EV_BINARY_SENSORS)
+
+    if vehicle_info[VEHICLE_HAS_LOCK_STATUS]:
+        binary_sensors_to_add.extend(LOCK_BINARY_SENSORS)
 
     return [
         SubaruBinarySensor(vehicle_info, coordinator, description)
