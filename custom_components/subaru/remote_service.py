@@ -19,11 +19,9 @@ from .const import (
     EVENT_SUBARU_COMMAND_SENT,
     EVENT_SUBARU_COMMAND_SUCCESS,
     FETCH_INTERVAL,
-    REMOTE_SERVICE_CHARGE_START,
     REMOTE_SERVICE_POLL_VEHICLE,
     REMOTE_SERVICE_REFRESH,
     REMOTE_SERVICE_REMOTE_START,
-    REMOTE_SERVICE_REMOTE_STOP,
     REMOTE_SERVICE_UNLOCK,
     UPDATE_INTERVAL,
     VEHICLE_LAST_FETCH,
@@ -34,13 +32,6 @@ from .const import (
 from .options import NotificationOptions
 
 _LOGGER = logging.getLogger(__name__)
-
-SERVICES_THAT_NEED_FETCH = [
-    REMOTE_SERVICE_REMOTE_START,
-    REMOTE_SERVICE_REMOTE_STOP,
-    REMOTE_SERVICE_POLL_VEHICLE,
-    REMOTE_SERVICE_CHARGE_START,
-]
 
 
 # pylint: disable=too-many-positional-arguments
@@ -75,15 +66,15 @@ async def async_call_remote_service(
         elif cmd in [REMOTE_SERVICE_REMOTE_START, REMOTE_SERVICE_UNLOCK]:
             success = await getattr(controller, cmd)(vin, arg)
         elif cmd == REMOTE_SERVICE_REFRESH:
-            success = await refresh_subaru(vehicle_info, controller, refresh_interval=0)
+            success = True
         else:
             success = await getattr(controller, cmd)(vin)
 
-        if cmd in SERVICES_THAT_NEED_FETCH:
-            await refresh_subaru(vehicle_info, controller, refresh_interval=0)
-
     except SubaruException as err:
         err_msg = err.message
+
+    finally:
+        await refresh_subaru(vehicle_info, controller, refresh_interval=0)
 
     if notify in [NotificationOptions.PENDING, NotificationOptions.SUCCESS]:
         persistent_notification.dismiss(hass, DOMAIN)

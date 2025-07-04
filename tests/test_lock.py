@@ -14,6 +14,7 @@ from homeassistant.helpers import entity_registry as er
 
 from .conftest import MOCK_API
 
+MOCK_API_FETCH = f"{MOCK_API}fetch"
 MOCK_API_LOCK = f"{MOCK_API}lock"
 MOCK_API_UNLOCK = f"{MOCK_API}unlock"
 DEVICE_ID = "lock.test_vehicle_2_door_locks"
@@ -27,27 +28,29 @@ async def test_device_exists(hass, entity_registry: er.EntityRegistry, ev_entry)
 
 async def test_lock(hass, ev_entry):
     """Test subaru lock function."""
-    with patch(MOCK_API_LOCK) as mock_lock:
+    with patch(MOCK_API_LOCK) as mock_lock, patch(MOCK_API_FETCH) as mock_fetch:
         await hass.services.async_call(
             LOCK_DOMAIN, SERVICE_LOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
         )
         await hass.async_block_till_done()
         mock_lock.assert_called_once()
+        mock_fetch.assert_called_once()
 
 
 async def test_unlock(hass, ev_entry):
     """Test subaru unlock function."""
-    with patch(MOCK_API_UNLOCK) as mock_unlock:
+    with patch(MOCK_API_UNLOCK) as mock_unlock, patch(MOCK_API_FETCH) as mock_fetch:
         await hass.services.async_call(
             LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
         )
         await hass.async_block_till_done()
         mock_unlock.assert_called_once()
+        mock_fetch.assert_called_once()
 
 
 async def test_unlock_specific_door(hass, ev_entry):
     """Test subaru unlock specific door function."""
-    with patch(MOCK_API_UNLOCK) as mock_unlock:
+    with patch(MOCK_API_UNLOCK) as mock_unlock, patch(MOCK_API_FETCH) as mock_fetch:
         await hass.services.async_call(
             SUBARU_DOMAIN,
             SERVICE_UNLOCK_SPECIFIC_DOOR,
@@ -56,3 +59,4 @@ async def test_unlock_specific_door(hass, ev_entry):
         )
         await hass.async_block_till_done()
         mock_unlock.assert_called_once()
+        mock_fetch.assert_called_once()
