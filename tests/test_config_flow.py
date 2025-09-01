@@ -255,6 +255,7 @@ async def test_user_form_pin_not_required(hass, two_factor_verify_form):
         "data": deepcopy(TEST_CONFIG),
         "options": {},
         "context": {"source": "user"},
+        "subentries": (),
     }
     expected["data"][CONF_PIN] = None
     result["data"][CONF_DEVICE_ID] = TEST_DEVICE_ID
@@ -294,6 +295,7 @@ async def test_pin_form_success(hass, pin_form):
         "data": TEST_CONFIG,
         "options": {},
         "context": {"source": "user"},
+        "subentries": (),
     }
     result["data"][CONF_DEVICE_ID] = TEST_DEVICE_ID
     assert result == expected
