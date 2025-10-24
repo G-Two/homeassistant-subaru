@@ -57,7 +57,7 @@ async def test_button_without_fetch(hass, ev_entry):
         )
         await hass.async_block_till_done()
         mock_lights.assert_called_once()
-        mock_fetch.assert_not_called()
+        mock_fetch.assert_called_once()
 
 
 async def test_button_update(hass, ev_entry):
@@ -127,10 +127,13 @@ async def test_button_remote_start_failed(hass, ev_entry):
 
 async def test_button_invalid_pin(hass, ev_entry):
     """Test remote button with invalid PIN."""
-    with patch(
-        MOCK_API_LIGHTS,
-        side_effect=InvalidPIN("invalid PIN"),
-    ) as mock_horn:
+    with (
+        patch(
+            MOCK_API_LIGHTS,
+            side_effect=InvalidPIN("invalid PIN"),
+        ) as mock_horn,
+        patch(MOCK_API_FETCH) as mock_fetch,
+    ):
         with raises(HomeAssistantError):
             await hass.services.async_call(
                 BUTTON_DOMAIN,
@@ -140,3 +143,4 @@ async def test_button_invalid_pin(hass, ev_entry):
             )
             await hass.async_block_till_done()
             mock_horn.assert_called_once()
+            mock_fetch.assert_called_once()

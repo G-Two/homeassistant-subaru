@@ -20,6 +20,7 @@ from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import SERVICE_LOCK, SERVICE_UNLOCK
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -105,16 +106,26 @@ class SubaruLock(LockEntity):
         if self.lock_status_available:
             self._attr_is_locking = True
             self.async_write_ha_state()
-        await async_call_remote_service(
-            self.hass,
-            self.controller,
-            SERVICE_LOCK,
-            self.vehicle_info,
-            None,
-            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
-        )
-        if self.lock_status_available:
-            await self.coordinator.async_request_refresh()
+        try:
+            await async_call_remote_service(
+                self.hass,
+                self.controller,
+                SERVICE_LOCK,
+                self.vehicle_info,
+                None,
+                self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
+            )
+            if self.lock_status_available:
+                self._attr_is_locked = True
+                self._attr_is_locking = False
+                self.async_write_ha_state()
+        except HomeAssistantError as err:
+            self._attr_is_locked = None
+            self._attr_is_locking = None
+            self.async_write_ha_state()
+            raise HomeAssistantError("Failed to lock doors") from err
+        finally:
+            self.coordinator.async_update_listeners()
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Send the unlock command."""
@@ -122,16 +133,26 @@ class SubaruLock(LockEntity):
         if self.lock_status_available:
             self._attr_is_unlocking = True
             self.async_write_ha_state()
-        await async_call_remote_service(
-            self.hass,
-            self.controller,
-            SERVICE_UNLOCK,
-            self.vehicle_info,
-            UNLOCK_VALID_DOORS[UNLOCK_DOOR_ALL],
-            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
-        )
-        if self.lock_status_available:
-            await self.coordinator.async_request_refresh()
+        try:
+            await async_call_remote_service(
+                self.hass,
+                self.controller,
+                SERVICE_UNLOCK,
+                self.vehicle_info,
+                UNLOCK_VALID_DOORS[UNLOCK_DOOR_ALL],
+                self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
+            )
+            if self.lock_status_available:
+                self._attr_is_locked = False
+                self._attr_is_unlocking = False
+                self.async_write_ha_state()
+        except HomeAssistantError as err:
+            self._attr_is_locked = None
+            self._attr_is_unlocking = None
+            self.async_write_ha_state()
+            raise HomeAssistantError("Failed to unlock doors") from err
+        finally:
+            self.coordinator.async_update_listeners()
 
     @property
     def is_locked(self) -> bool | None:
@@ -181,13 +202,23 @@ class SubaruLock(LockEntity):
         if self.lock_status_available:
             self._attr_is_unlocking = True
             self.async_write_ha_state()
-        await async_call_remote_service(
-            self.hass,
-            self.controller,
-            SERVICE_UNLOCK,
-            self.vehicle_info,
-            UNLOCK_VALID_DOORS[door],
-            self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
-        )
-        if self.lock_status_available:
-            await self.coordinator.async_request_refresh()
+        try:
+            await async_call_remote_service(
+                self.hass,
+                self.controller,
+                SERVICE_UNLOCK,
+                self.vehicle_info,
+                UNLOCK_VALID_DOORS[door],
+                self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
+            )
+            if self.lock_status_available:
+                self._attr_is_locked = False
+                self._attr_is_unlocking = False
+                self.async_write_ha_state()
+        except HomeAssistantError as err:
+            self._attr_is_locked = None
+            self._attr_is_unlocking = None
+            self.async_write_ha_state()
+            raise HomeAssistantError("Failed to unlock doors") from err
+        finally:
+            self.coordinator.async_update_listeners()
