@@ -100,7 +100,7 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlowHandler:
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()
 
     async def validate_login_creds(self, data: dict[str, Any]) -> None:
         """Validate the user input allows us to connect.
