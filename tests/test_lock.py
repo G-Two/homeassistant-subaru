@@ -2,6 +2,8 @@
 
 from unittest.mock import patch
 
+from pytest import raises
+
 from custom_components.subaru.const import (
     ATTR_DOOR,
     DOMAIN as SUBARU_DOMAIN,
@@ -10,6 +12,7 @@ from custom_components.subaru.const import (
 )
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_LOCK, SERVICE_UNLOCK
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
 from .conftest import MOCK_API
@@ -58,5 +61,53 @@ async def test_unlock_specific_door(hass, ev_entry):
             blocking=True,
         )
         await hass.async_block_till_done()
+        mock_unlock.assert_called_once()
+        mock_fetch.assert_called_once()
+
+
+async def test_lock_failed(hass, ev_entry):
+    """Test subaru lock failure path raises HomeAssistantError."""
+    with (
+        patch(MOCK_API_LOCK, return_value=False) as mock_lock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+    ):
+        with raises(HomeAssistantError):
+            await hass.services.async_call(
+                LOCK_DOMAIN, SERVICE_LOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+            )
+            await hass.async_block_till_done()
+        mock_lock.assert_called_once()
+        mock_fetch.assert_called_once()
+
+
+async def test_unlock_failed(hass, ev_entry):
+    """Test subaru unlock failure path raises HomeAssistantError."""
+    with (
+        patch(MOCK_API_UNLOCK, return_value=False) as mock_unlock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+    ):
+        with raises(HomeAssistantError):
+            await hass.services.async_call(
+                LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+            )
+            await hass.async_block_till_done()
+        mock_unlock.assert_called_once()
+        mock_fetch.assert_called_once()
+
+
+async def test_unlock_specific_door_failed(hass, ev_entry):
+    """Test subaru unlock specific door failure raises HomeAssistantError."""
+    with (
+        patch(MOCK_API_UNLOCK, return_value=False) as mock_unlock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+    ):
+        with raises(HomeAssistantError):
+            await hass.services.async_call(
+                SUBARU_DOMAIN,
+                SERVICE_UNLOCK_SPECIFIC_DOOR,
+                {ATTR_ENTITY_ID: DEVICE_ID, ATTR_DOOR: UNLOCK_DOOR_DRIVERS},
+                blocking=True,
+            )
+            await hass.async_block_till_done()
         mock_unlock.assert_called_once()
         mock_fetch.assert_called_once()
