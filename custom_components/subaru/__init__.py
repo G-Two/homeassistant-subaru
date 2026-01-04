@@ -76,6 +76,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not country:
         country = COUNTRY_USA
 
+    vehicles = {}
+
     try:
         controller = SubaruAPI(
             websession,
@@ -90,16 +92,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         _LOGGER.debug("Using subarulink %s", controller.version)
         await controller.connect()
+
+        for vin in controller.get_vehicles():
+            if controller.get_subscription_status(vin):
+                vehicles[vin] = await _get_vehicle_info(controller, vin)
+
     except InvalidCredentials:
         _LOGGER.error("Invalid account")
         return False
     except SubaruException as err:
-        raise ConfigEntryNotReady(err) from err
-
-    vehicles = {}
-    for vin in controller.get_vehicles():
-        if controller.get_subscription_status(vin):
-            vehicles[vin] = await _get_vehicle_info(controller, vin)
+        raise ConfigEntryNotReady(err.message) from err
 
     async def async_update_data() -> dict:
         """Fetch data from API endpoint."""
