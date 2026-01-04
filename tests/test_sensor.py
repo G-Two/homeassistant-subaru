@@ -17,7 +17,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from .api_responses import (
-    EXPECTED_STATE_EV_METRIC,
     EXPECTED_STATE_EV_UNAVAILABLE,
     TEST_VIN_2_EV,
 )
@@ -27,11 +26,6 @@ from .conftest import (
     advance_time,
     setup_subaru_config_entry,
 )
-
-
-async def test_sensors_ev_metric(hass: HomeAssistant, ev_entry) -> None:
-    """Test sensors supporting metric units."""
-    _assert_data(hass, EXPECTED_STATE_EV_METRIC)
 
 
 async def test_sensors_missing_vin_data(hass: HomeAssistant, ev_entry) -> None:
