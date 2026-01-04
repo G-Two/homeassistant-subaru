@@ -136,4 +136,4 @@ def _assert_data(hass: HomeAssistant, expected_state: dict[str, Any]) -> None:
 
     for sensor, value in expected_states.items():
         actual = hass.states.get(sensor)
-        assert actual.state == value
+        assert actual.state == str(value)
