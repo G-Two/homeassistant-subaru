@@ -185,7 +185,7 @@ VEHICLE_STATUS_EV = {
         "EV_STATE_OF_CHARGE_MODE": "EV_MODE",
         "EV_STATE_OF_CHARGE_PERCENT": 20,
         "EV_TIME_TO_FULLY_CHARGED_UTC": datetime.datetime(
-            2024, 1, 2, 17, 20, 15, tzinfo=datetime.timezone.utc
+            2024, 1, 2, 17, 20, 15, tzinfo=datetime.UTC
         ),
         "LAST_UPDATED_DATE": "2024-01-02T12:20:15.000+0000",
         "LATITUDE": 40.0,
@@ -197,9 +197,7 @@ VEHICLE_STATUS_EV = {
         "LOCK_REAR_RIGHT_STATUS": "LOCKED",
         "LONGITUDE": -100.0,
         "ODOMETER": 43265,
-        "TIMESTAMP": datetime.datetime(
-            2024, 1, 2, 12, 20, 15, tzinfo=datetime.timezone.utc
-        ),
+        "TIMESTAMP": datetime.datetime(2024, 1, 2, 12, 20, 15, tzinfo=datetime.UTC),
         "TRANSMISSION_MODE": "UNKNOWN",
         "TYRE_PRESSURE_FRONT_LEFT": 0,
         "TYRE_PRESSURE_FRONT_RIGHT": 31.9,
@@ -254,7 +252,7 @@ VEHICLE_STATUS_G3 = {
         "EV_STATE_OF_CHARGE_MODE": "EV_MODE",
         "EV_STATE_OF_CHARGE_PERCENT": 20,
         "EV_TIME_TO_FULLY_CHARGED_UTC": datetime.datetime(
-            2024, 1, 2, 17, 20, 15, tzinfo=datetime.timezone.utc
+            2024, 1, 2, 17, 20, 15, tzinfo=datetime.UTC
         ),
         "LAST_UPDATED_DATE": "2024-01-02T12:20:15.000+0000",
         "LATITUDE": 40.0,
@@ -266,9 +264,7 @@ VEHICLE_STATUS_G3 = {
         "LOCK_REAR_LEFT_STATUS": "LOCKED",
         "LOCK_REAR_RIGHT_STATUS": "LOCKED",
         "ODOMETER": 1234,
-        "TIMESTAMP": datetime.datetime(
-            2024, 1, 2, 12, 20, 15, tzinfo=datetime.timezone.utc
-        ),
+        "TIMESTAMP": datetime.datetime(2024, 1, 2, 12, 20, 15, tzinfo=datetime.UTC),
         "TRANSMISSION_MODE": "UNKNOWN",
         "TYRE_PRESSURE_FRONT_LEFT": 0,
         "TYRE_PRESSURE_FRONT_RIGHT": 31.9,

@@ -19,7 +19,6 @@ from .conftest import (
     MOCK_API_UPDATE,
 )
 
-REMOTE_START_BUTTON = "button.test_vehicle_2_remote_start"
 REMOTE_LIGHTS_BUTTON = "button.test_vehicle_2_lights_start"
 REMOTE_START_BUTTON = "button.test_vehicle_2_remote_start"
 REMOTE_REFRESH_BUTTON = "button.test_vehicle_2_refresh"
