@@ -195,9 +195,6 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Select contact method and request 2FA code from Subaru."""
         error = None
-        _LOGGER.error(
-            "Starting 2FA step %s, %s", user_input, self.controller.contact_methods
-        )
         if user_input:
             selected_method = next(
                 k
