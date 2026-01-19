@@ -37,6 +37,165 @@ from tests.conftest import (
 
 ASYNC_SETUP_ENTRY = "custom_components.subaru.async_setup_entry"
 
+MOCK_2FA_CONTACTS = {
+    "phone": "123-123-1234",
+    "userName": "email@addr.com",
+}
+
+
+# =============================================================================
+# FIXTURES
+# =============================================================================
+
+
+@pytest.fixture
+def mock_entry(hass):
+    """Create a mock config entry."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title=TEST_USERNAME,
+        data=TEST_CONFIG,
+        options=None,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture
+def mock_entry_with_options(hass):
+    """Create a mock config entry with options."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title=TEST_USERNAME,
+        data=TEST_CONFIG,
+        options={
+            CONF_POLLING_OPTION: PollingOptions.DISABLE.value,
+            CONF_NOTIFICATION_OPTION: NotificationOptions.DISABLE.value,
+        },
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture(name="user_form")
+async def fixture_user_form(hass, enable_custom_integrations):
+    """Return initial form for Subaru config flow."""
+    return await hass.config_entries.flow.async_init(
+        config_flow.DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+
+@pytest.fixture(name="two_factor_start_form")
+async def fixture_two_factor_start_form(hass, user_form):
+    """Return two factor form for Subaru config flow."""
+    with (
+        patch(MOCK_API_CONNECT, return_value=True),
+        patch(MOCK_API_2FA_CONTACTS, new_callable=PropertyMock) as mock_contacts,
+    ):
+        mock_contacts.return_value = {
+            "phone": "123-123-1234",
+            "userName": "email@addr.com",
+        }
+        return await hass.config_entries.flow.async_configure(
+            user_form["flow_id"], user_input=TEST_CREDS
+        )
+
+
+@pytest.fixture(name="two_factor_verify_form")
+async def fixture_two_factor_verify_form(hass, two_factor_start_form):
+    """Return two factor form for Subaru config flow."""
+    with (
+        patch(
+            MOCK_API_2FA_REQUEST,
+            return_value=True,
+        ),
+        patch(MOCK_API_2FA_CONTACTS, new_callable=PropertyMock) as mock_contacts,
+    ):
+        mock_contacts.return_value = {
+            "phone": "123-123-1234",
+            "userName": "email@addr.com",
+        }
+        return await hass.config_entries.flow.async_configure(
+            two_factor_start_form["flow_id"],
+            user_input={config_flow.CONF_CONTACT_METHOD: "email@addr.com"},
+        )
+
+
+@pytest.fixture(name="pin_form")
+async def fixture_pin_form(hass, two_factor_verify_form):
+    """Return PIN input form for Subaru config flow."""
+    with (
+        patch(
+            MOCK_API_2FA_VERIFY,
+            return_value=True,
+        ),
+        patch(MOCK_API_IS_PIN_REQUIRED, return_value=True),
+    ):
+        return await hass.config_entries.flow.async_configure(
+            two_factor_verify_form["flow_id"],
+            user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
+        )
+
+
+@pytest.fixture(name="options_form")
+async def fixture_options_form(hass, enable_custom_integrations):
+    """Return options form for Subaru config flow."""
+    entry = MockConfigEntry(domain=DOMAIN, data={}, options=None)
+    entry.add_to_hass(hass)
+    await async_setup_component(hass, DOMAIN, {})
+    return await hass.config_entries.options.async_init(entry.entry_id)
+
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+
+async def init_flow(hass, entry, source):
+    """Initialize a config flow for reauth or reconfigure."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": source, "entry_id": entry.entry_id},
+        data=entry.data,
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "update_creds"
+    return result
+
+
+async def complete_2fa_flow(hass, flow_id):
+    """Complete the 2FA steps of a flow."""
+    # Select contact method
+    with (
+        patch(MOCK_API_2FA_REQUEST, return_value=True),
+        patch(MOCK_API_2FA_CONTACTS, new_callable=PropertyMock) as mock_contacts,
+    ):
+        mock_contacts.return_value = MOCK_2FA_CONTACTS
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            user_input={config_flow.CONF_CONTACT_METHOD: "email@addr.com"},
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "two_factor_validate"
+
+    # Submit validation code
+    with (
+        patch(MOCK_API_2FA_VERIFY, return_value=True),
+        patch(MOCK_API_IS_PIN_REQUIRED, return_value=False),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
+        )
+
+    return result
+
+
+# =============================================================================
+# USER CONFIG FLOW TESTS
+# =============================================================================
+
 
 async def test_user_init_form(user_form):
     """Test the initial user form for first step of the config flow."""
@@ -79,7 +238,7 @@ async def test_user_form_cannot_connect(hass, user_form):
         )
     assert len(mock_connect.mock_calls) == 1
     assert result["type"] == "abort"
-    assert result["reason"] == "cannot_connect"
+    assert result["reason"] == "cannot_connect: None"
 
 
 async def test_user_form_invalid_auth(hass, user_form):
@@ -338,75 +497,6 @@ async def test_option_flow(hass, options_form):
     }
 
 
-@pytest.fixture(name="user_form")
-async def fixture_user_form(hass, enable_custom_integrations):
-    """Return initial form for Subaru config flow."""
-    return await hass.config_entries.flow.async_init(
-        config_flow.DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-
-
-@pytest.fixture(name="two_factor_start_form")
-async def fixture_two_factor_start_form(hass, user_form):
-    """Return two factor form for Subaru config flow."""
-    with (
-        patch(MOCK_API_CONNECT, return_value=True),
-        patch(MOCK_API_2FA_CONTACTS, new_callable=PropertyMock) as mock_contacts,
-    ):
-        mock_contacts.return_value = {
-            "phone": "123-123-1234",
-            "userName": "email@addr.com",
-        }
-        return await hass.config_entries.flow.async_configure(
-            user_form["flow_id"], user_input=TEST_CREDS
-        )
-
-
-@pytest.fixture(name="two_factor_verify_form")
-async def fixture_two_factor_verify_form(hass, two_factor_start_form):
-    """Return two factor form for Subaru config flow."""
-    with (
-        patch(
-            MOCK_API_2FA_REQUEST,
-            return_value=True,
-        ),
-        patch(MOCK_API_2FA_CONTACTS, new_callable=PropertyMock) as mock_contacts,
-    ):
-        mock_contacts.return_value = {
-            "phone": "123-123-1234",
-            "userName": "email@addr.com",
-        }
-        return await hass.config_entries.flow.async_configure(
-            two_factor_start_form["flow_id"],
-            user_input={config_flow.CONF_CONTACT_METHOD: "email@addr.com"},
-        )
-
-
-@pytest.fixture(name="pin_form")
-async def fixture_pin_form(hass, two_factor_verify_form):
-    """Return PIN input form for Subaru config flow."""
-    with (
-        patch(
-            MOCK_API_2FA_VERIFY,
-            return_value=True,
-        ),
-        patch(MOCK_API_IS_PIN_REQUIRED, return_value=True),
-    ):
-        return await hass.config_entries.flow.async_configure(
-            two_factor_verify_form["flow_id"],
-            user_input={config_flow.CONF_VALIDATION_CODE: "123456"},
-        )
-
-
-@pytest.fixture(name="options_form")
-async def fixture_options_form(hass, enable_custom_integrations):
-    """Return options form for Subaru config flow."""
-    entry = MockConfigEntry(domain=DOMAIN, data={}, options=None)
-    entry.add_to_hass(hass)
-    await async_setup_component(hass, DOMAIN, {})
-    return await hass.config_entries.options.async_init(entry.entry_id)
-
-
 async def test_pin_form_update_pin_returns_false(hass, pin_form):
     """Test PIN form when update_saved_pin returns False - no PIN validation occurs."""
     with patch(
@@ -420,3 +510,253 @@ async def test_pin_form_update_pin_returns_false(hass, pin_form):
     # When update_saved_pin returns False, the flow should show the form again
     assert result["type"] == "form"
     assert result["step_id"] == "pin"
+
+
+# =============================================================================
+# REAUTH FLOW TESTS
+# =============================================================================
+
+
+async def test_reauth_flow_success(
+    hass, enable_custom_integrations, mock_entry_with_options
+):
+    """Test successful reauth flow."""
+    result = await init_flow(
+        hass, mock_entry_with_options, config_entries.SOURCE_REAUTH
+    )
+
+    # Submit new credentials without 2FA requirement
+    with (
+        patch(MOCK_API_CONNECT, return_value=True),
+        patch(
+            MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+        ) as mock_device_registered,
+        patch(MOCK_API_IS_PIN_REQUIRED, return_value=False),
+    ):
+        mock_device_registered.return_value = True
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reauth_successful"
+
+
+async def test_reauth_flow_with_2fa(hass, enable_custom_integrations, mock_entry):
+    """Test reauth flow that requires 2FA."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_REAUTH)
+
+    # Submit credentials that trigger 2FA
+    with (
+        patch(MOCK_API_CONNECT, return_value=True),
+        patch(
+            MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+        ) as mock_device_registered,
+        patch(MOCK_API_2FA_CONTACTS, new_callable=PropertyMock) as mock_contacts,
+    ):
+        mock_device_registered.return_value = False
+        mock_contacts.return_value = MOCK_2FA_CONTACTS
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "two_factor"
+
+    # Complete 2FA flow
+    result = await complete_2fa_flow(hass, result["flow_id"])
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reauth_successful"
+
+
+async def test_reauth_flow_with_pin_required(
+    hass, enable_custom_integrations, mock_entry
+):
+    """Test reauth flow that requires PIN entry."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_REAUTH)
+
+    # Submit credentials with PIN required
+    with (
+        patch(MOCK_API_CONNECT, return_value=True),
+        patch(
+            MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+        ) as mock_device_registered,
+        patch(MOCK_API_IS_PIN_REQUIRED, return_value=True),
+    ):
+        mock_device_registered.return_value = True
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "pin"
+
+    # Submit PIN
+    with (
+        patch(MOCK_API_UPDATE_SAVED_PIN, return_value=True),
+        patch(MOCK_API_TEST_PIN, return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_PIN: TEST_PIN}
+        )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reauth_successful"
+
+
+async def test_reauth_flow_invalid_auth(hass, enable_custom_integrations, mock_entry):
+    """Test reauth flow with invalid credentials."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_REAUTH)
+
+    with patch(MOCK_API_CONNECT, side_effect=InvalidCredentials("invalidAccount")):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "form"
+    assert result["errors"] == {"base": "invalid_auth"}
+
+
+async def test_reauth_flow_cannot_connect(hass, enable_custom_integrations, mock_entry):
+    """Test reauth flow with connection error."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_REAUTH)
+
+    with patch(MOCK_API_CONNECT, side_effect=SubaruException("Connection failed")):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "cannot_connect: Connection failed"
+
+
+# =============================================================================
+# RECONFIGURE FLOW TESTS
+# =============================================================================
+
+
+async def test_reconfigure_flow_success(
+    hass, enable_custom_integrations, mock_entry_with_options
+):
+    """Test successful reconfigure flow."""
+    result = await init_flow(
+        hass, mock_entry_with_options, config_entries.SOURCE_RECONFIGURE
+    )
+
+    # Submit new credentials without 2FA requirement
+    with (
+        patch(MOCK_API_CONNECT, return_value=True),
+        patch(
+            MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+        ) as mock_device_registered,
+        patch(MOCK_API_IS_PIN_REQUIRED, return_value=False),
+    ):
+        mock_device_registered.return_value = True
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reconfigure_successful"
+
+
+async def test_reconfigure_flow_with_2fa(hass, enable_custom_integrations, mock_entry):
+    """Test reconfigure flow that requires 2FA."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_RECONFIGURE)
+
+    # Submit credentials that trigger 2FA
+    with (
+        patch(MOCK_API_CONNECT, return_value=True),
+        patch(
+            MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+        ) as mock_device_registered,
+        patch(MOCK_API_2FA_CONTACTS, new_callable=PropertyMock) as mock_contacts,
+    ):
+        mock_device_registered.return_value = False
+        mock_contacts.return_value = MOCK_2FA_CONTACTS
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "two_factor"
+
+    # Complete 2FA flow
+    result = await complete_2fa_flow(hass, result["flow_id"])
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reconfigure_successful"
+
+
+async def test_reconfigure_flow_with_pin(hass, enable_custom_integrations, mock_entry):
+    """Test reconfigure flow that requires PIN entry."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_RECONFIGURE)
+
+    # Submit credentials with PIN required
+    with (
+        patch(MOCK_API_CONNECT, return_value=True),
+        patch(
+            MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
+        ) as mock_device_registered,
+        patch(MOCK_API_IS_PIN_REQUIRED, return_value=True),
+    ):
+        mock_device_registered.return_value = True
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "pin"
+
+    # Submit PIN
+    with (
+        patch(MOCK_API_UPDATE_SAVED_PIN, return_value=True),
+        patch(MOCK_API_TEST_PIN, return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_PIN: TEST_PIN}
+        )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reconfigure_successful"
+
+
+async def test_reconfigure_flow_invalid_auth(
+    hass, enable_custom_integrations, mock_entry
+):
+    """Test reconfigure flow with invalid credentials."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_RECONFIGURE)
+
+    with patch(MOCK_API_CONNECT, side_effect=InvalidCredentials("invalidAccount")):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "form"
+    assert result["errors"] == {"base": "invalid_auth"}
+
+
+async def test_reconfigure_flow_cannot_connect(
+    hass, enable_custom_integrations, mock_entry
+):
+    """Test reconfigure flow with connection error."""
+    result = await init_flow(hass, mock_entry, config_entries.SOURCE_RECONFIGURE)
+
+    with patch(MOCK_API_CONNECT, side_effect=SubaruException("Connection failed")):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input=TEST_CREDS,
+        )
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "cannot_connect: Connection failed"

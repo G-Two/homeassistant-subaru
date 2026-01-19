@@ -60,24 +60,16 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 entry.data[CONF_USERNAME] for entry in self._async_current_entries()
             ]:
                 return self.async_abort(reason="already_configured")
-
             try:
                 await self.validate_login_creds(user_input)
             except InvalidCredentials:
                 error = {"base": "invalid_auth"}
             except SubaruException as ex:
                 _LOGGER.error("Unable to communicate with Subaru API: %s", ex.message)
-                return self.async_abort(reason="cannot_connect")
+                return self.async_abort(reason="cannot_connect: %s" % ex.message)
 
             if not error:
-                if not self.controller.device_registered:
-                    _LOGGER.debug("2FA validation is required")
-                    return await self.async_step_two_factor()
-                if self.controller.is_pin_required():
-                    return await self.async_step_pin()
-                return self.async_create_entry(
-                    title=user_input[CONF_USERNAME], data=self.config_data
-                )
+                return await self.auth_sequence(user_input)
 
         return self.async_show_form(
             step_id="user",
@@ -109,32 +101,19 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         error = None
 
         if user_input:
-            if self.source not in {SOURCE_REAUTH, SOURCE_RECONFIGURE}:
-                self._abort_if_unique_id_configured()
             self._abort_if_unique_id_mismatch()
+            user_input[CONF_DEVICE_ID] = self.config_data.get(CONF_DEVICE_ID)
+
             try:
-                user_input[CONF_DEVICE_ID] = self.config_data.get(CONF_DEVICE_ID)
                 await self.validate_login_creds(user_input)
             except InvalidCredentials:
                 error = {"base": "invalid_auth"}
             except SubaruException as ex:
                 _LOGGER.error("Unable to communicate with Subaru API: %s", ex.message)
-                return self.async_abort(reason="cannot_connect")
+                return self.async_abort(reason="cannot_connect: %s" % ex.message)
 
             if not error:
-                if not self.controller.device_registered:
-                    _LOGGER.debug("2FA validation is required")
-                    return await self.async_step_two_factor()
-                if self.controller.is_pin_required():
-                    return await self.async_step_pin(user_input)
-
-                if self.source == SOURCE_REAUTH:
-                    return self.async_update_reload_and_abort(
-                        self._get_reauth_entry(), data=user_input
-                    )
-                return self.async_update_reload_and_abort(
-                    self._get_reconfigure_entry(), data=user_input
-                )
+                return await self.auth_sequence(user_input)
 
         return self.async_show_form(
             step_id="update_creds",
@@ -146,7 +125,6 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_PASSWORD, default=self.config_data.get(CONF_PASSWORD)
                     ): str,
-                    vol.Required(CONF_PIN, default=self.config_data.get(CONF_PIN)): str,
                     vol.Required(
                         CONF_COUNTRY,
                         default=(self.config_data.get(CONF_COUNTRY)),
@@ -173,6 +151,18 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlowHandler:
         """Get the options flow for this handler."""
         return OptionsFlowHandler()
+
+    async def auth_sequence(self, data: dict[str, Any]) -> ConfigFlowResult:
+        """Handle the authentication sequence."""
+
+        if not self.controller.device_registered:
+            _LOGGER.debug("2FA validation is required")
+            return await self.async_step_two_factor()
+
+        if self.controller.is_pin_required():
+            return await self.async_step_pin()
+
+        return self.update_or_create()
 
     async def validate_login_creds(self, data: dict[str, Any]) -> None:
         """Validate the user input allows us to connect.
@@ -242,18 +232,7 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ):
                     if self.controller.is_pin_required():
                         return await self.async_step_pin()
-
-                    if self.source in SOURCE_REAUTH:
-                        return self.async_update_reload_and_abort(
-                            self._get_reauth_entry(), data=self.config_data
-                        )
-                    if self.source in SOURCE_RECONFIGURE:
-                        return self.async_update_reload_and_abort(
-                            self._get_reconfigure_entry(), data=self.config_data
-                        )
-                    return self.async_create_entry(
-                        title=self.config_data[CONF_USERNAME], data=self.config_data
-                    )
+                    return self.update_or_create()
                 error = {"base": "incorrect_validation_code"}
             except vol.Invalid:
                 error = {"base": "bad_validation_code_format"}
@@ -278,20 +257,25 @@ class SubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 if not error:
                     self.config_data.update(user_input)
-                    if self.source in SOURCE_REAUTH:
-                        return self.async_update_reload_and_abort(
-                            self._get_reauth_entry(), data=self.config_data
-                        )
-                    if self.source in SOURCE_RECONFIGURE:
-                        return self.async_update_reload_and_abort(
-                            self._get_reconfigure_entry(), data=self.config_data
-                        )
-                    return self.async_create_entry(
-                        title=self.config_data[CONF_USERNAME], data=self.config_data
-                    )
+                    return self.update_or_create()
+
         data_schema = vol.Schema({vol.Required(CONF_PIN): str})
         return self.async_show_form(
             step_id="pin", data_schema=data_schema, errors=error
+        )
+
+    def update_or_create(self) -> ConfigFlowResult:
+        """Update existing entry or create a new one."""
+        if self.source == SOURCE_REAUTH:
+            return self.async_update_reload_and_abort(
+                self._get_reauth_entry(), data=self.config_data
+            )
+        if self.source == SOURCE_RECONFIGURE:
+            return self.async_update_reload_and_abort(
+                self._get_reconfigure_entry(), data=self.config_data
+            )
+        return self.async_create_entry(
+            title=self.config_data[CONF_USERNAME], data=self.config_data
         )
 
 
