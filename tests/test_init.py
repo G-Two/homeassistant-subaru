@@ -106,6 +106,23 @@ async def test_invalid_credentials(
     assert check_entry.state is ConfigEntryState.SETUP_ERROR
 
 
+async def test_device_not_registered(
+    hass, subaru_config_entry, enable_custom_integrations
+):
+    """Test device not registered requiring 2FA reauthentication."""
+    await setup_subaru_config_entry(
+        hass,
+        subaru_config_entry,
+        device_registered=False,
+        vehicle_list=[TEST_VIN_2_EV],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
+        vehicle_status=VEHICLE_STATUS_EV,
+    )
+    check_entry = hass.config_entries.async_get_entry(subaru_config_entry.entry_id)
+    assert check_entry
+    assert check_entry.state is ConfigEntryState.SETUP_ERROR
+
+
 async def test_update_skip_unsubscribed(
     hass, subaru_config_entry, enable_custom_integrations
 ):

@@ -20,7 +20,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client, entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -93,13 +93,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug("Using subarulink %s", controller.version)
         await controller.connect()
 
+        if not controller.device_registered:
+            raise ConfigEntryAuthFailed(
+                "Device not registered, 2FA reauthentication required"
+            )
+
         for vin in controller.get_vehicles():
             if controller.get_subscription_status(vin):
                 vehicles[vin] = await _get_vehicle_info(controller, vin)
 
-    except InvalidCredentials:
-        _LOGGER.error("Invalid account")
-        return False
+    except InvalidCredentials as err:
+        raise ConfigEntryAuthFailed(err.message) from err
     except SubaruException as err:
         raise ConfigEntryNotReady(err.message) from err
 

@@ -319,7 +319,7 @@ async def test_pin_form_incorrect_pin(hass, pin_form):
     assert len(mock_test_pin.mock_calls) == 1
     assert len(mock_update_saved_pin.mock_calls) == 1
     assert result["type"] == "form"
-    assert result["errors"] == {"base": "incorrect_pin"}
+    assert result["errors"] == {"base": "Incorrect PIN"}
 
 
 async def test_option_flow(hass, options_form):
@@ -405,3 +405,18 @@ async def fixture_options_form(hass, enable_custom_integrations):
     entry.add_to_hass(hass)
     await async_setup_component(hass, DOMAIN, {})
     return await hass.config_entries.options.async_init(entry.entry_id)
+
+
+async def test_pin_form_update_pin_returns_false(hass, pin_form):
+    """Test PIN form when update_saved_pin returns False - no PIN validation occurs."""
+    with patch(
+        MOCK_API_UPDATE_SAVED_PIN,
+        return_value=False,
+    ) as mock_update_saved_pin:
+        result = await hass.config_entries.flow.async_configure(
+            pin_form["flow_id"], user_input={CONF_PIN: TEST_PIN}
+        )
+    assert len(mock_update_saved_pin.mock_calls) == 1
+    # When update_saved_pin returns False, the flow should show the form again
+    assert result["type"] == "form"
+    assert result["step_id"] == "pin"

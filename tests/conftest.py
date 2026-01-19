@@ -1,7 +1,7 @@
 """Common functions needed to setup tests for Subaru component."""
 
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import (
@@ -69,6 +69,7 @@ MOCK_API_FETCH = f"{MOCK_API}fetch"
 MOCK_API_REMOTE_START = f"{MOCK_API}remote_start"
 MOCK_API_LIGHTS = f"{MOCK_API}lights"
 MOCK_API_GET_RAW_DATA = f"{MOCK_API}get_raw_data"
+MOCK_API_DEVICE_REGISTERED = f"{MOCK_API}device_registered"
 
 TEST_USERNAME = "user@email.com"
 TEST_PASSWORD = "password"  # nosec
@@ -122,6 +123,7 @@ async def setup_subaru_config_entry(
     vehicle_list=[TEST_VIN_2_EV],
     vehicle_data=VEHICLE_DATA[TEST_VIN_2_EV],
     vehicle_status=VEHICLE_STATUS_EV,
+    device_registered=True,
     connect_effect=None,
     fetch_effect=None,
 ):
@@ -196,6 +198,11 @@ async def setup_subaru_config_entry(
             MOCK_API_UPDATE,
         ),
         patch(MOCK_API_FETCH, side_effect=fetch_effect),
+        patch(
+            MOCK_API_DEVICE_REGISTERED,
+            new_callable=PropertyMock,
+            return_value=device_registered,
+        ),
     ):
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
