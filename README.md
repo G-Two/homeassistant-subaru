@@ -1,7 +1,7 @@
 # MySubaru Connected Services Custom Integration for Home Assistant
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-> [!NOTE] 
+> [!NOTE]
 > The [Subaru](https://www.home-assistant.io/integrations/subaru/) integration is now part of Home Assistant Core (as of release [2021.3](https://www.home-assistant.io/blog/2021/03/03/release-20213/)), however not all features have been implemented. Currently, only the device tracker, sensor, and lock platforms are available. Additional PRs will be submitted to include all features of this custom component into Home Assistant Core. Users that desire full functionality should continue to use this custom component until all functionality is merged into Home Assistant Core. When installed, this custom component overrides the Home Assistant Core built-in Subaru integration.
 
 ***
@@ -70,7 +70,7 @@ Device tracker, lock, and buttons (except refresh) all require a MySubaru Securi
 
 This integration supports remote locking and unlocking of vehicle doors. If doors are remotely unlocked, they will automatically relock if a door is not opened within a minute. There is no remote notification of this automatic relock.
 > [!NOTE]
-> The actual lock status is always unknown due to the fact that the Subaru API does not report this data. 
+> The actual lock status is always unknown due to the fact that the Subaru API does not report this data.
 
 ### Buttons
 | Buttons                  | Gen 1   | Gen 2   | Gen 3   |
@@ -128,7 +128,7 @@ All options involve remote commands, thus only apply to vehicles with Security P
 - **Enable vehicle polling:**  Sensor data reported by the Subaru API only returns what is cached on Subaru servers, and does not necessarily reflect current conditions. The cached data is updated when the engine is shutdown, or when a location update is requested. This options enables automatic periodic updates.
   - **Disable *[Default]*:** New sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). The user may still manually poll the vehicle anytime with the Locate button.
   - **Charging:** For PHEVs, during charging, the integration will poll every 30 minutes to obtain updated charging status. Polling will only occur during charging.
-  - **Enable:** Every 2 hours, the integration will send a remote command (equivalent to pressing the Locate button), "waking" your vehicle obtain new sensor data. 
+  - **Enable:** Every 2 hours, the integration will send a remote command (equivalent to pressing the Locate button), "waking" your vehicle obtain new sensor data.
 > [!WARNING]
 > Vehicle polling draws power from the 12V battery. Long term use without driving may drain the battery resulting in the inability to start your vehicle.
 
@@ -190,3 +190,40 @@ This event is fired when a command fails.
 This is a list of possible commands for the above events.
 
 `fetch`, `update`, `lock`, `unlock`, `lights`, `lights_stop`, `horn`, `horn_stop`, `remote_start`, `remote_stop`, `charge_start`, `preset_name`
+
+
+# Home Assistant Subaru Integration - Dev Container
+
+This devcontainer provides a complete Home Assistant environment for testing the Subaru integration.
+
+## Getting Started
+
+1. Open this folder in VS Code
+2. When prompted, click "Reopen in Container" (or run "Remote-Containers: Reopen in Container" from the command palette)
+3. Wait for the container to build and start (first time may take several minutes)
+4. Run the "Start Home Assistant" task
+5. Open your browser to http://localhost:8123
+6. Complete the Home Assistant onboarding
+7. Go to Configuration → Integrations → Add Integration → Search for "Subaru"
+8. Configure the integration with your credentials
+
+## Features
+
+- Full Home Assistant instance running in a container
+- Your custom_components/subaru folder is mounted into the container
+- Changes to your code are immediately available (will need to restart HA)
+- Debug logging enabled for the Subaru integration
+- Port 8123 forwarded to your local machine
+
+## Testing Changes
+
+After making changes to your integration code:
+
+1. Go to Developer Tools → YAML in Home Assistant
+2. Click "Restart" to restart Home Assistant
+3. Your changes will be loaded
+
+## Notes
+
+- The container uses the official Home Assistant devcontainer image
+- Configuration files are stored in `.devcontainer/` and should persist after container rebuild

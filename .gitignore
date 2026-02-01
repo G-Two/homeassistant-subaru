@@ -1,7 +1,13 @@
 **/*
 
+!.devcontainer/
+!.devcontainer/config/
+!.devcontainer/config/configuration.yaml.DEFAULT
+!.devcontainer/devcontainer.json
 !.github/
 !.github/**
+!.vscode/
+!.vscode/tasks.json
 !custom_components/
 !custom_components/**
 !tests/

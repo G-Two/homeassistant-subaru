@@ -1,0 +1,40 @@
+{
+  "name": "Home Assistant Subaru Dev",
+  "image": "ghcr.io/home-assistant/home-assistant:dev",
+  "overrideCommand": true,
+  "appPort": [
+    "8123:8123"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "github.copilot"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.pylintEnabled": true,
+        "python.linting.enabled": true,
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder}/.devcontainer/config,target=/config,type=bind",
+    "source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind"
+  ],
+  "forwardPorts": [
+    8123
+  ],
+  "portsAttributes": {
+    "8123": {
+      "label": "Home Assistant",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "cp /config/configuration.yaml.DEFAULT /config/configuration.yaml && pip install -r requirements.test.txt"
+}
