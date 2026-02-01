@@ -14,6 +14,7 @@
 * [Options](#options)
 * [Services](#services)
 * [Events](#events)
+* [Development](#development)
 
 ## Description
 This Home Assistant custom component retrieves vehicle information and actuates remote services provided by MySubaru Connected Services (formerly known as Subaru STARLINK) available in USA/Canada.
@@ -192,11 +193,11 @@ This is a list of possible commands for the above events.
 `fetch`, `update`, `lock`, `unlock`, `lights`, `lights_stop`, `horn`, `horn_stop`, `remote_start`, `remote_stop`, `charge_start`, `preset_name`
 
 
-# Home Assistant Subaru Integration - Dev Container
+## Development
 
-This devcontainer provides a complete Home Assistant environment for testing the Subaru integration.
+The devcontainer provides a complete Home Assistant environment for developing and testing the Subaru integration.
 
-## Getting Started
+### Getting Started
 
 1. Open this folder in VS Code
 2. When prompted, click "Reopen in Container" (or run "Remote-Containers: Reopen in Container" from the command palette)
@@ -207,7 +208,7 @@ This devcontainer provides a complete Home Assistant environment for testing the
 7. Go to Configuration → Integrations → Add Integration → Search for "Subaru"
 8. Configure the integration with your credentials
 
-## Features
+### Features
 
 - Full Home Assistant instance running in a container
 - Your custom_components/subaru folder is mounted into the container
@@ -215,7 +216,7 @@ This devcontainer provides a complete Home Assistant environment for testing the
 - Debug logging enabled for the Subaru integration
 - Port 8123 forwarded to your local machine
 
-## Testing Changes
+### Testing Changes
 
 After making changes to your integration code:
 
@@ -223,7 +224,7 @@ After making changes to your integration code:
 2. Click "Restart" to restart Home Assistant
 3. Your changes will be loaded
 
-## Notes
+### Notes
 
 - The container uses the official Home Assistant devcontainer image
-- Configuration files are stored in `.devcontainer/` and should persist after container rebuild
+- HA configuration files and logs are stored in `.devcontainer/config` and will persist between container rebuilds
