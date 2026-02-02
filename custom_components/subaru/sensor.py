@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import subarulink.const as sc
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -26,7 +28,6 @@ from homeassistant.util.unit_conversion import (
     VolumeConverter,
 )
 from homeassistant.util.unit_system import METRIC_SYSTEM
-import subarulink.const as sc
 
 from .const import (
     API_GEN_2,

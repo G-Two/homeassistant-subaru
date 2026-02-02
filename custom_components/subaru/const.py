@@ -1,7 +1,8 @@
 """Constants for the Subaru integration."""
 
-from homeassistant.const import Platform
 import subarulink.const as sc
+
+from homeassistant.const import Platform
 
 DOMAIN = "subaru"
 FETCH_INTERVAL = 300
