@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import subarulink.const as sc
-
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -28,10 +26,12 @@ from homeassistant.util.unit_conversion import (
     VolumeConverter,
 )
 from homeassistant.util.unit_system import METRIC_SYSTEM
+import subarulink.const as sc
 
 from .const import (
     API_GEN_2,
     API_GEN_3,
+    API_GEN_4,
     DOMAIN,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -175,10 +175,10 @@ def create_vehicle_sensors(
     sensor_descriptions_to_add = []
     sensor_descriptions_to_add.extend(SAFETY_SENSORS)
 
-    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
+    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3, API_GEN_4]:
         sensor_descriptions_to_add.extend(API_GEN_2_SENSORS)
 
-    if vehicle_info[VEHICLE_API_GEN] == API_GEN_3:
+    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_3, API_GEN_4]:
         sensor_descriptions_to_add.extend(API_GEN_3_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_EV]:

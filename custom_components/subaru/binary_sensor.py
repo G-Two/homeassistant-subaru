@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-import subarulink.const as sc
-
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -19,10 +17,12 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
+import subarulink.const as sc
 
 from .const import (
     API_GEN_2,
     API_GEN_3,
+    API_GEN_4,
     DOMAIN,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -216,7 +216,7 @@ def create_vehicle_binary_sensors(
     binary_sensors_to_add = []
     binary_sensors_to_add.extend(TROUBLE_BINARY_SENSOR)
 
-    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
+    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3, API_GEN_4]:
         binary_sensors_to_add.extend(API_GEN_2_BINARY_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_POWER_WINDOWS] or vehicle_info[VEHICLE_HAS_SUNROOF]:
