@@ -1,0 +1,28 @@
+{
+    "python.defaultInterpreterPath": "/usr/local/bin/python",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/custom_components",
+        "${workspaceFolder}/subarulink"
+    ],
+    "python.analysis.typeCheckingMode": "basic",
+    "cSpell.words": [
+        "hass"
+    ],
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "black-formatter.importStrategy": "fromEnvironment",
+    "isort.importStrategy": "fromEnvironment",
+    "pylint.importStrategy": "fromEnvironment",
+    "mypy-type-checker.importStrategy": "fromEnvironment",
+    "flake8.importStrategy": "fromEnvironment"
+}

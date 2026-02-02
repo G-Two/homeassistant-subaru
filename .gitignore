@@ -8,6 +8,7 @@
 !.github/**
 !.vscode/
 !.vscode/tasks.json
+!.vscode/settings.json
 !custom_components/
 !custom_components/**
 !tests/
