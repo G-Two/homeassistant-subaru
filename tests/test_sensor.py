@@ -5,12 +5,14 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.subaru.const import FETCH_INTERVAL
+from custom_components.subaru.const import FETCH_INTERVAL, VEHICLE_HAS_TPMS
 from custom_components.subaru.sensor import (
     API_GEN_2_SENSORS,
+    API_GEN_3_SENSORS,
     DOMAIN as SUBARU_DOMAIN,
     EV_SENSORS,
     SAFETY_SENSORS,
+    TPMS_SENSORS,
 )
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.core import HomeAssistant
@@ -19,6 +21,9 @@ from homeassistant.helpers import entity_registry as er
 from .api_responses import (
     EXPECTED_STATE_EV_UNAVAILABLE,
     TEST_VIN_2_EV,
+    TEST_VIN_4_G4,
+    VEHICLE_DATA,
+    VEHICLE_STATUS_G4,
 )
 from .conftest import (
     MOCK_API_FETCH,
@@ -113,6 +118,50 @@ async def test_sensor_migrate_unique_ids_duplicate(
     assert entity_not_changed.unique_id == new_unique_id
 
     assert entity_migrated != entity_not_changed
+
+
+async def test_gen4_vehicle_sensors(
+    hass: HomeAssistant, subaru_config_entry
+) -> None:
+    """Test that Gen4 vehicles get the expected sensor sets (Gen2/Gen3 sensors)."""
+    await setup_subaru_config_entry(
+        hass,
+        subaru_config_entry,
+        vehicle_list=[TEST_VIN_4_G4],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_4_G4],
+        vehicle_status=VEHICLE_STATUS_G4,
+    )
+
+    entity_registry = er.async_get(hass)
+
+    # Gen4 vehicles should have all SAFETY_SENSORS
+    for sensor_desc in SAFETY_SENSORS:
+        entity_id = entity_registry.async_get_entity_id(
+            SENSOR_DOMAIN, SUBARU_DOMAIN, f"{TEST_VIN_4_G4}_{sensor_desc.key}"
+        )
+        assert entity_id is not None, f"Missing SAFETY sensor: {sensor_desc.key}"
+
+    # Gen4 vehicles should have all API_GEN_2_SENSORS
+    for sensor_desc in API_GEN_2_SENSORS:
+        entity_id = entity_registry.async_get_entity_id(
+            SENSOR_DOMAIN, SUBARU_DOMAIN, f"{TEST_VIN_4_G4}_{sensor_desc.key}"
+        )
+        assert entity_id is not None, f"Missing API_GEN_2 sensor: {sensor_desc.key}"
+
+    # Gen4 vehicles should have all API_GEN_3_SENSORS
+    for sensor_desc in API_GEN_3_SENSORS:
+        entity_id = entity_registry.async_get_entity_id(
+            SENSOR_DOMAIN, SUBARU_DOMAIN, f"{TEST_VIN_4_G4}_{sensor_desc.key}"
+        )
+        assert entity_id is not None, f"Missing API_GEN_3 sensor: {sensor_desc.key}"
+
+    # Gen4 vehicles should have TPMS_SENSORS if vehicle has TPMS
+    if VEHICLE_DATA[TEST_VIN_4_G4][VEHICLE_HAS_TPMS]:
+        for sensor_desc in TPMS_SENSORS:
+            entity_id = entity_registry.async_get_entity_id(
+                SENSOR_DOMAIN, SUBARU_DOMAIN, f"{TEST_VIN_4_G4}_{sensor_desc.key}"
+            )
+            assert entity_id is not None, f"Missing TPMS sensor: {sensor_desc.key}"
 
 
 def _assert_data(hass: HomeAssistant, expected_state: dict[str, Any]) -> None:
