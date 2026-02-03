@@ -38,7 +38,13 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 import homeassistant.util.dt as dt_util
 
-from tests.api_responses import TEST_VIN_2_EV, VEHICLE_DATA, VEHICLE_STATUS_EV
+from tests.api_responses import (
+    TEST_VIN_2_EV,
+    TEST_VIN_4_G4,
+    VEHICLE_DATA,
+    VEHICLE_STATUS_EV,
+    VEHICLE_STATUS_G4,
+)
 
 MOCK_API = "custom_components.subaru.SubaruAPI."
 MOCK_API_CONNECT = f"{MOCK_API}connect"
@@ -219,6 +225,17 @@ async def setup_default_ev_entry(hass, config_entry):
     )
 
 
+async def setup_default_g4_entry(hass, config_entry):
+    """Run async_setup with API mocks in place and Gen4 vehicle responses."""
+    await setup_subaru_config_entry(
+        hass,
+        config_entry,
+        vehicle_list=[TEST_VIN_4_G4],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_4_G4],
+        vehicle_status=VEHICLE_STATUS_G4,
+    )
+
+
 @pytest.fixture(name="subaru_config_entry", scope="function")
 async def fixture_subaru_config_entry(hass, enable_custom_integrations):
     """Create a Subaru config entry prior to setup."""
@@ -270,6 +287,13 @@ async def ev_entry_charge_polling(
         hass,
         subaru_config_entry,
     )
+    return subaru_config_entry
+
+
+@pytest.fixture
+async def g4_entry(hass, subaru_config_entry, enable_custom_integrations):
+    """Create a Subaru entry representing a Gen4 vehicle with full MySubaru subscription."""
+    await setup_default_g4_entry(hass, subaru_config_entry)
     return subaru_config_entry
 
 
