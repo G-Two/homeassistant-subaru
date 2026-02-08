@@ -9,7 +9,11 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "ms-python.pylint",
+        "ms-python.flake8",
+        "ms-python.mypy-type-checker",
         "github.copilot"
       ],
       "settings": {
@@ -36,5 +40,5 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "cp /config/configuration.yaml.DEFAULT /config/configuration.yaml && pip install -r requirements.test.txt"
+  "postCreateCommand": "cp /config/configuration.yaml.DEFAULT /config/configuration.yaml && pip install .[dev,test]"
 }

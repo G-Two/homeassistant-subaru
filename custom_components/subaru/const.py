@@ -51,6 +51,7 @@ VEHICLE_CLIMATE_SELECTED_PRESET = "preset_name"
 API_GEN_1 = "g1"
 API_GEN_2 = "g2"
 API_GEN_3 = "g3"
+API_GEN_4 = "g4"
 MANUFACTURER = "Subaru"
 
 ATTR_DOOR = "door"

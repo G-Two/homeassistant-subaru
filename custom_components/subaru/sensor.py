@@ -32,6 +32,7 @@ from homeassistant.util.unit_system import METRIC_SYSTEM
 from .const import (
     API_GEN_2,
     API_GEN_3,
+    API_GEN_4,
     DOMAIN,
     ENTRY_COORDINATOR,
     ENTRY_VEHICLES,
@@ -65,7 +66,7 @@ SAFETY_SENSORS = [
     ),
 ]
 
-# Sensors available to subscribers with Gen2/Gen3 vehicles
+# Sensors available to subscribers with Gen2/Gen3/Gen4 vehicles
 API_GEN_2_SENSORS = [
     SensorEntityDescription(
         key=sc.AVG_FUEL_CONSUMPTION,
@@ -116,7 +117,7 @@ TPMS_SENSORS = [
     ),
 ]
 
-# Sensors available for Gen3 vehicles
+# Sensors available for Gen3/Gen4 vehicles
 API_GEN_3_SENSORS = [
     SensorEntityDescription(
         key=sc.REMAINING_FUEL_PERCENT,
@@ -175,10 +176,10 @@ def create_vehicle_sensors(
     sensor_descriptions_to_add = []
     sensor_descriptions_to_add.extend(SAFETY_SENSORS)
 
-    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3]:
+    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_2, API_GEN_3, API_GEN_4]:
         sensor_descriptions_to_add.extend(API_GEN_2_SENSORS)
 
-    if vehicle_info[VEHICLE_API_GEN] == API_GEN_3:
+    if vehicle_info[VEHICLE_API_GEN] in [API_GEN_3, API_GEN_4]:
         sensor_descriptions_to_add.extend(API_GEN_3_SENSORS)
 
     if vehicle_info[VEHICLE_HAS_EV]:
