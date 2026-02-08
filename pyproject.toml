@@ -14,7 +14,7 @@ test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-homeassistant-custom-component>=0.13.0",
-    "subarulink==0.7.19rc1"
+    "subarulink==0.7.19"
 ]
 dev = [
     "black>=24.0.0",
