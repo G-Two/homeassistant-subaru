@@ -66,7 +66,7 @@ SAFETY_SENSORS = [
     ),
 ]
 
-# Sensors available to subscribers with Gen2/Gen3 vehicles
+# Sensors available to subscribers with Gen2/Gen3/Gen4 vehicles
 API_GEN_2_SENSORS = [
     SensorEntityDescription(
         key=sc.AVG_FUEL_CONSUMPTION,
@@ -117,7 +117,7 @@ TPMS_SENSORS = [
     ),
 ]
 
-# Sensors available for Gen3 vehicles
+# Sensors available for Gen3/Gen4 vehicles
 API_GEN_3_SENSORS = [
     SensorEntityDescription(
         key=sc.REMAINING_FUEL_PERCENT,
