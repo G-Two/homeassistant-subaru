@@ -43,7 +43,7 @@ repos:
         files: ^(custom_components||tests)/.+\.py$
   
   - repo: https://github.com/PyCQA/isort
-    rev: 7.0.0
+    rev: 8.0.0
     hooks:
       - id: isort
   
