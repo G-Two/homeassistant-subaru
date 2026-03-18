@@ -41,6 +41,10 @@ async def test_binary_sensors_missing_vin_data(hass, ev_entry):
         advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
 
+    # Wait for all async tasks to complete after exiting patch context to avoid
+    # race conditions where background entity state updates access stale coordinator data
+    await hass.async_block_till_done()
+
     _assert_data(hass, EXPECTED_STATE_EV_UNAVAILABLE)
 
 

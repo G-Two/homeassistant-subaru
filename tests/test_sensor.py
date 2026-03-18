@@ -34,6 +34,10 @@ async def test_sensors_missing_vin_data(hass: HomeAssistant, ev_entry) -> None:
         advance_time(hass, FETCH_INTERVAL)
         await hass.async_block_till_done()
 
+    # Wait for all async tasks to complete after exiting patch context to avoid
+    # race conditions where background entity state updates access stale coordinator data
+    await hass.async_block_till_done()
+
     _assert_data(hass, EXPECTED_STATE_EV_UNAVAILABLE)
 
 
