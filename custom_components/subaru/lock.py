@@ -158,6 +158,8 @@ class SubaruLock(LockEntity):
     def is_locked(self) -> bool | None:
         """Return true if all doors are locked."""
         if self.lock_status_available:
+            if self.vin not in self.coordinator.data:
+                return None
             for door in [
                 LOCK_BOOT_STATUS,
                 LOCK_FRONT_LEFT_STATUS,
@@ -178,6 +180,8 @@ class SubaruLock(LockEntity):
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return entity specific state attributes."""
         if self.lock_status_available:
+            if self.vin not in self.coordinator.data:
+                return None
             return {
                 LOCK_BOOT_STATUS: self.coordinator.data[self.vin][VEHICLE_STATUS].get(
                     LOCK_BOOT_STATUS
