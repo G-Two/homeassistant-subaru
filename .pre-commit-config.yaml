@@ -43,7 +43,7 @@ repos:
         files: ^(custom_components||tests)/.+\.py$
   
   - repo: https://github.com/PyCQA/isort
-    rev: 8.0.1
+    rev: 9.0.0a3
     hooks:
       - id: isort
   
@@ -55,7 +55,7 @@ repos:
       - id: check-json
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+    rev: v1.20.2
     hooks:
       - id: mypy
         args:
