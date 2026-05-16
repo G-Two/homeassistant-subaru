@@ -7,6 +7,7 @@
 !.github/
 !.github/**
 !.vscode/
+!.vscode/launch.json
 !.vscode/tasks.json
 !.vscode/settings.json
 !custom_components/
