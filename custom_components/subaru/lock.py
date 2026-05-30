@@ -23,7 +23,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 from . import DOMAIN
 from .const import (
@@ -72,11 +75,13 @@ async def async_setup_entry(
     )
 
 
-class SubaruLock(LockEntity):
+class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockEntity):
     """
     Representation of a Subaru door lock.
 
-    Note that the Subaru API currently does not support returning the status of the locks. Lock status is always unknown.
+    Vehicles that report lock status surface it via the is_locked property,
+    which is kept in sync with the data update coordinator. Vehicles that do
+    not report lock status always present an unknown lock state.
     """
 
     _attr_has_entity_name = True
@@ -90,8 +95,8 @@ class SubaruLock(LockEntity):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the locks for the vehicle."""
+        super().__init__(coordinator)
         self.controller = controller
-        self.coordinator = coordinator
         self.config_entry = config_entry
         self.vehicle_info = vehicle_info
         self.vin = vehicle_info[VEHICLE_VIN]
@@ -115,16 +120,11 @@ class SubaruLock(LockEntity):
                 None,
                 self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
             )
-            if self.lock_status_available:
-                self._attr_is_locked = True
-                self._attr_is_locking = False
-                self.async_write_ha_state()
         except HomeAssistantError as err:
-            self._attr_is_locked = None
-            self._attr_is_locking = None
-            self.async_write_ha_state()
             raise HomeAssistantError("Failed to lock doors") from err
         finally:
+            if self.lock_status_available:
+                self._attr_is_locking = False
             self.coordinator.async_update_listeners()
 
     async def async_unlock(self, **kwargs: Any) -> None:
@@ -142,16 +142,11 @@ class SubaruLock(LockEntity):
                 UNLOCK_VALID_DOORS[UNLOCK_DOOR_ALL],
                 self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
             )
-            if self.lock_status_available:
-                self._attr_is_locked = False
-                self._attr_is_unlocking = False
-                self.async_write_ha_state()
         except HomeAssistantError as err:
-            self._attr_is_locked = None
-            self._attr_is_unlocking = None
-            self.async_write_ha_state()
             raise HomeAssistantError("Failed to unlock doors") from err
         finally:
+            if self.lock_status_available:
+                self._attr_is_unlocking = False
             self.coordinator.async_update_listeners()
 
     @property
@@ -215,14 +210,9 @@ class SubaruLock(LockEntity):
                 UNLOCK_VALID_DOORS[door],
                 self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
             )
-            if self.lock_status_available:
-                self._attr_is_locked = False
-                self._attr_is_unlocking = False
-                self.async_write_ha_state()
         except HomeAssistantError as err:
-            self._attr_is_locked = None
-            self._attr_is_unlocking = None
-            self.async_write_ha_state()
             raise HomeAssistantError("Failed to unlock doors") from err
         finally:
+            if self.lock_status_available:
+                self._attr_is_unlocking = False
             self.coordinator.async_update_listeners()

@@ -11,5 +11,5 @@
   "requirements": [
     "subarulink==0.7.21rc0"
   ],
-  "version": "0.7.23rc0"
+  "version": "0.7.23rc1"
 }

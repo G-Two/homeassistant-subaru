@@ -3,6 +3,13 @@
 from unittest.mock import patch
 
 from pytest import raises
+from subarulink.const import (
+    LOCK_BOOT_STATUS,
+    LOCK_FRONT_LEFT_STATUS,
+    LOCK_FRONT_RIGHT_STATUS,
+    LOCK_REAR_LEFT_STATUS,
+    LOCK_REAR_RIGHT_STATUS,
+)
 
 from custom_components.subaru.const import (
     ATTR_DOOR,
@@ -10,6 +17,7 @@ from custom_components.subaru.const import (
     ENTRY_COORDINATOR,
     SERVICE_UNLOCK_SPECIFIC_DOOR,
     UNLOCK_DOOR_DRIVERS,
+    VEHICLE_STATUS,
 )
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_LOCK, SERVICE_UNLOCK
@@ -133,3 +141,59 @@ async def test_extra_state_attributes_vin_absent_from_coordinator(hass, ev_entry
     lock_entity = hass.data["entity_components"][LOCK_DOMAIN].get_entity(DEVICE_ID)
     assert lock_entity is not None
     assert lock_entity.extra_state_attributes is None
+
+
+ALL_LOCK_DOORS = [
+    LOCK_BOOT_STATUS,
+    LOCK_FRONT_LEFT_STATUS,
+    LOCK_FRONT_RIGHT_STATUS,
+    LOCK_REAR_LEFT_STATUS,
+    LOCK_REAR_RIGHT_STATUS,
+]
+
+
+async def test_is_locked_all_doors_locked(hass, ev_entry):
+    """Test is_locked is True when the vehicle reports every door locked."""
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    status = coordinator.data[TEST_VIN_2_EV][VEHICLE_STATUS]
+    for door in ALL_LOCK_DOORS:
+        status[door] = "LOCKED"
+
+    lock_entity = hass.data["entity_components"][LOCK_DOMAIN].get_entity(DEVICE_ID)
+    assert lock_entity is not None
+    assert lock_entity.is_locked is True
+
+
+async def test_is_locked_one_door_unlocked(hass, ev_entry):
+    """Test is_locked is False when any single door is reported unlocked."""
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    status = coordinator.data[TEST_VIN_2_EV][VEHICLE_STATUS]
+    for door in ALL_LOCK_DOORS:
+        status[door] = "LOCKED"
+    status[LOCK_BOOT_STATUS] = "UNLOCKED"
+
+    lock_entity = hass.data["entity_components"][LOCK_DOMAIN].get_entity(DEVICE_ID)
+    assert lock_entity is not None
+    assert lock_entity.is_locked is False
+
+
+async def test_lock_state_follows_coordinator_update(hass, ev_entry):
+    """Test the lock entity re-renders its state when the coordinator updates.
+
+    Regression test: the lock entity must be wired to the coordinator so that a
+    correct lock status reported by the vehicle is reflected in Home Assistant,
+    rather than remaining stuck at its initial state.
+    """
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    status = coordinator.data[TEST_VIN_2_EV][VEHICLE_STATUS]
+    for door in ALL_LOCK_DOORS:
+        status[door] = "LOCKED"
+
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(DEVICE_ID).state == "locked"
+
+    status[LOCK_FRONT_LEFT_STATUS] = "UNLOCKED"
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+    assert hass.states.get(DEVICE_ID).state == "unlocked"
