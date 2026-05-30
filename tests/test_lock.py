@@ -7,6 +7,7 @@ from pytest import raises
 from custom_components.subaru.const import (
     ATTR_DOOR,
     DOMAIN as SUBARU_DOMAIN,
+    ENTRY_COORDINATOR,
     SERVICE_UNLOCK_SPECIFIC_DOOR,
     UNLOCK_DOOR_DRIVERS,
 )
@@ -15,6 +16,7 @@ from homeassistant.const import ATTR_ENTITY_ID, SERVICE_LOCK, SERVICE_UNLOCK
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
+from .api_responses import TEST_VIN_2_EV
 from .conftest import MOCK_API
 
 MOCK_API_FETCH = f"{MOCK_API}fetch"
@@ -111,3 +113,23 @@ async def test_unlock_specific_door_failed(hass, ev_entry):
             await hass.async_block_till_done()
         mock_unlock.assert_called_once()
         mock_fetch.assert_called_once()
+
+
+async def test_is_locked_vin_absent_from_coordinator(hass, ev_entry):
+    """Test is_locked returns None when VIN is absent from coordinator data."""
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    coordinator.data.pop(TEST_VIN_2_EV, None)
+
+    lock_entity = hass.data["entity_components"][LOCK_DOMAIN].get_entity(DEVICE_ID)
+    assert lock_entity is not None
+    assert lock_entity.is_locked is None
+
+
+async def test_extra_state_attributes_vin_absent_from_coordinator(hass, ev_entry):
+    """Test extra_state_attributes returns None when VIN is absent from coordinator data."""
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    coordinator.data.pop(TEST_VIN_2_EV, None)
+
+    lock_entity = hass.data["entity_components"][LOCK_DOMAIN].get_entity(DEVICE_ID)
+    assert lock_entity is not None
+    assert lock_entity.extra_state_attributes is None
