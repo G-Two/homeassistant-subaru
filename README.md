@@ -19,73 +19,77 @@
 ## Description
 This Home Assistant custom component retrieves vehicle information and actuates remote services provided by MySubaru Connected Services (formerly known as Subaru STARLINK) available in USA/Canada.
 
-This integration requires a telematics equipped Subaru and an active vehicle subscription to MySubaru Connected Services. Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
+This integration requires a telematics-equipped Subaru and an active vehicle subscription to MySubaru Connected Services. Before using this integration, you must first register and have login credentials to [MySubaru](https://www.mysubaru.com).
 
-Subaru has deployed three generations of telematics. Use the table below to determine which generation your vehicle is. This table is a best guess based upon what Subaru [lists as available features](https://www.subaru.com/vehicle-info/subaru-starlink/starlink-safety-and-security/compare-packages.html?model=&year=).
+Subaru has deployed four generations of telematics. The model-year ranges below are approximate, as generation transitions don't always align cleanly to a model year.
 
+> [!NOTE]
+> Subaru rebranded subscription plans in late 2025. Plans formerly known as **Safety Plus** and **Security Plus** are now **MySubaru Safety** and **MySubaru Security** on 2016–2025 (Gen 1–3) vehicles. 2026+ (Gen 4) vehicles use **MySubaru Companion** (Safety tier) and **MySubaru Companion+** (Security tier). A **Concierge** plan also exists for Gen 4; it includes the same remote vehicle features as Companion+.
 
-| Model     | Gen 1     | Gen 2     | Gen 3 |
-|-----------|-----------|-----------|-------|
-| Ascent    |    ---    | 2019-2023 | 2024+ |
-| BRZ       |    ---    | 2022-2023 |  ---  |
-| Crosstrek | 2016-2018 | 2019+     |  ---  |
-| Forester  | 2016-2018 | 2019+     |  ---  |
-| Impreza   | 2016-2018 | 2019-2022 | 2023+ |
-| Legacy    | 2016-2019 | 2020-2022 | 2023+ |
-| Outback   | 2016-2019 | 2020-2022 | 2023+ |
-| WRX       | 2017-2021 | 2022-2023 |  ---  |
+| Generation | Model Years |
+|------------|-------------|
+| Gen 1      | 2016–2018   |
+| Gen 2      | 2019–2022   |
+| Gen 3      | 2023–2025   |
+| Gen 4      | 2026+†      |
+
+† Gen 4 support is still being characterized
+
+> [!NOTE]
+> Subaru battery-electric vehicles (e.g. Solterra) use the Toyota-based SubaruConnect platform and are **not** supported by this integration. The sole exception is the 2019–2023 Crosstrek PHEV, which uses MySubaru and is supported.
 
 ### Sensors
-| Sensor                   | Gen 1   | Gen 2   | Gen 3   |
-|--------------------------|---------|---------|---------|
-| Average fuel consumption |         | &check; | &check; |
-| Distance to empty        |         | &check; | &check; |
-| EV battery level         |         | &check; | ? |
-| EV range                 |         | &check; | ? |
-| EV time to full charge   |         | &check; | ? |
-| Odometer                 | &check;*| &check; | &check; |
-| Tire pressures           |         | &check; | &check; |
+| Sensor                   | Gen 1   | Gen 2   | Gen 3   | Gen 4   |
+|--------------------------|---------|---------|---------|---------|
+| Average fuel consumption |         | &check; | &check; | &check; |
+| Distance to empty        |         | &check; | &check; | &check; |
+| EV battery level         |         | &check;*|         |         |
+| EV range                 |         | &check;*|         |         |
+| EV time to full charge   |         | &check;*|         |         |
+| Fuel level               |         |         | &check; | &check; |
+| Odometer                 | &check;†| &check; | &check; | &check; |
+| Tire pressures           |         | &check; | &check; | &check; |
 
-\* Gen 1 odometer only updates every 500 miles <br>
+\* 2019-2023 Crosstrek PHEV only <br>
+† Gen 1 odometer only updates every 500 miles <br>
 
 ### Binary Sensors
-| Binary Sensor            | Gen 1   | Gen 2   | Gen 3   |
-|--------------------------|---------|---------|---------|
-| Door/Trunk/Hood Status   |         | &check; | &check; |
-| Window Status            |         | &check;*| &check; |
-| Ignition Status          |         | &check; | &check; |
-| EV Plug/Charging Status  |         | &check;*| ? |
+| Binary Sensor            | Gen 1   | Gen 2   | Gen 3   | Gen 4   |
+|--------------------------|---------|---------|---------|---------|
+| Door/Trunk/Hood Status   |         | &check; | &check; | &check; |
+| Lock Status              |         |         | &check;†| &check; |
+| Window Status            |         |         | &check; | &check; |
+| Ignition Status          |         | &check; | &check; | &check; |
+| EV Plug/Charging Status  |         | &check;*|         |         |
 
-\* Not supported by all vehicles <br>
+\* 2019-2023 Crosstrek PHEV only <br>
+† Reported by some Gen 3 vehicles but may not be reliable <br>
 
 ### Device Tracker
-Device tracker, lock, and buttons (except refresh) all require a MySubaru Security Plus subscription:
-| Device Tracker           | Gen 1   | Gen 2   | Gen 3   |
-|--------------------------|---------|---------|---------|
-| Vehicle Location         | &check; | &check; | &check; |
+Device tracker, lock, and buttons (except refresh) all require a remote services subscription (Security Plus or MySubaru Security on Gen 1–3; MySubaru Companion+ or Concierge on Gen 4):
+| Device Tracker           | Gen 1   | Gen 2   | Gen 3   | Gen 4   |
+|--------------------------|---------|---------|---------|---------|
+| Vehicle Location         | &check; | &check; | &check; | &check; |
 
 ### Lock
-| Lock                     | Gen 1   | Gen 2   | Gen 3   |
-|--------------------------|---------|---------|---------|
-| Remote lock/unlock       | &check; | &check; | &check; |
+| Lock                     | Gen 1   | Gen 2   | Gen 3   | Gen 4   |
+|--------------------------|---------|---------|---------|---------|
+| Remote lock/unlock       | &check; | &check; | &check; | &check; |
 
 This integration supports remote locking and unlocking of vehicle doors. If doors are remotely unlocked, they will automatically relock if a door is not opened within a minute. There is no remote notification of this automatic relock.
 > [!NOTE]
-> The actual lock status is always unknown due to the fact that the Subaru API does not report this data.
+> Lock status is reported by Gen 4 vehicles and some Gen 3 vehicles, but reporting may not be reliable. On Gen 1–2 vehicles, lock status is always unknown because the Subaru API does not report this data.
 
 ### Buttons
-| Buttons                  | Gen 1   | Gen 2   | Gen 3   |
-|--------------------------|---------|---------|---------|
-| Start/Stop Horn/Lights   | &check; | &check; | &check; |
-| Poll vehicle             | &check; | &check; | &check; |
-| Refresh data             | &check; | &check; | &check; |
-| Start/Stop Horn/Lights   | &check; | &check; | &check; |
-| Start/Stop Engine        |         | &check;*| &check;*|
-| Start EV charging        |         | &check;*| ? |
+| Buttons                  | Gen 1   | Gen 2   | Gen 3   | Gen 4   |
+|--------------------------|---------|---------|---------|---------|
+| Start/Stop Horn/Lights   | &check; | &check; | &check; | &check; |
+| Poll vehicle             | &check; | &check; | &check; | &check; |
+| Refresh data             | &check; | &check; | &check; | &check; |
+| Remote Start/Stop        |         | &check; | &check; | &check; |
+| Start EV charging        |         | &check;*|         |         |
 
-\* Not supported by all vehicles <br>
-
-
+<br>\* 2019-2023 Crosstrek PHEV only <br>
 
 ## Installation
 ### HACS
@@ -124,7 +128,7 @@ Subaru integration options are set via:
 
 **Configuration** -> **Devices & Services** -> **Subaru (HACS)** -> **Configure**.
 
-All options involve remote commands, thus only apply to vehicles with Security Plus subscriptions:
+All options involve remote commands, thus only apply to vehicles with a remote services subscription (Security Plus / MySubaru Security on Gen 1–3; MySubaru Companion+ or Concierge on Gen 4):
 
 - **Enable vehicle polling:**  Sensor data reported by the Subaru API only returns what is cached on Subaru servers, and does not necessarily reflect current conditions. The cached data is updated when the engine is shutdown, or when a location update is requested. This options enables automatic periodic updates.
   - **Disable *[Default]*:** New sensor data is only received when the vehicle automatically pushes data (normally after engine shutdown). The user may still manually poll the vehicle anytime with the Locate button.

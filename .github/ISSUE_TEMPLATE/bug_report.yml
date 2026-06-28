@@ -1,0 +1,117 @@
+name: Bug Report
+description: Report a bug with the Subaru integration
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a bug report, please check the [existing issues](https://github.com/G-Two/homeassistant-subaru/issues) to avoid duplicates.
+
+        If you are having trouble with setup or configuration, please ask in the [Home Assistant Community Forum](https://community.home-assistant.io/) before opening an issue.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I have reviewed the [README](https://github.com/G-Two/homeassistant-subaru/blob/main/README.md)
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "e.g. 2024.12.0"
+    validations:
+      required: true
+
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration version
+      placeholder: "e.g. 0.7.23"
+    validations:
+      required: true
+
+  - type: input
+    id: vehicle
+    attributes:
+      label: Vehicle make, model, and year
+      placeholder: "e.g. 2020 Subaru Outback"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: subscription
+    attributes:
+      label: MySubaru subscription tier
+      description: "Current names (2026+/Gen 4): Companion / Companion+ / Concierge. Legacy names (2016–2025/Gen 1–3): Safety Plus / Security Plus, now MySubaru Safety / MySubaru Security."
+      options:
+        - "MySubaru Safety / Safety Plus (Gen 1–3, no remote services)"
+        - "MySubaru Security / Security Plus (Gen 1–3, includes remote services)"
+        - "MySubaru Companion (Gen 4, no remote services)"
+        - "MySubaru Companion+ or Concierge (Gen 4, includes remote services)"
+        - Unknown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Installation method
+      options:
+        - HACS
+        - Manual
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Download diagnostics from **Settings → Devices & Services → Subaru → your device → Download diagnostics** and paste the contents here. Redact any information you consider sensitive before posting.
+      render: json
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: |
+        Enable debug logging by adding the following to `configuration.yaml`, reproducing the issue, then paste the relevant log entries here.
+        ```yaml
+        logger:
+          logs:
+            custom_components.subaru: debug
+        ```
+      render: text

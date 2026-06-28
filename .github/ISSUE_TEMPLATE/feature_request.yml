@@ -1,0 +1,62 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a feature request, please check the [existing issues](https://github.com/G-Two/homeassistant-subaru/issues) to see if it has already been requested.
+
+        Note that this integration is limited to the data and remote commands available through the MySubaru API. Requests for data or commands not exposed by that API cannot be fulfilled here.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I understand this integration is constrained by the MySubaru API
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the feature
+      description: A clear and concise description of the feature you would like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: Explain why this feature would be useful and how you would use it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any alternative solutions or workarounds you have considered.
+
+  - type: input
+    id: vehicle
+    attributes:
+      label: Vehicle make, model, and year
+      description: If this request is vehicle-specific, include your vehicle details.
+      placeholder: "e.g. 2022 Subaru Forester"
+
+  - type: dropdown
+    id: subscription
+    attributes:
+      label: MySubaru subscription tier
+      description: "Current names (2026+/Gen 4): Companion / Companion+ / Concierge. Legacy names (2016–2025/Gen 1–3): Safety Plus / Security Plus, now MySubaru Safety / MySubaru Security."
+      options:
+        - "MySubaru Safety / Safety Plus (Gen 1–3, no remote services)"
+        - "MySubaru Security / Security Plus (Gen 1–3, includes remote services)"
+        - "MySubaru Companion (Gen 4, no remote services)"
+        - "MySubaru Companion+ or Concierge (Gen 4, includes remote services)"
+        - Not applicable
+        - Unknown
