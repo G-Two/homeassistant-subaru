@@ -7,8 +7,6 @@ body:
       value: |
         Before opening a bug report, please check the [existing issues](https://github.com/G-Two/homeassistant-subaru/issues) to avoid duplicates.
 
-        If you are having trouble with setup or configuration, please ask in the [Home Assistant Community Forum](https://community.home-assistant.io/) before opening an issue.
-
   - type: checkboxes
     id: checklist
     attributes:
@@ -108,10 +106,11 @@ body:
     attributes:
       label: Relevant log output
       description: |
-        Enable debug logging by adding the following to `configuration.yaml`, reproducing the issue, then paste the relevant log entries here.
+        Enable debug logging by adding the following to `configuration.yaml`, reproducing the issue, then paste the relevant log entries here. Redact any information you consider sensitive before posting.
         ```yaml
         logger:
           logs:
             custom_components.subaru: debug
+            subarulink: debug
         ```
       render: text
