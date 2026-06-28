@@ -532,6 +532,7 @@ async def test_reauth_flow_success(
             MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
         ) as mock_device_registered,
         patch(MOCK_API_IS_PIN_REQUIRED, return_value=False),
+        patch(ASYNC_SETUP_ENTRY, return_value=True),
     ):
         mock_device_registered.return_value = True
         result = await hass.config_entries.flow.async_configure(
@@ -656,6 +657,7 @@ async def test_reconfigure_flow_success(
             MOCK_API_DEVICE_REGISTERED, new_callable=PropertyMock
         ) as mock_device_registered,
         patch(MOCK_API_IS_PIN_REQUIRED, return_value=False),
+        patch(ASYNC_SETUP_ENTRY, return_value=True),
     ):
         mock_device_registered.return_value = True
         result = await hass.config_entries.flow.async_configure(
