@@ -199,6 +199,7 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
     async def async_unlock(self, **kwargs: Any) -> None:
         """Send the unlock command."""
         _LOGGER.debug("Unlocking doors for: %s", self.car_name)
+        self._cancel_pending_verify()
         if self.lock_status_available:
             self._attr_is_unlocking = True
             self.async_write_ha_state()
@@ -217,9 +218,9 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
             self.coordinator.async_update_listeners()
             raise HomeAssistantError("Failed to unlock doors") from err
         if self.lock_status_available:
+            self._attr_is_unlocking = False
             self._schedule_unlock_verify()
-        else:
-            self.coordinator.async_update_listeners()
+        self.coordinator.async_update_listeners()
 
     @property
     def is_locked(self) -> bool | None:
@@ -261,6 +262,7 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
     async def async_unlock_specific_door(self, door: str) -> None:
         """Send the unlock command for a specified door."""
         _LOGGER.debug("Unlocking %s door for: %s", self, self.car_name)
+        self._cancel_pending_verify()
         if self.lock_status_available:
             self._attr_is_unlocking = True
             self.async_write_ha_state()
@@ -279,6 +281,6 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
             self.coordinator.async_update_listeners()
             raise HomeAssistantError("Failed to unlock doors") from err
         if self.lock_status_available:
+            self._attr_is_unlocking = False
             self._schedule_unlock_verify()
-        else:
-            self.coordinator.async_update_listeners()
+        self.coordinator.async_update_listeners()
