@@ -12,17 +12,20 @@ from subarulink.const import (
     LOCK_LOCKED,
     LOCK_REAR_LEFT_STATUS,
     LOCK_REAR_RIGHT_STATUS,
+    LOCK_UNKNOWN,
 )
 from subarulink.controller import Controller
+from subarulink.exceptions import SubaruException
 import voluptuous as vol
 
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import SERVICE_LOCK, SERVICE_UNLOCK
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HassJob, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -45,7 +48,19 @@ from .const import (
     VEHICLE_VIN,
 )
 from .device import get_device_info
-from .remote_service import async_call_remote_service
+from .remote_service import async_call_remote_service, poll_subaru, refresh_subaru
+
+# Vehicle auto-relocks ~30s after a remote unlock if no door is opened.
+# Poll past that window to capture the final post-relock state.
+UNLOCK_VERIFY_DELAY_SEC = 45
+
+LOCK_DOORS = (
+    LOCK_BOOT_STATUS,
+    LOCK_FRONT_LEFT_STATUS,
+    LOCK_FRONT_RIGHT_STATUS,
+    LOCK_REAR_LEFT_STATUS,
+    LOCK_REAR_RIGHT_STATUS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,10 +119,54 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
         self.lock_status_available = self.vehicle_info[VEHICLE_HAS_LOCK_STATUS]
         self._attr_unique_id = f"{self.vin}_door_locks"
         self._attr_device_info = get_device_info(vehicle_info)
+        self._verify_cancel: CALLBACK_TYPE | None = None
+        self._verify_job = HassJob(
+            self._verify_lock_state,
+            name=f"subaru_lock_verify_{self.vin}",
+            cancel_on_shutdown=True,
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Register cleanup of any pending verify-poll timer."""
+        await super().async_added_to_hass()
+        self.async_on_remove(self._cancel_pending_verify)
+
+    @callback
+    def _cancel_pending_verify(self) -> None:
+        """Cancel a pending delayed verify poll, if any."""
+        if self._verify_cancel is not None:
+            self._verify_cancel()
+            self._verify_cancel = None
+
+    async def _verify_lock_state(self, _: Any = None) -> None:
+        """Force a vehicle poll to resolve the true lock state."""
+        self._verify_cancel = None
+        _LOGGER.debug("Verifying lock state for %s via vehicle poll", self.car_name)
+        try:
+            await poll_subaru(self.vehicle_info, self.controller, update_interval=0)
+            await refresh_subaru(self.vehicle_info, self.controller, refresh_interval=0)
+        except SubaruException as err:
+            _LOGGER.warning(
+                "Lock state verification poll failed for %s: %s",
+                self.car_name,
+                err.message,
+            )
+        if self.lock_status_available:
+            self._attr_is_locking = False
+            self._attr_is_unlocking = False
+        self.coordinator.async_update_listeners()
+
+    def _schedule_unlock_verify(self) -> None:
+        """Schedule a delayed poll past the auto-relock window."""
+        self._cancel_pending_verify()
+        self._verify_cancel = async_call_later(
+            self.hass, UNLOCK_VERIFY_DELAY_SEC, self._verify_job
+        )
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Send the lock command."""
         _LOGGER.debug("Locking doors for: %s", self.car_name)
+        self._cancel_pending_verify()
         if self.lock_status_available:
             self._attr_is_locking = True
             self.async_write_ha_state()
@@ -121,8 +180,18 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
                 self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
             )
         except HomeAssistantError as err:
+            if self.lock_status_available:
+                self._attr_is_locking = False
+            self.coordinator.async_update_listeners()
             raise HomeAssistantError("Failed to lock doors") from err
-        finally:
+        # is_locked reads coordinator.data[vin][VEHICLE_STATUS], which is the
+        # same dict reference as subarulink's internal cache (returned by
+        # controller.get_data and never copied). The fetch inside
+        # async_call_remote_service mutates that cache in place, so this check
+        # sees fresh post-command state without an explicit coordinator refresh.
+        if self.lock_status_available and self.is_locked is None:
+            await self._verify_lock_state()
+        else:
             if self.lock_status_available:
                 self._attr_is_locking = False
             self.coordinator.async_update_listeners()
@@ -143,33 +212,27 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
                 self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
             )
         except HomeAssistantError as err:
-            raise HomeAssistantError("Failed to unlock doors") from err
-        finally:
             if self.lock_status_available:
                 self._attr_is_unlocking = False
+            self.coordinator.async_update_listeners()
+            raise HomeAssistantError("Failed to unlock doors") from err
+        if self.lock_status_available:
+            self._schedule_unlock_verify()
+        else:
             self.coordinator.async_update_listeners()
 
     @property
     def is_locked(self) -> bool | None:
-        """Return true if all doors are locked."""
-        if self.lock_status_available:
-            if self.vin not in self.coordinator.data:
-                return None
-            for door in [
-                LOCK_BOOT_STATUS,
-                LOCK_FRONT_LEFT_STATUS,
-                LOCK_FRONT_RIGHT_STATUS,
-                LOCK_REAR_LEFT_STATUS,
-                LOCK_REAR_RIGHT_STATUS,
-            ]:
-                if (
-                    self.coordinator.data[self.vin][VEHICLE_STATUS].get(door)
-                    == LOCK_LOCKED
-                ):
-                    continue
-                return False
-            return True
-        return None
+        """Return true if all doors are locked, None if any door is unknown."""
+        if not self.lock_status_available:
+            return None
+        if self.vin not in self.coordinator.data:
+            return None
+        status = self.coordinator.data[self.vin][VEHICLE_STATUS]
+        states = [status.get(door) for door in LOCK_DOORS]
+        if any(s is None or s == LOCK_UNKNOWN for s in states):
+            return None
+        return all(s == LOCK_LOCKED for s in states)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
@@ -211,8 +274,11 @@ class SubaruLock(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]], LockE
                 self.config_entry.options.get(CONF_NOTIFICATION_OPTION),
             )
         except HomeAssistantError as err:
-            raise HomeAssistantError("Failed to unlock doors") from err
-        finally:
             if self.lock_status_available:
                 self._attr_is_unlocking = False
+            self.coordinator.async_update_listeners()
+            raise HomeAssistantError("Failed to unlock doors") from err
+        if self.lock_status_available:
+            self._schedule_unlock_verify()
+        else:
             self.coordinator.async_update_listeners()
