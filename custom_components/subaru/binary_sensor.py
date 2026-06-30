@@ -170,27 +170,27 @@ LOCK_BINARY_SENSORS = [
     BinarySensorEntityDescription(
         name="Trunk lock",
         key=sc.LOCK_BOOT_STATUS,
-        device_class=BinarySensorDeviceClass.DOOR,
+        device_class=BinarySensorDeviceClass.LOCK,
     ),
     BinarySensorEntityDescription(
         name="Front left door lock",
         key=sc.LOCK_FRONT_LEFT_STATUS,
-        device_class=BinarySensorDeviceClass.DOOR,
+        device_class=BinarySensorDeviceClass.LOCK,
     ),
     BinarySensorEntityDescription(
         name="Front right door lock",
         key=sc.LOCK_FRONT_RIGHT_STATUS,
-        device_class=BinarySensorDeviceClass.DOOR,
+        device_class=BinarySensorDeviceClass.LOCK,
     ),
     BinarySensorEntityDescription(
         name="Rear left door lock",
         key=sc.LOCK_REAR_LEFT_STATUS,
-        device_class=BinarySensorDeviceClass.DOOR,
+        device_class=BinarySensorDeviceClass.LOCK,
     ),
     BinarySensorEntityDescription(
         name="Rear right door lock",
         key=sc.LOCK_REAR_RIGHT_STATUS,
-        device_class=BinarySensorDeviceClass.DOOR,
+        device_class=BinarySensorDeviceClass.LOCK,
     ),
 ]
 
