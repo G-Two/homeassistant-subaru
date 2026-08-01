@@ -10,6 +10,7 @@ from subarulink.const import (
     LOCK_REAR_LEFT_STATUS,
     LOCK_REAR_RIGHT_STATUS,
 )
+from subarulink.exceptions import SubaruException
 
 from custom_components.subaru.const import (
     ATTR_DOOR,
@@ -19,18 +20,21 @@ from custom_components.subaru.const import (
     UNLOCK_DOOR_DRIVERS,
     VEHICLE_STATUS,
 )
+from custom_components.subaru.lock import UNLOCK_VERIFY_DELAY_SEC
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, SERVICE_LOCK, SERVICE_UNLOCK
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
-from .api_responses import TEST_VIN_2_EV
-from .conftest import MOCK_API
+from .api_responses import TEST_VIN_1_G1, TEST_VIN_2_EV, VEHICLE_DATA
+from .conftest import MOCK_API, advance_time, setup_subaru_config_entry
 
 MOCK_API_FETCH = f"{MOCK_API}fetch"
 MOCK_API_LOCK = f"{MOCK_API}lock"
 MOCK_API_UNLOCK = f"{MOCK_API}unlock"
+MOCK_API_UPDATE = f"{MOCK_API}update"
 DEVICE_ID = "lock.test_vehicle_2_door_locks"
+G1_DEVICE_ID = "lock.test_vehicle_1_door_locks"
 
 
 async def test_device_exists(hass, entity_registry: er.EntityRegistry, ev_entry):
@@ -175,6 +179,228 @@ async def test_is_locked_one_door_unlocked(hass, ev_entry):
     lock_entity = hass.data["entity_components"][LOCK_DOMAIN].get_entity(DEVICE_ID)
     assert lock_entity is not None
     assert lock_entity.is_locked is False
+
+
+async def test_is_locked_any_door_unknown(hass, ev_entry):
+    """Test is_locked returns None when any door reports UNKNOWN."""
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    status = coordinator.data[TEST_VIN_2_EV][VEHICLE_STATUS]
+    for door in ALL_LOCK_DOORS:
+        status[door] = "LOCKED"
+    status[LOCK_BOOT_STATUS] = "UNKNOWN"
+
+    lock_entity = hass.data["entity_components"][LOCK_DOMAIN].get_entity(DEVICE_ID)
+    assert lock_entity is not None
+    assert lock_entity.is_locked is None
+
+
+async def test_lock_polls_vehicle_when_state_unknown(hass, ev_entry):
+    """Test that the lock command issues a vehicle poll when state is still unknown after refresh."""
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    status = coordinator.data[TEST_VIN_2_EV][VEHICLE_STATUS]
+    for door in ALL_LOCK_DOORS:
+        status[door] = "UNKNOWN"
+
+    with (
+        patch(MOCK_API_LOCK) as mock_lock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        await hass.services.async_call(
+            LOCK_DOMAIN, SERVICE_LOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+        mock_lock.assert_called_once()
+        mock_update.assert_called_once()
+        assert mock_fetch.call_count == 2
+
+
+async def test_lock_does_not_poll_when_state_known(hass, ev_entry):
+    """Test that the lock command does not extra-poll when the state is already known."""
+    coordinator = hass.data[SUBARU_DOMAIN][ev_entry.entry_id][ENTRY_COORDINATOR]
+    status = coordinator.data[TEST_VIN_2_EV][VEHICLE_STATUS]
+    for door in ALL_LOCK_DOORS:
+        status[door] = "LOCKED"
+
+    with (
+        patch(MOCK_API_LOCK) as mock_lock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        await hass.services.async_call(
+            LOCK_DOMAIN, SERVICE_LOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+        mock_lock.assert_called_once()
+        mock_fetch.assert_called_once()
+        mock_update.assert_not_called()
+
+
+async def test_unlock_schedules_delayed_verify_poll(hass, ev_entry):
+    """Test that unlock schedules a delayed poll past the auto-relock window."""
+    with (
+        patch(MOCK_API_UNLOCK) as mock_unlock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        await hass.services.async_call(
+            LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+        mock_unlock.assert_called_once()
+        # Immediate post-command refresh only; no extra poll yet
+        mock_fetch.assert_called_once()
+        mock_update.assert_not_called()
+
+        # After the auto-relock window, the scheduled verify poll fires
+        advance_time(hass, UNLOCK_VERIFY_DELAY_SEC)
+        await hass.async_block_till_done()
+        mock_update.assert_called_once()
+        assert mock_fetch.call_count == 2
+
+
+async def test_unlock_specific_door_schedules_delayed_verify_poll(hass, ev_entry):
+    """Test that unlock_specific_door also schedules the delayed verify poll."""
+    with (
+        patch(MOCK_API_UNLOCK) as mock_unlock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        await hass.services.async_call(
+            SUBARU_DOMAIN,
+            SERVICE_UNLOCK_SPECIFIC_DOOR,
+            {ATTR_ENTITY_ID: DEVICE_ID, ATTR_DOOR: UNLOCK_DOOR_DRIVERS},
+            blocking=True,
+        )
+        await hass.async_block_till_done()
+        mock_unlock.assert_called_once()
+        mock_update.assert_not_called()
+
+        advance_time(hass, UNLOCK_VERIFY_DELAY_SEC)
+        await hass.async_block_till_done()
+        mock_update.assert_called_once()
+        assert mock_fetch.call_count == 2
+
+
+async def test_unlock_failure_does_not_schedule_verify_poll(hass, ev_entry):
+    """Test that a failed unlock command does not schedule a verify poll."""
+    with (
+        patch(MOCK_API_UNLOCK, return_value=False),
+        patch(MOCK_API_FETCH),
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        with raises(HomeAssistantError):
+            await hass.services.async_call(
+                LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+            )
+            await hass.async_block_till_done()
+
+        advance_time(hass, UNLOCK_VERIFY_DELAY_SEC)
+        await hass.async_block_till_done()
+        mock_update.assert_not_called()
+
+
+async def test_verify_poll_handles_subaru_exception(hass, ev_entry, caplog):
+    """Test that a SubaruException during the verify poll is caught and logged."""
+    with (
+        patch(MOCK_API_UNLOCK),
+        patch(MOCK_API_FETCH),
+        patch(MOCK_API_UPDATE, side_effect=SubaruException("poll failed")),
+    ):
+        await hass.services.async_call(
+            LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+
+        advance_time(hass, UNLOCK_VERIFY_DELAY_SEC)
+        await hass.async_block_till_done()
+
+    assert "Lock state verification poll failed" in caplog.text
+    assert "poll failed" in caplog.text
+
+
+async def test_unlock_without_lock_status_notifies_listeners(
+    hass, subaru_config_entry, enable_custom_integrations
+):
+    """Test unlock on a vehicle without lock status reporting notifies listeners without scheduling a verify poll."""
+    await setup_subaru_config_entry(
+        hass,
+        subaru_config_entry,
+        vehicle_list=[TEST_VIN_1_G1],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_1_G1],
+    )
+    with (
+        patch(MOCK_API_UNLOCK) as mock_unlock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        await hass.services.async_call(
+            LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: G1_DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+        mock_unlock.assert_called_once()
+        # Single refresh from the command itself; no verify scheduled
+        mock_fetch.assert_called_once()
+
+        advance_time(hass, UNLOCK_VERIFY_DELAY_SEC)
+        await hass.async_block_till_done()
+        mock_update.assert_not_called()
+        assert mock_fetch.call_count == 1
+
+
+async def test_unlock_specific_door_without_lock_status_notifies_listeners(
+    hass, subaru_config_entry, enable_custom_integrations
+):
+    """Test unlock_specific_door on a vehicle without lock status reporting notifies listeners without scheduling a verify poll."""
+    await setup_subaru_config_entry(
+        hass,
+        subaru_config_entry,
+        vehicle_list=[TEST_VIN_1_G1],
+        vehicle_data=VEHICLE_DATA[TEST_VIN_1_G1],
+    )
+    with (
+        patch(MOCK_API_UNLOCK) as mock_unlock,
+        patch(MOCK_API_FETCH) as mock_fetch,
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        await hass.services.async_call(
+            SUBARU_DOMAIN,
+            SERVICE_UNLOCK_SPECIFIC_DOOR,
+            {ATTR_ENTITY_ID: G1_DEVICE_ID, ATTR_DOOR: UNLOCK_DOOR_DRIVERS},
+            blocking=True,
+        )
+        await hass.async_block_till_done()
+        mock_unlock.assert_called_once()
+        mock_fetch.assert_called_once()
+
+        advance_time(hass, UNLOCK_VERIFY_DELAY_SEC)
+        await hass.async_block_till_done()
+        mock_update.assert_not_called()
+        assert mock_fetch.call_count == 1
+
+
+async def test_repeated_unlock_replaces_pending_verify_poll(hass, ev_entry):
+    """Test that issuing another unlock cancels the prior pending verify poll."""
+    with (
+        patch(MOCK_API_UNLOCK),
+        patch(MOCK_API_FETCH),
+        patch(MOCK_API_UPDATE) as mock_update,
+    ):
+        await hass.services.async_call(
+            LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+
+        # Re-issue the unlock before the first scheduled verify fires
+        await hass.services.async_call(
+            LOCK_DOMAIN, SERVICE_UNLOCK, {ATTR_ENTITY_ID: DEVICE_ID}, blocking=True
+        )
+        await hass.async_block_till_done()
+
+        advance_time(hass, UNLOCK_VERIFY_DELAY_SEC)
+        await hass.async_block_till_done()
+        # Only one verify poll should have fired (from the second unlock)
+        mock_update.assert_called_once()
 
 
 async def test_lock_state_follows_coordinator_update(hass, ev_entry):

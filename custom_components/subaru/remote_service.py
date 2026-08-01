@@ -109,7 +109,7 @@ async def poll_subaru(vehicle, controller, update_interval=UPDATE_INTERVAL):
     last_update = vehicle[VEHICLE_LAST_UPDATE]
     success = False
 
-    if (cur_time - last_update) > update_interval:
+    if (cur_time - last_update) >= update_interval:
         success = await controller.update(vehicle[VEHICLE_VIN], force=True)
         vehicle[VEHICLE_LAST_UPDATE] = cur_time
 
@@ -125,7 +125,7 @@ async def refresh_subaru(
     vin = vehicle[VEHICLE_VIN]
     success = False
 
-    if (cur_time - last_fetch) > refresh_interval:
+    if (cur_time - last_fetch) >= refresh_interval:
         success = await controller.fetch(vin, force=True)
         vehicle[VEHICLE_LAST_FETCH] = cur_time
 
