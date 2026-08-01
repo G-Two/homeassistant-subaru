@@ -51,6 +51,7 @@ BINARY_SENSOR_ICONS = {
         False: "mdi:window-closed",
     },
     BinarySensorDeviceClass.PROBLEM: {True: "mdi:alert", False: "mdi:check"},
+    BinarySensorDeviceClass.LOCK: {True: "mdi:lock-open", False: "mdi:lock"},
 }
 
 ON_VALUES = {
@@ -67,7 +68,7 @@ ON_VALUES = {
     BinarySensorDeviceClass.PLUG: [sc.LOCKED_CONNECTED, sc.UNLOCKED_CONNECTED],
     BinarySensorDeviceClass.BATTERY_CHARGING: [sc.CHARGING],
     BinarySensorDeviceClass.PROBLEM: [True],
-    BinarySensorDeviceClass.LOCK: [sc.LOCK_LOCKED],
+    BinarySensorDeviceClass.LOCK: [sc.LOCK_UNLOCKED],
 }
 
 TROUBLE_BINARY_SENSOR = [
