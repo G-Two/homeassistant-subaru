@@ -42,8 +42,9 @@ async def test_device_diagnostics(hass: HomeAssistant, hass_client, ev_entry):
     config_entry = hass.config_entries.async_entries(DOMAIN)[0]
 
     device_registry = dr.async_get(hass)
-    reg_device = device_registry.async_get_device(
-        identifiers={(DOMAIN, TEST_VIN_2_EV)},
+    reg_device = device_registry.async_get_device_by_identifier(
+        (DOMAIN, TEST_VIN_2_EV),
+        config_entry.entry_id,
     )
     assert reg_device is not None
 
@@ -64,8 +65,9 @@ async def test_device_diagnostics_vehicle_not_found(
     config_entry = hass.config_entries.async_entries(DOMAIN)[0]
 
     device_registry = dr.async_get(hass)
-    reg_device = device_registry.async_get_device(
-        identifiers={(DOMAIN, TEST_VIN_2_EV)},
+    reg_device = device_registry.async_get_device_by_identifier(
+        (DOMAIN, TEST_VIN_2_EV),
+        config_entry.entry_id,
     )
     assert reg_device is not None
 
